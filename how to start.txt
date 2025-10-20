@@ -2,5 +2,5 @@ cd googleFrame
 .venv\Scripts\Activate.ps1
 
 ##Then you can start 
-cd for amp Only
+cd ../forAmpOnly
 adk web

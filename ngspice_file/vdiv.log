@@ -1,0 +1,20 @@
+
+Note: No compatibility mode selected!
+
+
+Circuit: voltage divider netlist
+
+ASCII raw file "D:\1kulStudy\8MA_Thesis\workplace\ngspice_file\vdiv.out"
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+Total analysis time (seconds) = 0.0024035
+
+Total elapsed time (seconds) = 0.139 
+
+Total DRAM available = 15741.305 MB.
+DRAM currently available = 9407.160 MB.
+Maximum ngspice program size =   14.547 MB.
+Current ngspice program size =   14.543 MB.
+
