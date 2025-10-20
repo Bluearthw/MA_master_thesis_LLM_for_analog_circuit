@@ -12,9 +12,9 @@ DC_simulate_agent = LlmAgent(
     
     Based on the previous OPAMP information:{opamp_info}
 
-    1. Choose DC voltage sources 
+    1. Choose DC voltage input to apply to the ports except output ports, not current input
     2. Tell what are the possible voltages at input and output ports. 
-        And use it for the DC gain calculation as an initial value.
+        And choose use 1 as an initial value for each input port for the DC gain calculation.
     3. Tell the DC opearting points. If there are more than 5 nodes, choose the most important 5 nodes. 
         
     4. Tell the DC gain. You can assume initial values.
