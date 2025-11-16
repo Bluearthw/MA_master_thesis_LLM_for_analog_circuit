@@ -18,7 +18,7 @@ session_service = DatabaseSessionService(db_url=db_url)
 # This will only be used when creating a new session
 initial_state = {
     "user_name": "wzy",
-    "reminders": [],# init an empty one. add reminders here. If it is done, removed
+    "models": [],# init an empty one. add .models here. If it is done, removed
 }
 
 
@@ -59,7 +59,7 @@ async def main_async():
 
     # ===== PART 5: Interactive Conversation Loop =====
     print("\nWelcome to Memory Agent Chat!")
-    print("Your reminders will be remembered across conversations.")
+    print("Your models will be remembered across conversations.")
     print("Type 'exit' or 'quit' to end the conversation.\n")
 
     while True:

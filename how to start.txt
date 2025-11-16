@@ -1,6 +1,12 @@
-cd googleFrame
-.venv\Scripts\Activate.ps1
+venv\Scripts\Activate.ps1
 
 ##Then you can start 
-cd ../forAmpOnly
+cd .\forAmpOnly\
 adk web
+
+cd ../testNGspiceWithPython/ 
+python .\Pyspice_example.py
+
+some pyspice ddl problem
+pyspice-post-installation --install-ngspice-dll
+pyspice-post-installation --check-install
