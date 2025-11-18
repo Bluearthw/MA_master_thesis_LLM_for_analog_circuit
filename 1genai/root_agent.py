@@ -4,16 +4,17 @@ import os
 import utils
 from pydantic import BaseModel, Field
 
-
+model_used = "gemini-2.0-flash"
+model_used_25 = "gemini-2.5-flash"
 cir_path = "1genai/data/6/6.cir"
 circuit_string = utils.get_file_to_str(
-    cir_path, "**== cir file:==**\n", '.include "1genai/data/45nm.sp" \n'
+    cir_path, "**== imcomplete cir file:\n", '.include "1genai/data/45nm.sp" \n'
 )
 # print(circuit_string)
 
 
 md_path = "1genai/data/6/edited_explanation.md"
-md_string = utils.get_file_to_str(md_path, "**==circuit explanation:==**\n")
+md_string = utils.get_file_to_str(md_path, "**==circuit explanation:\n")
 
 contents = [
     types.Content(role="user", parts=[types.Part(text=circuit_string + md_string)])
@@ -21,7 +22,7 @@ contents = [
 
 client = utils.get_client()
 response = client.models.generate_content(
-    model="gemini-2.0-flash",
+    model=model_used,
     config=types.GenerateContentConfig(
         thinking_config=types.ThinkingConfig(thinking_budget=0),  # disable thinking
         system_instruction="""
@@ -54,7 +55,7 @@ response = client.models.generate_content(
 # )
 
 example_cir_path = "./1genai/data/TwoStage.cir"
-example_cir = utils.get_file_to_str(example_cir_path, "**==example circuit==**")
+example_cir = utils.get_file_to_str(example_cir_path, "**==example circuit:\n")
 
 
 contents.append(response.candidates[0].content)
@@ -70,17 +71,19 @@ contents.append(types.Content(role="user", parts=[types.Part(text=example_cir)])
 #     simulation: str = Field(..., description="simulation and end")
 
 # modify the cir
+"""======
+Explicitly tell the model not to use the standard names it defaults to, and strictly enforce the custom format.CRITICAL RULE: For transistors, use model names 'nmos' and 'pmos'. For all other components, DO NOT use the names 'resistor' or 'capacitor'. Instead
+======
+"""
 config = types.GenerateContentConfig(
     thinking_config=types.ThinkingConfig(thinking_budget=0),  # disable thinking
     system_instruction="""
             You are an experienced Analog OPAMP Design engineer. 
             You are given an imcomplete Spice circuit , an exapmle circuit and some understanding about the circuit.
             You should first format the netlist and add DC and AC source by learning the example circuit.
-            Then, transistor should use model like 'nmos' and 'pmos' due to the library.
-            For resistors and capacitors, the name starts with letter 'c' is capacitor like cc. 
-            So, rc is resistor. No model is needed. So there is only connections and value.
-            To apply the value, use {}. The example format is : cc net1 net2 {cap_cc_value}.
-            cap_cc_value should be defined above. 
+            Do not change the path of .include.
+            Then, transistors should use model like 'nmos' and 'pmos' due to the library. For all other components, DO NOT use the names 'resistor' or 'capacitor'. 
+            For resistors and capacitors, models are not needed. The name starts with letter 'c' is capacitor like cc. rc is resistor. To apply the value, use {}. 
             Comments should have an independant line and are as little as possible.
             Format your response as a well-structured report section with:
             1 The Spice netlist with adding ground and DC source and AC source for AC simulation
@@ -96,7 +99,7 @@ config = types.GenerateContentConfig(
 
 client = utils.get_client()
 modify_circuit_response = client.models.generate_content(
-    model="gemini-2.0-flash",
+    model=model_used,
     config=config,
     contents=contents,
 )
