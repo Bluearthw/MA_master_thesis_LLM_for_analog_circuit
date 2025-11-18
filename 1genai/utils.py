@@ -12,3 +12,7 @@ def get_file_to_str(path, str, str2=""):
             return circuit_string
     except FileNotFoundError:    
         print(f"Error: no files at: {path}")
+
+def check_file_and_overwrite(path, msg):
+    with open(f"{path}", "w") as f:
+        f.write(f"{msg}")

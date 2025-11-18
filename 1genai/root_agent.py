@@ -1,29 +1,29 @@
 from google import genai
 from google.genai import types
 import os
-from utils import get_file_to_str, get_client
+import utils
 from pydantic import BaseModel, Field
 
 
 cir_path = "1genai/data/6/6.cir"
-circuit_string = get_file_to_str(cir_path, "**== cir file:==**\n", '.include "1genai/data/45nm.sp" \n')
+circuit_string = utils.get_file_to_str(
+    cir_path, "**== cir file:==**\n", '.include "1genai/data/45nm.sp" \n'
+)
 # print(circuit_string)
 
 
 md_path = "1genai/data/6/edited_explanation.md"
-md_string = get_file_to_str(md_path, "**==circuit explanation:==**\n")
+md_string = utils.get_file_to_str(md_path, "**==circuit explanation:==**\n")
 
 contents = [
-    types.Content(
-        role="user", parts=[types.Part(text=circuit_string + md_string)]
-    )
+    types.Content(role="user", parts=[types.Part(text=circuit_string + md_string)])
 ]
 
-client = get_client()
+client = utils.get_client()
 response = client.models.generate_content(
     model="gemini-2.0-flash",
     config=types.GenerateContentConfig(
-        thinking_config = types.ThinkingConfig(thinking_budget=0), #disable thinking
+        thinking_config=types.ThinkingConfig(thinking_budget=0),  # disable thinking
         system_instruction="""
             You are a helpful Analog OPAMP Design Information Agent. 
             You know DC amplifier and AC amplifier.
@@ -40,7 +40,7 @@ response = client.models.generate_content(
         """,
         temperature=0,
     ),
-    contents = contents
+    contents=contents,
 )
 
 # print(response.text)
@@ -48,65 +48,94 @@ response = client.models.generate_content(
 
 # contents.append(
 #     types.Content(
-#         role="user", 
+#         role="user",
 #         parts=[types.Part(text=response.candidates[0].content.parts[0].text)]
 #     )
 # )
 
-example_cir_path = "1genai/data/TwoStage.cir"
-example_cir = get_file_to_str(example_cir_path,"**==example circuit==**")
+example_cir_path = "./1genai/data/TwoStage.cir"
+example_cir = utils.get_file_to_str(example_cir_path, "**==example circuit==**")
 
 
 contents.append(response.candidates[0].content)
-contents.append(types.Content(role="user" ,parts = [types.Part(text=example_cir)]) )
-#=======================#
-#========2nd agent==========#
-#=======================#
-print("==contents\n\n",contents)
+contents.append(types.Content(role="user", parts=[types.Part(text=example_cir)]))
+# =======================#
+# ========2nd agent==========#
+# =======================#
+# print("==contents\n\n",contents)
 
-class Circuit_parts(BaseModel):
-    params: str = Field(..., description="param and include part")
-    cir: str = Field(..., description="circuit description")
-    simulation: str = Field(..., description="simulation and end")
+# class Circuit_parts(BaseModel):
+#     params: str = Field(..., description="param and include part")
+#     cir: str = Field(..., description="circuit description")
+#     simulation: str = Field(..., description="simulation and end")
+
 # modify the cir
-config =types.GenerateContentConfig(
-        thinking_config = types.ThinkingConfig(thinking_budget=0), #disable thinking
-        system_instruction="""
+config = types.GenerateContentConfig(
+    thinking_config=types.ThinkingConfig(thinking_budget=0),  # disable thinking
+    system_instruction="""
             You are an experienced Analog OPAMP Design engineer. 
             
             You are given an imcomplete Spice circuit , an exapmle circuit and some understanding.
             You should first complete the incomplete circuit by learning the example circuit.
-            The transistor should use model like 'nmos' and 'pmos' due to the library.
-            For resistor and capacitor, the name starts with c is capacitor like cc. o rc is the resistor with the Cap. No model is needed.
-            Add AC simulation and save the results.
+            Then, transistor should use model like 'nmos' and 'pmos' due to the library.
+            For resistors and capacitors, the name starts with c is capacitor like cc. 
+            So, rc is resistor. To apply the value, use {}. The example form is : cc net1 net2 {cap} 
             Comments should have an independant line and are as little as possible.
-            Make sure the include uses \\ since \4 will be recognized as %. 
             Format your response as a well-structured report section with:
             1 The Spice netlist with adding ground and DC source and AC source for AC simulation
            
                      
         """,
-         # 2 Why you choose these voltage
-            # 3 if you could not response, tell me what you need and what's wrong
-        max_output_tokens=20_000,
-        temperature=0,
-    )
+    # 2 Why you choose these voltage
+    # 3 if you could not response, tell me what you need and what's wrong
+    max_output_tokens=20_000,
+    temperature=0,
+)
 
 
-client = get_client()
+client = utils.get_client()
 modify_circuit_response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-2.0-flash",
     config=config,
     contents=contents,
 )
-print("==modify circuit response\n\n",modify_circuit_response.text)
-#=======================#
-#========3rd agent==========#
-#=======================# You should also add AC simulation for later simulation usage to the cir file. You should add DC source to the netlist. 
-# client = get_client()
-# addDC_response = client.models.generate_content(
-#     model="gemini-2.5-flash",
-#     config=config,
-#     contents=contents,
-# )
-# print("==add source response\n\n",modify_circuit_response.text)
+print("==modify circuit response\n\n", modify_circuit_response.text)
+utils.check_file_and_overwrite(
+    "./1genai/cir_response.cir", modify_circuit_response.text
+)
+# =======================#
+# ========3rd agent==========#
+# =======================#
+# You should also add AC simulation for later simulation usage to the cir file. You should add DC source to the netlist.
+contents = [response.candidates[0].content]
+contents.append(types.Content(role="user", parts=[types.Part(text=example_cir)]))
+contents.append(types.Content(role="user", parts=[types.Part(text=md_string)]))
+config = types.GenerateContentConfig(
+    thinking_config=types.ThinkingConfig(thinking_budget=0),  # disable thinking
+    system_instruction="""
+            You are an experienced Analog OPAMP Design engineer. 
+            
+            You are given an imcomplete Spice circuit , an exapmle circuit and some understanding about the circuit.
+            You should first complete the incomplete circuit by learning the example circuit.
+            The transistor should use model like 'nmos' and 'pmos' due to the library.
+            For resistors and capacitors, the name starts with c is capacitor like cc. 
+            Comments should have an independant line and are as little as possible.
+            Make sure that '.include' uses / instead of \ since \4 will be recognized as %. 
+            Format your response as a well-structured report section with:
+            1 The Spice netlist with adding ground and DC source and AC source for AC simulation
+           
+                     
+        """,
+    # 2 Why you choose these voltage
+    # 3 if you could not response, tell me what you need and what's wrong
+    max_output_tokens=20_000,
+    temperature=0,
+)
+client = utils.get_client()
+
+add_simulation_response = client.models.generate_content(
+    model="gemini-2.0-flash",
+    config=config,
+    contents=contents,
+)
+print("==add source response\n\n", add_simulation_response.text)

@@ -1,0 +1,46 @@
+```spice
+* Diode-Connected NMOS with RC Load
+
+.include "1genai/data/45nm.sp"
+
+* Parameters
+.param resistor_value=1k
+.param capacitor_value=1p
+.param vdd_value=1.2
+
+* Circuit Description
+M0 (VOUT1 VDD VOUT1 VSS) nmos w=500n l=45n 
+RC (VOUT1 VSS) resistor {resistor_value}
+CC (VOUT1 VSS) capacitor {capacitor_value}
+
+* DC Source
+VDD VDD 0 dc={vdd_value}
+VSS VSS 0 dc=0
+
+* AC Source for AC Simulation
+VAC VDD VDD_AC ac 1
+
+* Simulation Commands
+.op 
+
+.ac dec 10 1 10G
+
+.control
+run
+* Print DC operating point information
+print dc V(VOUT1) ID(M0)
+
+* AC analysis
+ac dec 10 1 10Meg
+plot db(v(VOUT1))
+print ac v(VOUT1)
+
+* Save data
+wrdata Diode_NMOS_DC.txt V(VOUT1) ID(M0)
+wrdata Diode_NMOS_AC.txt v(VOUT1)
+
+quit
+.endc
+
+.end
+```
