@@ -1,32 +1,45 @@
 ```spice
-* Diode-Connected NMOS Stage with AC and DC Sources
+* Diode-Connected NMOS Stage
 
-.include "1genai/data/45nm.sp"
+.include "./1genai/data/45nm.sp"
 
 * Parameters
 .param VDD=1.2
 .param VSS=0
+.param RVAL=1k
+.param CVAL=1p
+
+* Circuit Description
+M0 (VDD VDD VOUT1 VSS) nmos w=0.5u l=90n m=1
+rc (VOUT1 VSS) {RVAL}
+cc (VOUT1 VSS) {CVAL}
 
 * DC Source
-Vdd VDD 0 dc={VDD}
+vdd VDD 0 dc={VDD}
+vss VSS 0 dc={VSS}
 
 * AC Source for AC Analysis
-Vac VOUT1 0 ac=1
+vin VDD 0 ac=1
 
-* Components
-M0 (VDD VDD VOUT1 VSS) nmos w=500n l=90n
-rc (VOUT1 VSS) r=1k
-cc (VOUT1 VSS) c=1p
+* Analysis Commands
+.control
+run
 
-* DC Analysis
-.op
+* DC Operating Point Analysis
+op
 
 * AC Analysis
-.ac dec 10 100 10G
+ac dec 10 1 100Meg
 
-* Print AC output voltage
-.print ac vdb(VOUT1) vp(VOUT1)
+* Print and Save Results
+print dc v(VOUT1) i(vdd)
+print ac vdb(VOUT1) vp(VOUT1)
 
-* End
+wrdata ./no_backup/output_files/diode_dc.csv v(VOUT1) i(vdd)
+wrdata ./no_backup/output_files/diode_ac.csv vdb(VOUT1) vp(VOUT1)
+
+quit
+.endc
+
 .end
 ```

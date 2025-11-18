@@ -14,54 +14,31 @@ ngspice = NgSpiceShared.new_instance()
 # print(ngspice.exec_command('devhelp resistor'))
 
 circuit = '''
-.include "./1genai/data/45nm.sp" 
+.include "./1genai/data/45nm.sp"
 
-* Global parameters
-.param VDD_VAL=1.2
-.param VSS_VAL=0
-.param R0_VAL=10k
-.param C0_VAL=10p
-.param AC_MAG=1
+* Parameters
+.param VDD=1.2
+.param VSS=0
 
-* DC sources
-VDD VDD 0 dc={VDD_VAL}
-VSS VSS 0 dc={VSS_VAL}
+* DC Source
+Vdd VDD 0 dc={VDD}
 
-* AC source for AC simulation
-VAC_VDD VDD_AC VSS_AC ac={AC_MAG}
+* AC Source for AC Analysis
+Vac VOUT1 0 ac=1
 
-* Circuit definition
-* M0 (Drain Gate Source Bulk) nmos4
-M0 VDD VDD VOUT1 VSS nmos4 w=1u l=90n
-
-* R0 (net1 net2) resistor
-R0 VOUT1 VSS resistor r={R0_VAL}
-
-* C0 (net1 net2) capacitor
-C0 VOUT1 VSS capacitor c={C0_VAL}
+* Components
+M0 VDD VDD VOUT1 VSS nmos w=500n l=45n
+rc VOUT1 VSS 1k
+cc VOUT1 VSS 1p
 
 .control
-* DC operating point analysis
-op
-
-* AC analysis to find output impedance (Zout)
-* We apply an AC source to VDD and measure VOUT1.
-* The output impedance is effectively the transfer function from VDD_AC to VOUT1,
-* but since the input is tied to VDD, we are looking at the supply rejection.
-* To measure Zout, we would typically inject a current at VOUT1 and measure voltage,
-* or apply a voltage at VOUT1 and measure current.
-* For this specific circuit, given the input is tied to VDD,
-* we will simulate the transfer function from VDD to VOUT1 for AC analysis.
-* If Zout is strictly required, an additional AC current source at VOUT1 would be needed.
-* For now, we will simulate the AC response of VOUT1 to VDD variations.
-ac dec 10 1 1G
-print v(VOUT1)
-*wrdata ac_vout1.txt v(VOUT1)
-
-quit
+op      * Run Operating Point first
+tran 0.1s 10s   * Then run Transient
+ac dec 10 1k 100k * Finally run AC analysis
 .endc
-
 .end
+
+
 '''
 
 ngspice.load_circuit(circuit)
@@ -83,7 +60,7 @@ plot = ngspice.plot(simulation=None, plot_name=ngspice.last_plot)
 # ngspice.quit()
 
 # print("\ntest")
-# print('plot?\n',plot)
+print('plot?\n',plot)
 # print(plot['in'])
 """ this works
 data = np.array(plot['V(6)'].to_waveform())
@@ -91,10 +68,10 @@ time = np.array(plot['time'].to_waveform())
 data = plot['V(6)']._data
 time = plot['time']._data
 """
-data = plot['V(6)']._data
-time = plot['time']._data
-print(data)
-print(time)
+# data = plot['V(6)']._data
+# time = plot['time']._data
+# print(data)
+# print(time)
 # print("test\n")
 # --- Your Existing Code (Results) ---
 # plot = ngspice.plot(simulation=None, plot_name=ngspice.last_plot)
