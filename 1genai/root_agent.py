@@ -80,8 +80,8 @@ config = types.GenerateContentConfig(
     system_instruction="""
             You are an experienced Analog OPAMP Design engineer. 
             You are given an imcomplete Spice circuit , an exapmle circuit and some understanding about the circuit.
-            You should first format the netlist and add DC and AC source by learning the format of example circuit.
-            Do not change the path of '.include'.
+            You should first format the incomplete circuit and add DC and AC source by learning the format of example circuit.
+            Do not change the path of '.include'. Do not use () to surround the component nodes.
             Then, transistors should use model like 'nmos' and 'pmos' due to the library. For all other components, DO NOT use the names 'resistor' or 'capacitor'. 
             For resistors and capacitors, models are not needed. The name starts with letter 'c' is capacitor like cc. rc is resistor. To apply the value, use {}. 
             Comments should have an independant line and are as little as possible.

@@ -14,31 +14,25 @@ ngspice = NgSpiceShared.new_instance()
 # print(ngspice.exec_command('devhelp resistor'))
 
 circuit = '''
+
 .include "./1genai/data/45nm.sp"
 
 * Parameters
 .param VDD=1.2
 .param VSS=0
+.param RVAL=1k
+.param CVAL=1p
 
-* DC Source
+* DC and AC Sources
 Vdd VDD 0 dc={VDD}
+Vss VSS 0 dc={VSS}
+Vin VOUT1 0 dc={VDD} ac=1
 
-* AC Source for AC Analysis
-Vac VOUT1 0 ac=1
-
-* Components
-M0 VDD VDD VOUT1 VSS nmos w=500n l=45n
-rc VOUT1 VSS 1k
-cc VOUT1 VSS 1p
-
-.control
-op      * Run Operating Point first
-tran 0.1s 10s   * Then run Transient
-ac dec 10 1k 100k * Finally run AC analysis
-.endc
+* Circuit Components
+M0 (VDD VDD VOUT1 VSS) nmos w=5u l=500n m=10
+Rc (VOUT1 VSS) r={RVAL}
+Cc (VOUT1 VSS) c={CVAL}
 .end
-
-
 '''
 
 ngspice.load_circuit(circuit)
