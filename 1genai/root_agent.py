@@ -74,12 +74,13 @@ config = types.GenerateContentConfig(
     thinking_config=types.ThinkingConfig(thinking_budget=0),  # disable thinking
     system_instruction="""
             You are an experienced Analog OPAMP Design engineer. 
-            
-            You are given an imcomplete Spice circuit , an exapmle circuit and some understanding.
-            You should first complete the incomplete circuit by learning the example circuit.
+            You are given an imcomplete Spice circuit , an exapmle circuit and some understanding about the circuit.
+            You should first format the netlist and add DC and AC source by learning the example circuit.
             Then, transistor should use model like 'nmos' and 'pmos' due to the library.
-            For resistors and capacitors, the name starts with c is capacitor like cc. 
-            So, rc is resistor. To apply the value, use {}. The example form is : cc net1 net2 {cap} 
+            For resistors and capacitors, the name starts with letter 'c' is capacitor like cc. 
+            So, rc is resistor. No model is needed. So there is only connections and value.
+            To apply the value, use {}. The example format is : cc net1 net2 {cap_cc_value}.
+            cap_cc_value should be defined above. 
             Comments should have an independant line and are as little as possible.
             Format your response as a well-structured report section with:
             1 The Spice netlist with adding ground and DC source and AC source for AC simulation
@@ -107,35 +108,35 @@ utils.check_file_and_overwrite(
 # ========3rd agent==========#
 # =======================#
 # You should also add AC simulation for later simulation usage to the cir file. You should add DC source to the netlist.
-contents = [response.candidates[0].content]
-contents.append(types.Content(role="user", parts=[types.Part(text=example_cir)]))
-contents.append(types.Content(role="user", parts=[types.Part(text=md_string)]))
-config = types.GenerateContentConfig(
-    thinking_config=types.ThinkingConfig(thinking_budget=0),  # disable thinking
-    system_instruction="""
-            You are an experienced Analog OPAMP Design engineer. 
+# contents = [response.candidates[0].content]
+# contents.append(types.Content(role="user", parts=[types.Part(text=example_cir)]))
+# contents.append(types.Content(role="user", parts=[types.Part(text=md_string)]))
+# config = types.GenerateContentConfig(
+#     thinking_config=types.ThinkingConfig(thinking_budget=0),  # disable thinking
+#     system_instruction="""
+#             You are an experienced Analog OPAMP Design engineer. 
             
-            You are given an imcomplete Spice circuit , an exapmle circuit and some understanding about the circuit.
-            You should first complete the incomplete circuit by learning the example circuit.
-            The transistor should use model like 'nmos' and 'pmos' due to the library.
-            For resistors and capacitors, the name starts with c is capacitor like cc. 
-            Comments should have an independant line and are as little as possible.
-            Make sure that '.include' uses / instead of \ since \4 will be recognized as %. 
-            Format your response as a well-structured report section with:
-            1 The Spice netlist with adding ground and DC source and AC source for AC simulation
+#             You are given an imcomplete Spice circuit , an exapmle circuit and some understanding about the circuit.
+#             You should first complete the incomplete circuit by learning the example circuit.
+#             The transistor should use model like 'nmos' and 'pmos' due to the library.
+#             For resistors and capacitors, the name starts with c is capacitor like cc. 
+#             Comments should have an independant line and are as little as possible.
+#             Make sure that '.include' uses / instead of \ since \4 will be recognized as %. 
+#             Format your response as a well-structured report section with:
+#             1 The Spice netlist with adding ground and DC source and AC source for AC simulation
            
                      
-        """,
-    # 2 Why you choose these voltage
-    # 3 if you could not response, tell me what you need and what's wrong
-    max_output_tokens=20_000,
-    temperature=0,
-)
-client = utils.get_client()
+#         """,
+#     # 2 Why you choose these voltage
+#     # 3 if you could not response, tell me what you need and what's wrong
+#     max_output_tokens=20_000,
+#     temperature=0,
+# )
+# client = utils.get_client()
 
-add_simulation_response = client.models.generate_content(
-    model="gemini-2.0-flash",
-    config=config,
-    contents=contents,
-)
-print("==add source response\n\n", add_simulation_response.text)
+# add_simulation_response = client.models.generate_content(
+#     model="gemini-2.0-flash",
+#     config=config,
+#     contents=contents,
+# )
+# print("==add source response\n\n", add_simulation_response.text)

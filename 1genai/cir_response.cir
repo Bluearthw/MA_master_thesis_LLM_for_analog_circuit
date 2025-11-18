@@ -1,43 +1,72 @@
 ```spice
-* Diode-Connected NMOS with RC Load
+.include "45nm.sp" 
 
-.include "1genai/data/45nm.sp"
+* Define parameters
+.param VDD_VALUE=1.2
+.param VSS_VALUE=0
+.param R0_VALUE=10k
+.param C0_VALUE=10p
+.param AC_MAG=1
 
-* Parameters
-.param resistor_value=1k
-.param capacitor_value=1p
-.param vdd_value=1.2
+* DC Sources
+VDD VDD 0 dc=VDD_VALUE
+VSS VSS 0 dc=VSS_VALUE
 
-* Circuit Description
-M0 (VOUT1 VDD VOUT1 VSS) nmos w=500n l=45n 
-RC (VOUT1 VSS) resistor {resistor_value}
-CC (VOUT1 VSS) capacitor {capacitor_value}
+* AC Source for AC simulation (optional, but good for PSRR or output impedance if VDD is modulated)
+* For output impedance, we typically apply an AC current source at the output and measure voltage,
+* or apply an AC voltage source at the output and measure current.
+* For PSRR, we can modulate VDD. Let's add an AC component to VDD for PSRR.
+* If we want to measure output impedance, we'd add an AC source at VOUT1.
+* Let's add an AC source at VOUT1 for output impedance measurement.
+VAC_OUT VOUT1 0 ac=AC_MAG
 
-* DC Source
-VDD VDD 0 dc={vdd_value}
-VSS VSS 0 dc=0
+* Transistor M0
+* D G S B
+M0 VDD VDD VOUT1 VSS nmos w=1u l=90n
 
-* AC Source for AC Simulation
-VAC VDD VDD_AC ac 1
+* Resistor R0
+R0 VOUT1 VSS {R0_VALUE}
 
-* Simulation Commands
-.op 
-
-.ac dec 10 1 10G
+* Capacitor C0
+C0 VOUT1 VSS {C0_VALUE}
 
 .control
-run
-* Print DC operating point information
-print dc V(VOUT1) ID(M0)
+    * Set temperature for simulation
+    set temp=25
 
-* AC analysis
-ac dec 10 1 10Meg
-plot db(v(VOUT1))
-print ac v(VOUT1)
+    * DC Operating Point Analysis
+    op
+    print V(VOUT1) I(M0)
 
-* Save data
-wrdata Diode_NMOS_DC.txt V(VOUT1) ID(M0)
-wrdata Diode_NMOS_AC.txt v(VOUT1)
+    * AC Analysis for Output Impedance
+    * We applied an AC voltage source VAC_OUT at VOUT1.
+    * The output impedance Zout = V(VOUT1) / I(VAC_OUT)
+    ac dec 10 1 1G
+    * Calculate and print output impedance magnitude and phase
+    * Note: V(VOUT1) will be AC_MAG (1V) because of VAC_OUT.
+    * So Zout = 1 / I(VAC_OUT)
+    print V(VOUT1) I(VAC_OUT)
+    let zout_mag = 1/abs(I(VAC_OUT))
+    let zout_phase = -phase(I(VAC_OUT))
+    plot zout_mag vs freq loglog
+    plot zout_phase vs freq semilogx
+
+    * AC Analysis for PSRR (if VDD had an AC component)
+    * To measure PSRR, we would typically add an AC component to VDD and measure V(VOUT1).
+    * Let's modify VDD to include an AC component for PSRR.
+    * First, remove VAC_OUT for this specific simulation to avoid conflict.
+    * Then, add an AC component to VDD.
+    * For simplicity, let's assume we want to see the transfer function from VDD to VOUT1.
+    * We'll comment out the VAC_OUT and add an AC component to VDD for this.
+    * VDD VDD 0 dc=VDD_VALUE ac=AC_MAG
+    * ac dec 10 1 1G
+    * print V(VOUT1)
+    * plot VDB(VOUT1) vs freq loglog
+
+    * Transient Analysis (Example: if VDD steps)
+    * VDD VDD 0 PULSE(0 VDD_VALUE 0 1n 1n 1u 2u)
+    * tran 1n 5u
+    * plot V(VOUT1)
 
 quit
 .endc
