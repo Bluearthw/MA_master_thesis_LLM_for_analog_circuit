@@ -1,5 +1,6 @@
 from google import genai
 from local_config import GOOGLE_API_KEY
+import re
 def get_client():
     client = genai.Client(api_key = GOOGLE_API_KEY)
     return client
@@ -16,3 +17,15 @@ def get_file_to_str(path, str, str2=""):
 def check_file_and_overwrite(path, msg):
     with open(f"{path}", "w") as f:
         f.write(f"{msg}")
+
+def clean_netlist(netlist):
+    netlist = netlist.strip()
+
+    netlist = re.sub(r'[()]', '', netlist)
+
+    netlist = re.sub(r'\bnmos4\b', 'nmos', netlist)
+    netlist = re.sub(r'\bpmos4\b', 'nmos', netlist)
+    netlist = re.sub(r'\s*resistor\s*', '\n', netlist, flags=re.IGNORECASE)
+    netlist = re.sub(r'\s*capacitor\s*', '\n', netlist, flags=re.IGNORECASE)
+    
+    return netlist

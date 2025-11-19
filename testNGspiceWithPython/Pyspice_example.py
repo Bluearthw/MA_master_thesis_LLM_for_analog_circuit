@@ -17,8 +17,6 @@ circuit = '''
 
 .include "./1genai/data/45nm.sp"
 
-.include "./1genai/data/45nm.sp"
-
 * Parameters
 .param VDD=1.2
 .param RVAL=1k
@@ -30,6 +28,7 @@ Vdd VDD 0 dc={VDD}
 * AC Source for AC Analysis
 Vac VDD 0 ac=1
 
+
 * Components
 M0 VDD VDD VOUT1 0 nmos w=500n l=90n
 Rc VOUT1 0 {RVAL}
@@ -40,7 +39,7 @@ Cc VOUT1 0 {CVAL}
     op
 
     * AC Analysis
-    ac dec 10 1 100Meg
+    ac dec 10 1 100G
 
     * DC Sweep Analysis
     dc Vdd 0 1.2 0.01

@@ -1,15 +1,21 @@
-from google import genai
+# from google import genai
 from google.genai import types
-import os
+# import os
 import utils
 from pydantic import BaseModel, Field
 
 model_used = "gemini-2.0-flash"
 model_used_25 = "gemini-2.5-flash"
 cir_path = "1genai/data/6/6.cir"
+
 circuit_string = utils.get_file_to_str(
-    cir_path, "**== imcomplete cir file:\n", '.include "./1genai/data/45nm.sp" \n'
-) # here adding .include also
+    cir_path, "" 
+)
+circuit_string = utils.clean_netlist(circuit_string)
+print(circuit_string)
+# circuit_string = utils.get_file_to_str(
+#     cir_path, "**== imcomplete cir file:\n", '.include "./1genai/data/45nm.sp" \n'
+# ) # here adding .include also
 # print(circuit_string)
 
 
@@ -71,8 +77,11 @@ contents.append(types.Content(role="user", parts=[types.Part(text=example_cir)])
 #     simulation: str = Field(..., description="simulation and end")
 
 # modify the cir
-"""======
-Explicitly tell the model not to use the standard names it defaults to, and strictly enforce the custom format.CRITICAL RULE: For transistors, use model names 'nmos' and 'pmos'. For all other components, DO NOT use the names 'resistor' or 'capacitor'. Instead
+"""
+======
+Explicitly tell the model not to use the standard names it defaults to,
+ and strictly enforce the custom format.CRITICAL RULE: For transistors,
+use model names 'nmos' and 'pmos'. For all other components, DO NOT use the names 'resistor' or 'capacitor'. Instead
 ======
 """
 config = types.GenerateContentConfig(
@@ -80,8 +89,9 @@ config = types.GenerateContentConfig(
     system_instruction="""
             You are an experienced Analog OPAMP Design engineer. 
             You are given an imcomplete Spice circuit , an exapmle circuit and some understanding about the circuit.
-            You should first format the incomplete circuit and add DC and AC source later, by learning the format of example circuit.
-            Do not change the path of '.include'. Do not use () to surround the component nodes. Do not save any result from the simulation. Simulations must be in '.control' part.
+            You should first format the incomplete circuit and later add DC and AC source, by learning the format of example circuit.
+            Do not change the path of '.include'. Do not use () to surround the component nodes. Do not save any result from the simulation. 
+            Simulations must be in '.control' part.
             Then, transistors should use model like 'nmos' and 'pmos' due to the library. 
             For all other components, DO NOT use the names 'resistor' or 'capacitor'. 
             For resistors and capacitors, models are not needed. The name starts with letter 'c' is capacitor like cc. rc is resistor. To apply the value, use {}. 
