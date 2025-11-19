@@ -8,14 +8,11 @@ model_used = "gemini-2.0-flash"
 model_used_25 = "gemini-2.5-flash"
 cir_path = "1genai/data/6/6.cir"
 
+
 circuit_string = utils.get_file_to_str(
-    cir_path, "" 
-)
+    cir_path, "**== imcomplete cir file:\n", '.include "./1genai/data/45nm.sp" \n'
+) # here adding .include also
 circuit_string = utils.clean_netlist(circuit_string)
-print(circuit_string)
-# circuit_string = utils.get_file_to_str(
-#     cir_path, "**== imcomplete cir file:\n", '.include "./1genai/data/45nm.sp" \n'
-# ) # here adding .include also
 # print(circuit_string)
 
 
