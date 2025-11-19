@@ -17,21 +17,39 @@ circuit = '''
 
 .include "./1genai/data/45nm.sp"
 
+.include "./1genai/data/45nm.sp"
+
 * Parameters
 .param VDD=1.2
-.param VSS=0
 .param RVAL=1k
 .param CVAL=1p
 
-* DC and AC Sources
+* DC Source
 Vdd VDD 0 dc={VDD}
-Vss VSS 0 dc={VSS}
-Vin VOUT1 0 dc={VDD} ac=1
 
-* Circuit Components
-M0 (VDD VDD VOUT1 VSS) nmos w=5u l=500n m=10
-Rc (VOUT1 VSS) r={RVAL}
-Cc (VOUT1 VSS) c={CVAL}
+* AC Source for AC Analysis
+Vac VDD 0 ac=1
+
+* Components
+M0 VDD VDD VOUT1 0 nmos w=500n l=90n
+Rc VOUT1 0 {RVAL}
+Cc VOUT1 0 {CVAL}
+
+.control
+    * DC Operating Point Analysis
+    op
+
+    * AC Analysis
+    ac dec 10 1 100Meg
+
+    * DC Sweep Analysis
+    dc Vdd 0 1.2 0.01
+
+    * Transient Analysis
+    tran 1n 100n
+
+quit
+.endc
 .end
 '''
 
