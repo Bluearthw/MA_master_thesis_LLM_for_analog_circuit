@@ -14,10 +14,10 @@ def get_client():
     return client
 
 
-def get_file_to_str(path, str, str2=""):
+def get_file_to_str(path, str ):
     try:
         with open(path, "r", encoding="utf-8") as f:
-            circuit_string = str + str2 + f.read()
+            circuit_string = str + f.read()
             # print(f"Circuit loaded successfully from: {cir_path}")
             return circuit_string
     except FileNotFoundError:
@@ -30,6 +30,22 @@ def check_file_and_overwrite(path, msg):
 
 
 def clean_netlist(netlist):
+    """
+    Cleans an analog SPICE netlist string by standardizing component names and removing 
+    descriptive text.
+
+    Performs the following transformations on the input netlist string:
+    1. Removes all parentheses '(', ')'.
+    2. Renames the device model 'nmos4' to 'nmos' and 'pmos4' to 'pmos'.
+    3. Removes the descriptive words 'resistor' and 'capacitor' and replaces them 
+       with a newline character, effectively removing them from the component definition line.
+
+    Args:
+        netlist: The raw, potentially incomplete or flawed SPICE netlist content as a single string.
+
+    Returns:
+        The cleaned and standardized SPICE netlist string.
+    """
     netlist = netlist.strip()
 
     netlist = re.sub(r"[()]", "", netlist)
@@ -163,7 +179,7 @@ def add_params(netlist): # input should be lines here
     output.extend(modified_lines)
 
     return "\n".join(output)
-def add_source(netlist, vdd='1.2'):
+def add_DC_source(netlist, vdd='1.2'):
 
     # isUsed = re.search(r'\bVDD\b', circuit_string, re.IGNORECASE)
     param_line = f"\n.param VDD={vdd}"

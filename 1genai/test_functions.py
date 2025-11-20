@@ -60,7 +60,6 @@ R0 VDD VOUT2 {r0}
     """
     # lines = netlist # does not work, need to split first
     # print(netlist)
-    nl = utils.add_source(netlist)# input should be string here
+    nl = utils.add_DC_source(netlist)# input should be string here
     print("==add",nl)
 
-test_add_source()
