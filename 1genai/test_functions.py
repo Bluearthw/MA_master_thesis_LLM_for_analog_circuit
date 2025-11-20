@@ -23,21 +23,44 @@ def test_clean():
         
 
 
-def test_add_params(netlist):
-#     netlist = """
-# **== imcomplete cir file:
-# .include "./1genai/data/45nm.sp"
-# M1 VOUT2 VIN2 IB1 VSS nmos
-# M0 VOUT1 VIN1 IB1 VSS nmos
-# M3 VOUT2 VB1 VDD VDD nmos
-# M2 VOUT1 VB1 VDD VDD nmos
-# R1 VDD VOUT1
-# R0 VDD VOUT2
-#     """
+def test_add_params(netlist=""):
+    netlist = """
+
+.include "./1genai/data/45nm.sp"
+M1 VOUT2 VIN2 IB1 VSS nmos
+M0 VOUT1 VIN1 IB1 VSS nmos
+M3 VOUT2 VB1 VDD VDD nmos
+M2 VOUT1 VB1 VDD VDD nmos
+R1 VDD VOUT1
+R0 VDD VOUT2
+    """
     # lines = netlist # does not work, need to split first
     lines = netlist.strip().split('\n')# , add this line if the netlist is not identified as lines
     # print(netlist)
-    nl = utils.add_params(lines)
+    nl = utils.add_params(lines)# input should be line here
     print("==add",nl)
 
-test_add_params(test_clean()) 
+def test_add_source(netlist=""):
+    netlist = """
+
+*params 
+.param w1=0.5u l1=90n m1=1
+.param w0=0.5u l0=90n m0=1
+.param w3=0.5u l3=90n m3=1
+.param w2=0.5u l2=90n m2=1
+.param r1=1k
+.param r0=1k
+.include "./1genai/data/45nm.sp"
+M1 VOUT2 VIN2 IB1 VSS nmos w=w1 l=l1 m=m1
+M0 VOUT1 VIN1 IB1 VSS nmos w=w0 l=l0 m=m0
+M3 VOUT2 VB1 VDD VDD nmos w=w3 l=l3 m=m3
+M2 VOUT1 VB1 VDD VDD nmos w=w2 l=l2 m=m2
+R1 VDD VOUT1 {r1}
+R0 VDD VOUT2 {r0}
+    """
+    # lines = netlist # does not work, need to split first
+    # print(netlist)
+    nl = utils.add_source(netlist)# input should be string here
+    print("==add",nl)
+
+test_add_source()

@@ -112,7 +112,7 @@ def match_RC(match, digit_extractor):
         return new_rc_line, param_line, param_identifier, component_type
 
 
-def add_params(netlist):
+def add_params(netlist): # input should be lines here
     param_statements = []
     modified_lines = []
     transistor_ids = []
@@ -127,7 +127,7 @@ def add_params(netlist):
     digit_extractor = re.compile(r"\d+")
     for line in netlist:
         line = line.strip()
-        print("line", line)
+        # print("line", line)
         # skip empty lines and comments
         if not line or line.startswith("*") or line.startswith("."):
             modified_lines.append(line)
@@ -163,3 +163,49 @@ def add_params(netlist):
     output.extend(modified_lines)
 
     return "\n".join(output)
+def add_source(netlist, vdd='1.2'):
+
+    # isUsed = re.search(r'\bVDD\b', circuit_string, re.IGNORECASE)
+    param_line = f"\n.param VDD={vdd}"
+    
+    # Standard source definitions using the parameter
+    vdd_source = "\nVdd VDD 0 dc=VDD"
+    vss_source = "\nVss VSS 0 dc=0"  # VSS is typically ground reference
+    
+    # source_block = f"\n{param_line}\n{vdd_source}\n"
+    # vss_block = f"{vss_source}\n"
+    # --- 2. Check for Node Usage ---
+    
+    # This regex looks for VDD or VSS surrounded by word boundaries (\b),
+    # ensuring it's not part of a longer word (like 'VSS_test').
+    # We use re.DOTALL to search across multiple lines.
+    vdd_in_use = re.search(r'\bVDD\b', netlist, re.IGNORECASE)
+    vss_in_use = re.search(r'\bVSS\b', netlist, re.IGNORECASE)
+
+    # --- 3. Determine Insertion Point and Insert ---
+    
+    if vdd_in_use:
+        insertion_point = 0
+        
+        for i, line in enumerate(netlist.splitlines()):
+            line_stripped = line.strip()
+            
+            if line_stripped and (line_stripped[0].isalpha() or line_stripped.startswith('.')):
+                insertion_point = i
+                break
+        
+        lines = netlist.splitlines()
+        
+        # Insert the source block at the determined point
+        # We replace the line at insertion_point with itself + the new block
+        lines.insert(insertion_point, param_line)
+        lines.insert(len(lines), vdd_source)
+        if vss_in_use:
+            
+            lines.insert(len(lines), vss_source)
+        
+        return '\n'.join(lines)
+        
+    else:
+        print("VDD and VSS nodes not found in netlist. Skipping DC source addition.")
+        return netlist

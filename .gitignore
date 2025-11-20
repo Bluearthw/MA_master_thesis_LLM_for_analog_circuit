@@ -2,3 +2,4 @@ buildingAIagents
 googleFrame
 1genai/cir_response.cir
 *.pyc
+1genai/data
