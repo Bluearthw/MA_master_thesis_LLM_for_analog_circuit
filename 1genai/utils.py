@@ -129,6 +129,19 @@ def match_RC(match, digit_extractor):
 
 
 def add_params(netlist): # input should be lines here
+    """
+    Add parameters to the transistors, resistors and capacitors in the incomplete spice netlist.
+
+    Performs the following transformations on the input netlist string:
+    1. Add .param lines.
+    2. Add w, l, m to the transistors
+    3. Add {value} to resistor and capacitors
+    Args:
+        netlist: The raw, potentially incomplete or flawed SPICE netlist content as a single string.
+
+    Returns:
+        The netlist added with parameters in triple quote string.
+    """
     param_statements = []
     modified_lines = []
     transistor_ids = []

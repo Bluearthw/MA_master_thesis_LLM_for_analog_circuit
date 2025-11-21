@@ -29,19 +29,19 @@ class NetlistFlow(BaseModel):
 
 client = utils.get_client()
 content = circuit_string
-tools = [types.Tool(function_declarations=[tools.clean_netlist_declaration])]
+tools = [types.Tool(function_declarations=[tools.clean_netlist_declaration, tools.add_params_declaration])]
 
 config = types.GenerateContentConfig(
     thinking_config=types.ThinkingConfig(thinking_budget=0),
     system_instruction="""
             You are an experienced analog designer. 
-            You are given an incomplete, flawed netlist.
-            You should first clean its format.
-            You should response the cleaned netlist.
+            You are given an incomplete, flawed netlist and tools.
+            You should first clean its format using the tool. Then, add some paramters using the tool.
+            You should response the cleaned netlist with some parameters added.
         """,
     temperature=0,
     tools=tools,
-    response_mime_type= "application/json",
+    # response_mime_type= "application/json",
     # response_json_schema = NetlistFlow.model_json_schema(),
 )
 
@@ -50,10 +50,13 @@ response = client.models.generate_content(  model=model_used,
                                             config=config
 )
 # text = response.candidates[0].text
-circuit =NetlistFlow.model_validate_json(response.text)
-# print(response.text)
+# circuit =NetlistFlow.model_validate_json(response.text)
+# print(circuit)
+print(response.text)
+# print(response.candidates[0].content.parts)
+print("function_call", response.candidates[0].content.parts[0].function_call)
+# tool_call = response.candidates[0].content.parts[0].function_call
 
-print(circuit)
 # parts=[Part(
 #   text="""{
 # "netlist": "M0 (VDD VDD VOUT1 VSS) nmos\nR0 (VOUT1 VSS) R\nC0 (VOUT1 VSS) C"
