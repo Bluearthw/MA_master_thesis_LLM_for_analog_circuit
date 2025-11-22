@@ -18,9 +18,8 @@ def test_clean():
             '.include "./1genai/data/45nm.sp" \n',
         )
         circuit_string = utils.clean_netlist(circuit_string)
-        print("==clean\n",circuit_string)
+        print("==clean\n", circuit_string)
         return circuit_string
-        
 
 
 def test_add_params(netlist=""):
@@ -35,10 +34,14 @@ R1 VDD VOUT1
 R0 VDD VOUT2
     """
     # lines = netlist # does not work, need to split first
-    lines = netlist.strip().split('\n')# , add this line if the netlist is not identified as lines
+    # lines = netlist.strip().split('\n')# , add this line if the netlist is not identified as lines
     # print(netlist)
-    nl = utils.add_params(lines)# input should be line here
-    print("==add",nl)
+    nl = utils.add_params(netlist)  # input should be line here
+    print("==add_para", nl)
+
+
+# test_add_params()
+
 
 def test_add_source(netlist=""):
     netlist = """
@@ -60,6 +63,28 @@ R0 VDD VOUT2 {r0}
     """
     # lines = netlist # does not work, need to split first
     # print(netlist)
-    nl = utils.add_DC_source(netlist)# input should be string here
-    print("==add",nl)
+    nl = utils.add_DC_source(netlist)  # input should be string here
+    print("==add_DC", nl)
 
+
+def test_add_C_load(netlist=""):
+    netlist = """
+*params
+
+.param VDD=1.2
+.param w0=0.5u l0=90n m0=1
+.param w1=0.5u l1=90n m1=1
+.include "1genai/data/45nm.sp"
+M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
+M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
+
+Vdd VDD 0 dc=VDD
+
+Vss VSS 0 dc=0
+"""
+    node = "VOUT1" # should be from the LLM
+    nl = utils.add_C_load(netlist, node)  # input should be string here
+    print("==add_Cload", nl)
+
+
+test_add_C_load()

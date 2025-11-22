@@ -14,7 +14,7 @@ def get_client():
     return client
 
 
-def get_file_to_str(path, str ):
+def get_file_to_str(path, str):
     try:
         with open(path, "r", encoding="utf-8") as f:
             circuit_string = str + f.read()
@@ -31,15 +31,15 @@ def check_file_and_overwrite(path, msg):
 
 def clean_netlist(netlist):
     """
-    Cleans an analog SPICE netlist string by standardizing component names and removing 
+    Cleans an analog SPICE netlist string by standardizing component names and removing
     descriptive text.
 
     Performs the following transformations on the input netlist string:
     1. Removes all parentheses '(', ')'.
     2. Renames the device model 'nmos4' to 'nmos' and 'pmos4' to 'pmos'.
-    3. Removes the descriptive words 'resistor' and 'capacitor' and replaces them 
+    3. Removes the descriptive words 'resistor' and 'capacitor' and replaces them
        with a newline character, effectively removing them from the component definition line.
-
+    4. Add inclusion
     Args:
         netlist: The raw, potentially incomplete or flawed SPICE netlist content as a single string.
 
@@ -55,7 +55,7 @@ def clean_netlist(netlist):
     netlist = re.sub(r"\s*resistor\s*", "\n", netlist, flags=re.IGNORECASE)
     netlist = re.sub(r"\s*capacitor\s*", "\n", netlist, flags=re.IGNORECASE)
 
-    return netlist
+    return '\n.include "1genai/data/45nm.sp\n\n"' + netlist
 
 
 def match_transistor(match):
@@ -105,7 +105,7 @@ def match_RC(match, digit_extractor):
         node1 = match.group(2)
         node2 = match.group(3)
         # Note: We ignore the original value (match.group(4)) since we replace it
-        
+
         num_id_list = digit_extractor.findall(component_id)
         param_identifier = (
             "".join(num_id_list)
@@ -128,7 +128,7 @@ def match_RC(match, digit_extractor):
         return new_rc_line, param_line, param_identifier, component_type
 
 
-def add_params(netlist): # input should be lines here
+def add_params(netlist):  # input should be lines here
     """
     Add parameters to the transistors, resistors and capacitors in the incomplete spice netlist.
 
@@ -140,7 +140,7 @@ def add_params(netlist): # input should be lines here
         netlist: The raw, potentially incomplete or flawed SPICE netlist content as a single string.
 
     Returns:
-        The netlist added with parameters in triple quote string.
+        The netlist added with parameters as a string.
     """
     param_statements = []
     modified_lines = []
@@ -154,7 +154,8 @@ def add_params(netlist): # input should be lines here
     """
     rc_line_pattern = re.compile(r"^([RC]\S+)\s+(\S+)\s+(\S+)$", re.IGNORECASE)
     digit_extractor = re.compile(r"\d+")
-    for line in netlist:
+    lines = netlist.strip().split("\n")
+    for line in lines:
         line = line.strip()
         # print("line", line)
         # skip empty lines and comments
@@ -192,49 +193,89 @@ def add_params(netlist): # input should be lines here
     output.extend(modified_lines)
 
     return "\n".join(output)
-def add_DC_source(netlist, vdd='1.2'):
 
-    # isUsed = re.search(r'\bVDD\b', circuit_string, re.IGNORECASE)
+
+def add_DC_source(netlist, vdd="1.2"):
+    """
+    Add DC source to the incomplete spice netlist if it is needed.
+
+    Performs the following transformations on the input netlist string:
+    1. Check if VDD and VSS is used.
+    2. Add source if needed.
+    Args:
+        netlist: The raw, potentially incomplete or flawed SPICE netlist content as a single string.
+
+    Returns:
+        The netlist added with parameters as a string.
+    """
     param_line = f"\n.param VDD={vdd}"
-    
+
     # Standard source definitions using the parameter
     vdd_source = "\nVdd VDD 0 dc=VDD"
     vss_source = "\nVss VSS 0 dc=0"  # VSS is typically ground reference
-    
+
     # source_block = f"\n{param_line}\n{vdd_source}\n"
     # vss_block = f"{vss_source}\n"
     # --- 2. Check for Node Usage ---
-    
+
     # This regex looks for VDD or VSS surrounded by word boundaries (\b),
     # ensuring it's not part of a longer word (like 'VSS_test').
     # We use re.DOTALL to search across multiple lines.
-    vdd_in_use = re.search(r'\bVDD\b', netlist, re.IGNORECASE)
-    vss_in_use = re.search(r'\bVSS\b', netlist, re.IGNORECASE)
+    vdd_in_use = re.search(r"\bVDD\b", netlist, re.IGNORECASE)
+    vss_in_use = re.search(r"\bVSS\b", netlist, re.IGNORECASE)
 
     # --- 3. Determine Insertion Point and Insert ---
-    
+
     if vdd_in_use:
         insertion_point = 0
-        
+
         for i, line in enumerate(netlist.splitlines()):
             line_stripped = line.strip()
-            
-            if line_stripped and (line_stripped[0].isalpha() or line_stripped.startswith('.')):
+
+            if line_stripped and (
+                line_stripped[0].isalpha() or line_stripped.startswith(".")
+            ):
                 insertion_point = i
                 break
-        
+
         lines = netlist.splitlines()
-        
+
         # Insert the source block at the determined point
         # We replace the line at insertion_point with itself + the new block
         lines.insert(insertion_point, param_line)
         lines.insert(len(lines), vdd_source)
         if vss_in_use:
-            
+
             lines.insert(len(lines), vss_source)
-        
-        return '\n'.join(lines)
-        
+
+        return "\n".join(lines)
+
     else:
         print("VDD and VSS nodes not found in netlist. Skipping DC source addition.")
         return netlist
+
+
+def add_C_load(netlist, node, Cload="10p"):
+    """
+    Add load capacitance to the incomplete spice netlist.
+
+    Performs the following transformations on the input netlist string:
+    2. Add load capacitance.
+    Args:
+        netlist: The raw, potentially incomplete or flawed SPICE netlist content as a single string.
+        node: The node that Cload should connected to
+    Returns:
+        The netlist added with parameters as a string.
+    """
+    # isUsed = re.search(r'\bVDD\b', circuit_string, re.IGNORECASE)
+    param_line = f"\n.param Cload={Cload}"
+    cload_line = f"\nCload {node} VSS " + "{Cload}"
+
+    lines = netlist.strip().splitlines()
+
+    # Insert the source block at the determined point
+    # We replace the line at insertion_point with itself + the new block
+    lines.insert(2, param_line)
+    lines.insert(len(lines), cload_line)
+
+    return "\n".join(lines)

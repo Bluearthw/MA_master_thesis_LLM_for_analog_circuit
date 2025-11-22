@@ -27,3 +27,37 @@ add_params_declaration = {
         "required": ["netlist"],
     },
 }
+
+add_DC_source_declaration = { 
+    "name": "add_DC_source",
+    "description": " Add DC source and GND to the incomplete spice netlist.",
+    "parameters": {
+        "type": "OBJECT",
+        "properties": {
+            "netlist": {
+                "type": "string",
+                "description": "The raw SPICE netlist content as a single string to be added source.",
+            }
+        },
+        "required": ["netlist"],
+    },
+}
+
+add_C_load_declaration = { 
+    "name": "add_C_load",
+    "description": " Add load capacitance to the incomplete spice netlist.",
+    "parameters": {
+        "type": "OBJECT",
+        "properties": {
+            "netlist": {
+                "type": "string",
+                "description": "The raw SPICE netlist content as a single string to be added source.",
+            },
+            "node": {
+                "type": "string",
+                "description": "The node name that the load capacitor should be connected to besides VSS.",
+            }
+        },
+        "required": ["netlist", "node"],
+    },
+}

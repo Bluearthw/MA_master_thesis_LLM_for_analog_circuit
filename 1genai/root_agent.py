@@ -1,5 +1,6 @@
 # from google import genai
 from google.genai import types
+
 # import os
 from pydantic import BaseModel, Field
 
@@ -7,36 +8,51 @@ from pydantic import BaseModel, Field
 import utils
 import tools
 
-#initiation
+# initiation
 model_used = "gemini-2.0-flash"
 model_used_25 = "gemini-2.5-flash"
-cir_path = "1genai/data/6/6.cir"
+cir_num = 9
+cir_path = f"1genai/data/{cir_num}/{cir_num}.cir"
 
 
 circuit_string = utils.get_file_to_str(
     cir_path, "**== imcomplete cir file:\n"
-)  # here adding .include also
-#====
+)  # here adding .include also?
+# ====
 # tool use
-#====
+# ====
 
 
-#====
+# ====
 # structure output
-#====
+# ====
 class NetlistFlow(BaseModel):
     netlist: str = Field(description="The circuit netlist.")
 
+
 client = utils.get_client()
 contents = [circuit_string]
-tools_available = [types.Tool(function_declarations=[tools.clean_netlist_declaration, tools.add_params_declaration])]
+tools_available = [
+    types.Tool(
+        function_declarations=[
+            tools.clean_netlist_declaration,
+            tools.add_params_declaration,
+            tools.add_DC_source_declaration,
+            tools.add_C_load_declaration,
+        ]
+    )
+]
 
 config = types.GenerateContentConfig(
     thinking_config=types.ThinkingConfig(thinking_budget=0),
     system_instruction="""
             You are an experienced analog designer. 
             You are given an incomplete, flawed netlist and tools.
-            You should first clean its format using the tool. Then, add some paramters using the tool.
+            You should 
+            1, clean its format using the tool. 
+            2, add some paramters using the tool.
+            3, add DC source and GND.
+            4, if needed, add load capacitance using the tool. Provide also the node name that capacitor should be connected to to the tool.
             You should response the cleaned netlist with some parameters added.
         """,
     temperature=0,
@@ -45,9 +61,8 @@ config = types.GenerateContentConfig(
     # response_json_schema = NetlistFlow.model_json_schema(),
 )
 
-response = client.models.generate_content(  model=model_used,
-                                            contents=contents,
-                                            config=config
+response = client.models.generate_content(
+    model=model_used, contents=contents, config=config
 )
 # text = response.candidates[0].text
 # circuit =NetlistFlow.model_validate_json(response.text)
@@ -60,8 +75,11 @@ while tool_call:
     if tool_call.name == "clean_netlist":
         result = utils.clean_netlist(**tool_call.args)
     elif tool_call.name == "add_params":
-        lines = (tool_call.args['netlist']).strip().split('\n')
-        result = utils.add_params(lines)
+        result = utils.add_params(tool_call.args["netlist"])
+    elif tool_call.name == "add_DC_source":
+        result = utils.add_DC_source(tool_call.args["netlist"])
+    elif tool_call.name == "add_C_load":
+        result = utils.add_C_load(tool_call.args["netlist"],tool_call.args["node"])
 
     function_response_part = types.Part.from_function_response(
         name=tool_call.name,
@@ -70,8 +88,12 @@ while tool_call:
 
     print("==response content", response.candidates[0].content)
     print("==response result", result)
-    contents.append(response.candidates[0].content) # Append the content from the model's response.
-    contents.append(types.Content(role="user", parts=[function_response_part])) # Append the function response
+    contents.append(
+        response.candidates[0].content
+    )  # Append the content from the model's response.
+    contents.append(
+        types.Content(role="user", parts=[function_response_part])
+    )  # Append the function response
     client = utils.get_client()
     response = client.models.generate_content(
         model="gemini-2.0-flash",
@@ -89,8 +111,9 @@ for part in response.candidates[0].content.parts:
         md_string += f"# Thought Summary\n{part.text}\n"
     else:
         md_string += f"# Answer Text\n{part.text}\n"
+        md_string += "################\n"
 
-print("="*100)
+print("=" * 100)
 print(md_string)
 # parts=[Part(
 #   text="""{
