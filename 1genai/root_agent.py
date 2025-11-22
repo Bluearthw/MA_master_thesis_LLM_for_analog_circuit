@@ -28,8 +28,8 @@ class NetlistFlow(BaseModel):
     netlist: str = Field(description="The circuit netlist.")
 
 client = utils.get_client()
-content = circuit_string
-tools = [types.Tool(function_declarations=[tools.clean_netlist_declaration, tools.add_params_declaration])]
+contents = [circuit_string]
+tools_available = [types.Tool(function_declarations=[tools.clean_netlist_declaration, tools.add_params_declaration])]
 
 config = types.GenerateContentConfig(
     thinking_config=types.ThinkingConfig(thinking_budget=0),
@@ -40,13 +40,13 @@ config = types.GenerateContentConfig(
             You should response the cleaned netlist with some parameters added.
         """,
     temperature=0,
-    tools=tools,
+    tools=tools_available,
     # response_mime_type= "application/json",
     # response_json_schema = NetlistFlow.model_json_schema(),
 )
 
 response = client.models.generate_content(  model=model_used,
-                                            contents=content,
+                                            contents=contents,
                                             config=config
 )
 # text = response.candidates[0].text
@@ -55,8 +55,43 @@ response = client.models.generate_content(  model=model_used,
 print(response.text)
 # print(response.candidates[0].content.parts)
 print("function_call", response.candidates[0].content.parts[0].function_call)
-# tool_call = response.candidates[0].content.parts[0].function_call
+tool_call = response.candidates[0].content.parts[0].function_call
+while tool_call:
+    if tool_call.name == "clean_netlist":
+        result = utils.clean_netlist(**tool_call.args)
+    elif tool_call.name == "add_params":
+        lines = (tool_call.args['netlist']).strip().split('\n')
+        result = utils.add_params(lines)
 
+    function_response_part = types.Part.from_function_response(
+        name=tool_call.name,
+        response={"result": result},
+    )
+
+    print("==response content", response.candidates[0].content)
+    print("==response result", result)
+    contents.append(response.candidates[0].content) # Append the content from the model's response.
+    contents.append(types.Content(role="user", parts=[function_response_part])) # Append the function response
+    client = utils.get_client()
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        config=config,
+        contents=contents,
+    )
+    tool_call = response.candidates[0].content.parts[0].function_call
+    print("tool_call", tool_call)
+md_string = ""
+# monitoring the thinking summary and the final answer
+for part in response.candidates[0].content.parts:
+    if not part.text:
+        continue
+    if part.thought:
+        md_string += f"# Thought Summary\n{part.text}\n"
+    else:
+        md_string += f"# Answer Text\n{part.text}\n"
+
+print("="*100)
+print(md_string)
 # parts=[Part(
 #   text="""{
 # "netlist": "M0 (VDD VDD VOUT1 VSS) nmos\nR0 (VOUT1 VSS) R\nC0 (VOUT1 VSS) C"
