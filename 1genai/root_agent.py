@@ -31,7 +31,7 @@ class NetlistFlow(BaseModel):
 
 
 client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
-contents = [circuit_string]
+# contents = [circuit_string]
 tools_available = [
     types.Tool(
         function_declarations=[
@@ -43,22 +43,22 @@ tools_available = [
     )
 ]
 
-config = types.GenerateContentConfig(
-    thinking_config=types.ThinkingConfig(thinking_budget=0),
-    system_instruction="""
-            You are an experienced analog designer. 
-            You are given an incomplete, flawed netlist and tools.
-            You should 
-            1, clean its format using the tool. 
-            2, add some paramters using the tool.
-            3, add DC source and GND.
-            You should response the final netlist.
-        """,
-    temperature=0,
-    tools=tools_available,
-    # response_mime_type= "application/json",
-    # response_json_schema = NetlistFlow.model_json_schema(),
-)
+# config = types.GenerateContentConfig(
+#     thinking_config=types.ThinkingConfig(thinking_budget=0),
+#     system_instruction="""
+#             You are an experienced analog designer. 
+#             You are given an incomplete, flawed netlist and tools.
+#             You should 
+#             1, clean its format using the tool. 
+#             2, add some paramters using the tool.
+#             3, add DC source and GND.
+#             You should response the final netlist.
+#         """,
+#     temperature=0,
+#     tools=tools_available,
+#     # response_mime_type= "application/json",
+#     # response_json_schema = NetlistFlow.model_json_schema(),
+# )
 
 # response = client.models.generate_content(
 #     model=model_used, contents=contents, config=config
@@ -93,7 +93,7 @@ config = types.GenerateContentConfig(
 #     contents.append(
 #         types.Content(role="user", parts=[function_response_part])
 #     )  # Append the function response
-#     client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
+#    # client = genai.Client(api_key=local_config.GOOGLE_API_KEY) #maybe removed
 #     response = client.models.generate_content(
 #         model="gemini-2.0-flash",
 #         config=config,
@@ -121,15 +121,16 @@ config = types.GenerateContentConfig(
 
 # contents = [ local_config.netlist_with_load]
 contents = [ local_config.netlist_without_load]
-
+# use the tool to 
+# Tell the tool the node that load capacitor should connect to besides VSS. 
+# Then response the netlist output from the tool.
 config = types.GenerateContentConfig(
-    thinking_config=types.ThinkingConfig(thinking_budget=0),
     system_instruction="""
             You are an experienced analog designer. 
-            You are given an incomplete, flawed netlist and tools.
-            You should tell whether there is existing load.
-            If there is not, add a load capacitor using the tool and then response the netlist.
-            If there is, analyse the netlist and response a short analysis.
+            You are given an incomplete, flawed netlist and tools. Analyze the provided netlist.
+            1, If no load is present, you must immediately call the tool 'add_load_capacitance'. 
+                You must specify the output node.
+            2, If a load is present, respond with a short analysis of the circuit.
             """,
         # 4, if the circuit does not have any existing load, add load capacitance using the tool. 
         #     Provide also the node name that capacitor should be connected to to the tool.
@@ -138,11 +139,16 @@ config = types.GenerateContentConfig(
 
 )
 response = client.models.generate_content(
-        model="gemini-2.0-flash",
+        model=model_used_25,
         config=config,
         contents=contents,
     )
-print("final output",response.text)
+# print("final output",response.text)
+print("==function_call\n", response.candidates[0].content.parts[0].function_call)
+print("==resonse\n",response.text)
+tool_call = response.candidates[0].content.parts[0].function_call
+# if tool_call.name == "add_C_load":
+#         result = utils.add_C_load(**tool_call.args)
 # md_path = "1genai/data/6/edited_explanation.md"
 # md_string = utils.get_file_to_str(md_path, "**==circuit explanation:\n")
 
