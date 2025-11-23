@@ -13,6 +13,7 @@ DEFAULT_C = "3p"
 #     client = genai.Client(api_key=GOOGLE_API_KEY)
 #     return client
 
+# region for tool
 
 def get_file_to_str(path, str):
     try:
@@ -55,7 +56,7 @@ def clean_netlist(netlist):
     netlist = re.sub(r"\s*resistor\s*", "\n", netlist, flags=re.IGNORECASE)
     netlist = re.sub(r"\s*capacitor\s*", "\n", netlist, flags=re.IGNORECASE)
 
-    return '\n.include "1genai/data/45nm.sp\n\n"' + netlist
+    return '\n.include "1genai/data/45nm.sp"\n' + netlist
 
 
 def match_transistor(match):
@@ -324,3 +325,7 @@ op
     lines.insert(len(lines), op_sim_block)
 
     return "\n".join(lines)
+# endregion
+# region for pyspice
+
+# endregion
