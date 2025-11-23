@@ -48,7 +48,8 @@ CL net6 0 {cload}
 .control
 run
 set units=degrees
-set wr_vecnames
+*whether name would be written into the file.
+set wr_vecnames 
 option numdgt=7
 * set temperature
 set temp=temp_pvt
@@ -79,8 +80,8 @@ op
 * dc Vinput 0 0 0.1
 wrdata ./no_backup/output_files/dc_TwoStage.csv i(vdd) v(net1) v(net2) v(net3) v(net4) v(net5) v(net6) v(net7) v(net8)
 
-
-quit
+*auto quit
+quit 
 .endc
 
 .end

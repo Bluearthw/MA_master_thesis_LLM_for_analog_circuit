@@ -66,7 +66,7 @@ R0 VDD VOUT2 {r0}
     nl = utils.add_DC_source(netlist)  # input should be string here
     print("==add_DC", nl)
 
-
+# test_add_source()
 def test_add_C_load(netlist=""):
     netlist = """
 *params
@@ -87,4 +87,26 @@ Vss VSS 0 dc=0
     print("==add_Cload", nl)
 
 
-test_add_C_load()
+def test_add_C_load2(netlist=""):
+    netlist = """
+*params
+
+
+.param Cload=10p
+.param VDD=1.2
+.param w0=0.5u l0=90n m0=1
+.param w1=0.5u l1=90n m1=1
+.include "1genai/data/45nm.sp"
+M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
+M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
+
+Vdd VDD 0 dc=VDD
+
+Vss VSS 0 dc=0
+
+Cload VOUT1 VSS {Cload}
+"""
+    node = "VIN1" # should be from the LLM
+    nl = utils.add_OP_simulation(netlist, node)  # input should be string here
+    print("==add_Cload", nl)
+

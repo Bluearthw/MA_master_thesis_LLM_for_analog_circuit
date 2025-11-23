@@ -195,7 +195,7 @@ def add_params(netlist):  # input should be lines here
     return "\n".join(output)
 
 
-def add_DC_source(netlist, vdd="1.2"):
+def add_DC_source(netlist, vdd="1.2", vb1 ="0.7"):
     """
     Add DC source to the incomplete spice netlist if it is needed.
 
@@ -209,11 +209,13 @@ def add_DC_source(netlist, vdd="1.2"):
         The netlist added with parameters as a string.
     """
     param_line = f"\n.param VDD={vdd}"
+    param_vb1_line = f"\n.param VB1={vb1}"
 
     # Standard source definitions using the parameter
-    vdd_source = "\nVdd VDD 0 dc=VDD"
-    vss_source = "\nVss VSS 0 dc=0"  # VSS is typically ground reference
-
+    vdd_source = "\nvdd VDD 0 dc=VDD"
+    vss_source = "\nvss VSS 0 dc=0"  # VSS is typically ground reference
+    vb1_source = "\nvb1 VB1 0 dc=VB1"  # VSS is typically ground reference
+    
     # source_block = f"\n{param_line}\n{vdd_source}\n"
     # vss_block = f"{vss_source}\n"
     # --- 2. Check for Node Usage ---
@@ -223,8 +225,10 @@ def add_DC_source(netlist, vdd="1.2"):
     # We use re.DOTALL to search across multiple lines.
     vdd_in_use = re.search(r"\bVDD\b", netlist, re.IGNORECASE)
     vss_in_use = re.search(r"\bVSS\b", netlist, re.IGNORECASE)
-
+    vb_in_use = re.search(r"\bVB1\b", netlist, re.IGNORECASE)
+    
     # --- 3. Determine Insertion Point and Insert ---
+    
 
     if vdd_in_use:
         insertion_point = 0
@@ -243,11 +247,16 @@ def add_DC_source(netlist, vdd="1.2"):
         # Insert the source block at the determined point
         # We replace the line at insertion_point with itself + the new block
         lines.insert(insertion_point, param_line)
+
         lines.insert(len(lines), vdd_source)
+        if vb_in_use:
+            lines.insert(insertion_point, param_vb1_line)
+            lines.insert(len(lines), vb1_source)
+
         if vss_in_use:
 
             lines.insert(len(lines), vss_source)
-
+        
         return "\n".join(lines)
 
     else:
@@ -260,7 +269,7 @@ def add_C_load(netlist, node, Cload="10p"):
     Add load capacitance to the incomplete spice netlist.
 
     Performs the following transformations on the input netlist string:
-    2. Add load capacitance.
+    1. Add load capacitance.
     Args:
         netlist: The raw, potentially incomplete or flawed SPICE netlist content as a single string.
         node: The node that Cload should connected to
@@ -277,5 +286,39 @@ def add_C_load(netlist, node, Cload="10p"):
     # We replace the line at insertion_point with itself + the new block
     lines.insert(2, param_line)
     lines.insert(len(lines), cload_line)
+
+    return "\n".join(lines)
+
+def add_OP_simulation(netlist, node, Vincm="0.6"):
+    """
+    Add DC input to the incomplete spice netlist.
+
+    Performs the following transformations on the input netlist string:
+    1. Add DC input.
+    Args:
+        netlist: The raw, potentially incomplete or flawed SPICE netlist content as a single string.
+        node: The node that Cload should connected to
+    Returns:
+        The netlist added with OP simulation as a string.
+    """
+    # isUsed = re.search(r'\bVDD\b', circuit_string, re.IGNORECASE)
+    param_line = f"\n.param Vincm={Vincm}"
+    vincm_line = f"\nVicm {node} VSS dc=Vincm"
+    temp_line = ". temperature = 2"
+    op_sim_block = """
+.control
+
+option numdgt=4
+set temp=temperature
+op
+.endc
+.end
+"""
+    lines = netlist.strip().splitlines()
+
+    # Insert the source block at the determined point
+    # We replace the line at insertion_point with itself + the new block
+    lines.insert(2, param_line)
+    lines.insert(len(lines), vincm_line)
 
     return "\n".join(lines)

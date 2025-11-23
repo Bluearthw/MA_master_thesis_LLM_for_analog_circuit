@@ -215,7 +215,7 @@ print("=" * 100)
 print(response_string)
 
 #####################
-# region 3rd agent, add DC simulation
+# region 3rd agent, add DC simulation and input
 #####################
 config = types.GenerateContentConfig(
     thinking_config=types.ThinkingConfig(thinking_budget=0),
