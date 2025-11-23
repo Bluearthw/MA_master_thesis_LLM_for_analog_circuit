@@ -34,6 +34,9 @@ client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
 
 contents = [circuit_string]
 
+
+contents = [circuit_string]
+
 tools_available = [
     types.Tool(
         function_declarations=[
@@ -70,7 +73,14 @@ response = client.models.generate_content(
 # text = response.candidates[0].text
 # circuit =NetlistFlow.model_validate_json(response.text)
 # print(circuit)
+response = client.models.generate_content(
+    model=model_used, contents=contents, config=config
+)
+# text = response.candidates[0].text
+# circuit =NetlistFlow.model_validate_json(response.text)
+# print(circuit)
 # print(response.text)
+# print(response.candidates[0].content.parts)
 # print(response.candidates[0].content.parts)
 # print("function_call", response.candidates[0].content.parts[0].function_call)
 tool_call = response.candidates[0].content.parts[0].function_call
@@ -83,7 +93,21 @@ while tool_call:
         result = utils.add_DC_source(tool_call.args["netlist"])
     # elif tool_call.name == "add_C_load":
     #     result = utils.add_C_load(tool_call.args["netlist"],tool_call.args["node"])
+tool_call = response.candidates[0].content.parts[0].function_call
+while tool_call:
+    if tool_call.name == "clean_netlist":
+        result = utils.clean_netlist(**tool_call.args)
+    elif tool_call.name == "add_params":
+        result = utils.add_params(tool_call.args["netlist"])
+    elif tool_call.name == "add_DC_source":
+        result = utils.add_DC_source(tool_call.args["netlist"])
+    # elif tool_call.name == "add_C_load":
+    #     result = utils.add_C_load(tool_call.args["netlist"],tool_call.args["node"])
 
+    function_response_part = types.Part.from_function_response(
+        name=tool_call.name,
+        response={"result": result},
+    )
     function_response_part = types.Part.from_function_response(
         name=tool_call.name,
         response={"result": result},
@@ -126,6 +150,7 @@ for part in response.candidates[0].content.parts:
 contents = [netlist_before_C_load_check]
 
 config = types.GenerateContentConfig(
+    # thinking_config=types.ThinkingConfig(thinking_budget=0),
     # thinking_config=types.ThinkingConfig(thinking_budget=0),
     system_instruction="""
             You are an experienced analog designer. 
