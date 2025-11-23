@@ -1,5 +1,5 @@
-from google import genai
-from local_config import GOOGLE_API_KEY
+# from google import genai
+# from local_config import GOOGLE_API_KEY
 import re
 
 DEFAULT_W = "0.5u"
@@ -9,9 +9,9 @@ DEFAULT_R = "1k"
 DEFAULT_C = "3p"
 
 
-def get_client():
-    client = genai.Client(api_key=GOOGLE_API_KEY)
-    return client
+# def get_client():
+#     client = genai.Client(api_key=GOOGLE_API_KEY)
+#     return client
 
 
 def get_file_to_str(path, str):

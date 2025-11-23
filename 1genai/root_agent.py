@@ -1,9 +1,9 @@
-# from google import genai
+from google import genai
 from google.genai import types
 
 # import os
 from pydantic import BaseModel, Field
-
+import local_config
 # local import
 import utils
 import tools
@@ -11,7 +11,7 @@ import tools
 # initiation
 model_used = "gemini-2.0-flash"
 model_used_25 = "gemini-2.5-flash"
-cir_num = 9
+cir_num = 6
 cir_path = f"1genai/data/{cir_num}/{cir_num}.cir"
 
 
@@ -30,7 +30,7 @@ class NetlistFlow(BaseModel):
     netlist: str = Field(description="The circuit netlist.")
 
 
-client = utils.get_client()
+client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
 contents = [circuit_string]
 tools_available = [
     types.Tool(
@@ -52,8 +52,7 @@ config = types.GenerateContentConfig(
             1, clean its format using the tool. 
             2, add some paramters using the tool.
             3, add DC source and GND.
-            4, if needed, add load capacitance using the tool. Provide also the node name that capacitor should be connected to to the tool.
-            You should response the cleaned netlist with some parameters added.
+            You should response the final netlist.
         """,
     temperature=0,
     tools=tools_available,
@@ -61,67 +60,89 @@ config = types.GenerateContentConfig(
     # response_json_schema = NetlistFlow.model_json_schema(),
 )
 
-response = client.models.generate_content(
-    model=model_used, contents=contents, config=config
+# response = client.models.generate_content(
+#     model=model_used, contents=contents, config=config
+# )
+# # text = response.candidates[0].text
+# # circuit =NetlistFlow.model_validate_json(response.text)
+# # print(circuit)
+# print(response.text)
+# # print(response.candidates[0].content.parts)
+# print("function_call", response.candidates[0].content.parts[0].function_call)
+# tool_call = response.candidates[0].content.parts[0].function_call
+# while tool_call:
+#     if tool_call.name == "clean_netlist":
+#         result = utils.clean_netlist(**tool_call.args)
+#     elif tool_call.name == "add_params":
+#         result = utils.add_params(tool_call.args["netlist"])
+#     elif tool_call.name == "add_DC_source":
+#         result = utils.add_DC_source(tool_call.args["netlist"])
+#     # elif tool_call.name == "add_C_load":
+#     #     result = utils.add_C_load(tool_call.args["netlist"],tool_call.args["node"])
+
+#     function_response_part = types.Part.from_function_response(
+#         name=tool_call.name,
+#         response={"result": result},
+#     )
+
+#     print("==response content", response.candidates[0].content)
+#     print("==response result", result)
+#     contents.append(
+#         response.candidates[0].content
+#     )  # Append the content from the model's response.
+#     contents.append(
+#         types.Content(role="user", parts=[function_response_part])
+#     )  # Append the function response
+#     client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
+#     response = client.models.generate_content(
+#         model="gemini-2.0-flash",
+#         config=config,
+#         contents=contents,
+#     )
+#     tool_call = response.candidates[0].content.parts[0].function_call
+#     print("tool_call", tool_call)
+# md_string = ""
+# # monitoring the thinking summary and the final answer
+# for part in response.candidates[0].content.parts:
+#     if not part.text:
+#         continue
+#     if part.thought:
+#         md_string += f"# Thought Summary\n{part.text}\n"
+#     else:
+#         md_string += f"# Answer Text\n{part.text}\n"
+#         # md_string += "################\n"
+
+# print("=" * 100)
+# print(md_string)
+
+#####################
+# 2nd agent, add C load, with thinking to see whether C is needed
+# # # ## # # ## # # #
+
+# contents = [ local_config.netlist_with_load]
+contents = [ local_config.netlist_without_load]
+
+config = types.GenerateContentConfig(
+    thinking_config=types.ThinkingConfig(thinking_budget=0),
+    system_instruction="""
+            You are an experienced analog designer. 
+            You are given an incomplete, flawed netlist and tools.
+            You should tell whether there is existing load.
+            If there is not, add a load capacitor using the tool and then response the netlist.
+            If there is, analyse the netlist and response a short analysis.
+            """,
+        # 4, if the circuit does not have any existing load, add load capacitance using the tool. 
+        #     Provide also the node name that capacitor should be connected to to the tool.
+    temperature=0,
+    tools=tools_available,
+
 )
-# text = response.candidates[0].text
-# circuit =NetlistFlow.model_validate_json(response.text)
-# print(circuit)
-print(response.text)
-# print(response.candidates[0].content.parts)
-print("function_call", response.candidates[0].content.parts[0].function_call)
-tool_call = response.candidates[0].content.parts[0].function_call
-while tool_call:
-    if tool_call.name == "clean_netlist":
-        result = utils.clean_netlist(**tool_call.args)
-    elif tool_call.name == "add_params":
-        result = utils.add_params(tool_call.args["netlist"])
-    elif tool_call.name == "add_DC_source":
-        result = utils.add_DC_source(tool_call.args["netlist"])
-    elif tool_call.name == "add_C_load":
-        result = utils.add_C_load(tool_call.args["netlist"],tool_call.args["node"])
-
-    function_response_part = types.Part.from_function_response(
-        name=tool_call.name,
-        response={"result": result},
-    )
-
-    print("==response content", response.candidates[0].content)
-    print("==response result", result)
-    contents.append(
-        response.candidates[0].content
-    )  # Append the content from the model's response.
-    contents.append(
-        types.Content(role="user", parts=[function_response_part])
-    )  # Append the function response
-    client = utils.get_client()
-    response = client.models.generate_content(
+response = client.models.generate_content(
         model="gemini-2.0-flash",
         config=config,
         contents=contents,
     )
-    tool_call = response.candidates[0].content.parts[0].function_call
-    print("tool_call", tool_call)
-md_string = ""
-# monitoring the thinking summary and the final answer
-for part in response.candidates[0].content.parts:
-    if not part.text:
-        continue
-    if part.thought:
-        md_string += f"# Thought Summary\n{part.text}\n"
-    else:
-        md_string += f"# Answer Text\n{part.text}\n"
-        md_string += "################\n"
-
-print("=" * 100)
-print(md_string)
-# parts=[Part(
-#   text="""{
-# "netlist": "M0 (VDD VDD VOUT1 VSS) nmos\nR0 (VOUT1 VSS) R\nC0 (VOUT1 VSS) C"
-# }"""
-# )] role='model'
-
-
+print("final output",response.text)
 # md_path = "1genai/data/6/edited_explanation.md"
 # md_string = utils.get_file_to_str(md_path, "**==circuit explanation:\n")
 
@@ -129,7 +150,7 @@ print(md_string)
 #     types.Content(role="user", parts=[types.Part(text=circuit_string + md_string)])
 # ]
 
-# client = utils.get_client()
+# client = client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
 # response = client.models.generate_content(
 #     model=model_used,
 #     config=types.GenerateContentConfig(
