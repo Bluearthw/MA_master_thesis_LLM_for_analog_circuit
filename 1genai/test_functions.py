@@ -70,7 +70,7 @@ R0 VDD VOUT2 {r0}
 def test_add_C_load(netlist=""):
     netlist = """
 *params
-
+.param VB1=0.7
 .param VDD=1.2
 .param w0=0.5u l0=90n m0=1
 .param w1=0.5u l1=90n m1=1
@@ -79,18 +79,18 @@ M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
 M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
 
 Vdd VDD 0 dc=VDD
-
+vb1 VB1 0 dc=VB1
 Vss VSS 0 dc=0
 """
     node = "VOUT1" # should be from the LLM
     nl = utils.add_C_load(netlist, node)  # input should be string here
     print("==add_Cload", nl)
 
-
-def test_add_C_load2(netlist=""):
+# test_add_C_load()
+def test_add_add_OP_simulation(netlist=""):
     netlist = """
 *params
-
+.param VB1=0.7
 
 .param Cload=10p
 .param VDD=1.2
@@ -101,7 +101,7 @@ M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
 M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
 
 Vdd VDD 0 dc=VDD
-
+vb1 VB1 0 dc=VB1
 Vss VSS 0 dc=0
 
 Cload VOUT1 VSS {Cload}
@@ -110,3 +110,4 @@ Cload VOUT1 VSS {Cload}
     nl = utils.add_OP_simulation(netlist, node)  # input should be string here
     print("==add_Cload", nl)
 
+# test_add_add_OP_simulation()

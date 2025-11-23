@@ -61,3 +61,22 @@ add_C_load_declaration = {
         "required": ["netlist", "node"],
     },
 }
+
+add_OP_simulation_declaration = { 
+    "name": "add_OP_simulation",
+    "description": " Add DC input source abd OP operation to the incomplete spice netlist.",
+    "parameters": {
+        "type": "OBJECT",
+        "properties": {
+            "netlist": {
+                "type": "string",
+                "description": "The raw SPICE netlist content as a single string to be added source.",
+            },
+            "node": {
+                "type": "string",
+                "description": "The node name that the DC input source should be connected to besides VSS.",
+            }
+        },
+        "required": ["netlist", "node"],
+    },
+}

@@ -13,45 +13,70 @@ ngspice = NgSpiceShared.new_instance()
 # print(ngspice.exec_command('devhelp'))
 # print(ngspice.exec_command('devhelp resistor'))
 
-circuit = '''
+circuit6 ="""
+*params
 
-.include "./1genai/data/45nm.sp"
 
-* Parameters
+.param temperature = 25
+
+.param VINCM=0.6
 .param VDD=1.2
-.param RVAL=1k
-.param CVAL=1p
+.param r0=1k
+.param c0=3p
+.include "1genai/data/45nm.sp"
 
-* DC Source
-Vdd VDD 0 dc={VDD}
+"M0 VDD VDD VOUT1 VSS nmos
+R0 VOUT1 VSS {r0}
+C0 VOUT1 VSS {c0}
+* dgsb
 
-* AC Source for AC Analysis
-Vac VDD 0 ac=1
+Vdd VDD 0 dc=VDD
 
+Vss VSS 0 dc=0
 
-* Components
-M0 VDD VDD VOUT1 0 nmos w=500n l=90n
-Rc VOUT1 0 {RVAL}
-Cc VOUT1 0 {CVAL}
+Vicm VOUT1 VSS dc=VINCM
 
 .control
-    * DC Operating Point Analysis
-    op
 
-    * AC Analysis
-    ac dec 10 1 100G
+option numdgt=4
+set temp=temperature
+op
+.endc
+.end
+"""
+circuit9 ='''
+*params
+.param VB1=0.7
 
-    * DC Sweep Analysis
-    dc Vdd 0 1.2 0.01
+.param temperature = 25
 
-    * Transient Analysis
-    tran 1n 100n
+.param VINCM=0.6
 
-quit
+.param Cload=10p
+.param VDD=1.2
+.param w0=0.5u l0=90n m0=1
+.param w1=0.5u l1=90n m1=1
+.include "1genai/data/45nm.sp"
+M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
+M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
+
+Vdd VDD 0 dc=VDD
+vb1 VB1 0 dc=VB1
+Vss VSS 0 dc=0
+
+Cload VOUT1 VSS {Cload}
+
+Vicm VIN1 VSS dc=VINCM
+
+.control
+
+option numdgt=4
+set temp=temperature
+op
 .endc
 .end
 '''
-
+circuit = circuit6
 ngspice.load_circuit(circuit)
 
 # print('Loaded circuit:')

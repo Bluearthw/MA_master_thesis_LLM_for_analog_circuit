@@ -289,7 +289,7 @@ def add_C_load(netlist, node, Cload="10p"):
 
     return "\n".join(lines)
 
-def add_OP_simulation(netlist, node, Vincm="0.6"):
+def add_OP_simulation(netlist, node, VINCM="0.6"):
     """
     Add DC input to the incomplete spice netlist.
 
@@ -302,9 +302,9 @@ def add_OP_simulation(netlist, node, Vincm="0.6"):
         The netlist added with OP simulation as a string.
     """
     # isUsed = re.search(r'\bVDD\b', circuit_string, re.IGNORECASE)
-    param_line = f"\n.param Vincm={Vincm}"
-    vincm_line = f"\nVicm {node} VSS dc=Vincm"
-    temp_line = ". temperature = 2"
+    param_line = f"\n.param VINCM={VINCM}"
+    vincm_line = f"\nVicm {node} VSS dc=VINCM"
+    temp_line = "\n.param temperature = 25"
     op_sim_block = """
 .control
 
@@ -319,6 +319,8 @@ op
     # Insert the source block at the determined point
     # We replace the line at insertion_point with itself + the new block
     lines.insert(2, param_line)
+    lines.insert(2, temp_line)
     lines.insert(len(lines), vincm_line)
+    lines.insert(len(lines), op_sim_block)
 
     return "\n".join(lines)
