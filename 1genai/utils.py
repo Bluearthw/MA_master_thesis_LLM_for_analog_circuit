@@ -1,5 +1,4 @@
-# from google import genai
-# from local_config import GOOGLE_API_KEY
+
 import re
 
 DEFAULT_W = "0.5u"
@@ -7,11 +6,12 @@ DEFAULT_L = "90n"
 DEFAULT_M = "1"
 DEFAULT_R = "1k"
 DEFAULT_C = "3p"
+##### for pyspice
+from PySpice.Spice.NgSpice.Shared import NgSpiceShared
+import matplotlib.pyplot as plt
+import numpy as np
 
 
-# def get_client():
-#     client = genai.Client(api_key=GOOGLE_API_KEY)
-#     return client
 
 # region for tool
 
@@ -327,5 +327,25 @@ op
     return "\n".join(lines)
 # endregion
 # region for pyspice
+def get_vector_and_make_array(plot, name):
+    array = np.array(plot[name]._data)
+    # array = np.array(vec.array)
+    return array
+
+def pyspice_op_sim(circuit ="",node ="vout1"):
+    ngspice = NgSpiceShared.new_instance()
+    ngspice.load_circuit(circuit)
+    ngspice.run()
+    plot = ngspice.plot(simulation=None, plot_name="op1")
+    # print('Plots:\n', ngspice.plot_names)
+    # print('plot?\n',plot)
+    vout = get_vector_and_make_array(plot,node)
+    # .param VINCM=0.53
+    # .param VB1=0.45 
+    # * in this way Vout1 is 0.61 1/2 VDD 
+    # ==pyspice_op_sim (array([0.61209825]), array([1.2]), array([1.2]), array([5.2854921e-12]), array([6.19755257e-13]))
+#    others seem useless
+    # 'vin1': variable: vin1 voltage, 'vdd': variable: vdd voltage, 'vb1': variable: vb1 voltage, 'vout1': variable: vout1 voltage}
+    return vout 
 
 # endregion

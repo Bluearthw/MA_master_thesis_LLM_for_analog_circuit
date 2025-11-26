@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 def test_clean():
-    for i in range(5, 80):
+    for i in range(2, 20):
         cir_path = f"../material/dataset/tb_dataset/{i}/{i}.cir"
         # print(i)
         # print("cir_path",cir_path)
@@ -14,24 +14,30 @@ def test_clean():
             continue
         circuit_string = utils.get_file_to_str(
             cir_path,
-            "**== imcomplete cir file:\n",
-            '.include "./1genai/data/45nm.sp" \n',
+            ""
+            
         )
         circuit_string = utils.clean_netlist(circuit_string)
         print("==clean\n", circuit_string)
-        return circuit_string
-
+    return circuit_string
+# test_clean()
 
 def test_add_params(netlist=""):
     netlist = """
+.include "1genai/data/45nm.sp"
+M0 VDD VDD VOUT1 VSS nmos
+R0 VOUT1 VSS
+C0 VOUT1 VSS
+"""
+    """
 
-.include "./1genai/data/45nm.sp"
-M1 VOUT2 VIN2 IB1 VSS nmos
-M0 VOUT1 VIN1 IB1 VSS nmos
-M3 VOUT2 VB1 VDD VDD nmos
-M2 VOUT1 VB1 VDD VDD nmos
-R1 VDD VOUT1
-R0 VDD VOUT2
+    .include "./1genai/data/45nm.sp"
+    M1 VOUT2 VIN2 IB1 VSS nmos
+    M0 VOUT1 VIN1 IB1 VSS nmos
+    M3 VOUT2 VB1 VDD VDD nmos
+    M2 VOUT1 VB1 VDD VDD nmos
+    R1 VDD VOUT1
+    R0 VDD VOUT2
     """
     # lines = netlist # does not work, need to split first
     # lines = netlist.strip().split('\n')# , add this line if the netlist is not identified as lines
@@ -86,7 +92,7 @@ Vss VSS 0 dc=0
     nl = utils.add_C_load(netlist, node)  # input should be string here
     print("==add_Cload", nl)
 
-# test_add_C_load()
+test_add_C_load()
 def test_add_add_OP_simulation(netlist=""):
     netlist = """
 *params
@@ -111,3 +117,41 @@ Cload VOUT1 VSS {Cload}
     print("==add_Cload", nl)
 
 # test_add_add_OP_simulation()
+
+def test_pycpice_op():
+    netlist ="""*params
+.param temperature=25.0
+
+.param VINCM=0.53
+
+.param Cload=10p
+.param VB1=0.45
+
+.param VDD=1.2
+.param w0=0.5u l0=90n m0=1
+.param w1=0.5u l1=90n m1=1
+.include "1genai/data/45nm.sp"
+M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
+M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
+
+vdd VDD 0 dc=VDD
+
+vb1 VB1 0 dc=VB1
+
+vss VSS 0 dc=0
+
+Cload VOUT1 VSS {Cload}
+
+Vicm VIN1 VSS dc=VINCM
+
+.control
+
+option numdgt=4
+set temp=temperature
+op
+.endc
+.end
+"""
+    result = utils.pyspice_op_sim(netlist)  # input should be string here
+    print("==pyspice_op_sim", result)
+# test_pycpice_op()
