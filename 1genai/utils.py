@@ -15,7 +15,7 @@ import numpy as np
 
 # region for tool
 
-def get_file_to_str(path, str):
+def get_file_to_str(path, str=""):
     try:
         with open(path, "r", encoding="utf-8") as f:
             circuit_string = str + f.read()
@@ -332,7 +332,7 @@ def get_vector_and_make_array(plot, name):
     # array = np.array(vec.array)
     return array
 
-def pyspice_op_sim(circuit ="",node ="vout1"):
+def pyspice_op_sim(node, circuit):
     ngspice = NgSpiceShared.new_instance()
     ngspice.load_circuit(circuit)
     ngspice.run()

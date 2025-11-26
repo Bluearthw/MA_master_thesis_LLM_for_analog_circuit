@@ -20,7 +20,6 @@ def test_clean():
         circuit_string = utils.clean_netlist(circuit_string)
         print("==clean\n", circuit_string)
     return circuit_string
-# test_clean()
 
 def test_add_params(netlist=""):
     netlist = """
@@ -45,10 +44,6 @@ C0 VOUT1 VSS
     nl = utils.add_params(netlist)  # input should be line here
     print("==add_para", nl)
 
-
-# test_add_params()
-
-
 def test_add_source(netlist=""):
     netlist = """
 
@@ -72,7 +67,6 @@ R0 VDD VOUT2 {r0}
     nl = utils.add_DC_source(netlist)  # input should be string here
     print("==add_DC", nl)
 
-# test_add_source()
 def test_add_C_load(netlist=""):
     netlist = """
 *params
@@ -92,7 +86,6 @@ Vss VSS 0 dc=0
     nl = utils.add_C_load(netlist, node)  # input should be string here
     print("==add_Cload", nl)
 
-test_add_C_load()
 def test_add_add_OP_simulation(netlist=""):
     netlist = """
 *params
@@ -115,8 +108,6 @@ Cload VOUT1 VSS {Cload}
     node = "VIN1" # should be from the LLM
     nl = utils.add_OP_simulation(netlist, node)  # input should be string here
     print("==add_Cload", nl)
-
-# test_add_add_OP_simulation()
 
 def test_pycpice_op():
     netlist ="""*params
@@ -152,6 +143,13 @@ op
 .endc
 .end
 """
-    result = utils.pyspice_op_sim(netlist)  # input should be string here
+    result = utils.pyspice_op_sim(netlist, "vout1")  # input should be string here
     print("==pyspice_op_sim", result)
-# test_pycpice_op()
+
+# test_clean()
+# test_add_params()
+# test_add_source()
+# test_add_C_load()
+# test_add_add_OP_simulation()
+test_pycpice_op()
+
