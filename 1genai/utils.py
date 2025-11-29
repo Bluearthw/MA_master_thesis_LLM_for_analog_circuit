@@ -1,6 +1,6 @@
 
 import re
-
+import time
 DEFAULT_W = "0.5u"
 DEFAULT_L = "90n"
 DEFAULT_M = "1"
@@ -265,7 +265,7 @@ def add_DC_source(netlist, vdd="1.2", vb1 ="0.7"):
         return netlist
 
 
-def add_C_load(netlist, node, Cload="10p"):
+def add_C_load(netlist, node ="vout1", Cload="10p"):
     """
     Add load capacitance to the incomplete spice netlist.
 
@@ -290,7 +290,7 @@ def add_C_load(netlist, node, Cload="10p"):
 
     return "\n".join(lines)
 
-def add_OP_simulation(netlist, node, VINCM="0.6"):
+def add_OP_simulation(netlist, node ="vin1", VINCM="0.6"):
     """
     Add DC input to the incomplete spice netlist.
 
@@ -305,12 +305,12 @@ def add_OP_simulation(netlist, node, VINCM="0.6"):
     # isUsed = re.search(r'\bVDD\b', circuit_string, re.IGNORECASE)
     param_line = f"\n.param VINCM={VINCM}"
     vincm_line = f"\nVicm {node} VSS dc=VINCM"
-    temp_line = "\n.param temperature = 25"
+    # temp_line = "\n.param temperature=25.0"
     op_sim_block = """
 .control
 
 option numdgt=4
-set temp=temperature
+set temp=25
 op
 .endc
 .end
@@ -320,23 +320,26 @@ op
     # Insert the source block at the determined point
     # We replace the line at insertion_point with itself + the new block
     lines.insert(2, param_line)
-    lines.insert(2, temp_line)
+    # lines.insert(2, temp_line)
     lines.insert(len(lines), vincm_line)
     lines.insert(len(lines), op_sim_block)
 
     return "\n".join(lines)
 # endregion
+
+
 # region for pyspice
 def get_vector_and_make_array(plot, name):
     array = np.array(plot[name]._data)
     # array = np.array(vec.array)
     return array
 
-def pyspice_op_sim(node, circuit):
+def pyspice_op_sim(circuit, node ="vout1" ):
     ngspice = NgSpiceShared.new_instance()
     ngspice.load_circuit(circuit)
     ngspice.run()
-    plot = ngspice.plot(simulation=None, plot_name="op1")
+    # plot = ngspice.plot(simulation=None, plot_name="op1")# ngspice.last_plot
+    plot = ngspice.plot(simulation=None, plot_name=ngspice.last_plot)# ngspice.last_plot
     # print('Plots:\n', ngspice.plot_names)
     # print('plot?\n',plot)
     vout = get_vector_and_make_array(plot,node)
@@ -349,3 +352,6 @@ def pyspice_op_sim(node, circuit):
     return vout 
 
 # endregion
+
+def test_delay(sec):
+    time.sleep(sec)

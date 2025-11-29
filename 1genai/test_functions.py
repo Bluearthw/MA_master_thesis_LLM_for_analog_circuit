@@ -143,6 +143,38 @@ op
 .endc
 .end
 """
+    netlist ="""
+*params 
+
+.param VINCM=0.6
+
+.param Cload=10p
+.param VB1=0.2
+
+.param VDD=1.2
+.param w0=0.5u l0=90n m0=1
+.param w1=0.5u l1=90n m1=1
+.include "1genai/data/45nm.sp"
+M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
+M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
+
+vdd VDD 0 dc=VDD
+
+vb1 VB1 0 dc=VB1
+
+vss VSS 0 dc=0
+
+Cload vout1 VSS {Cload}
+
+Vicm vin1 VSS dc=VINCM
+
+.control
+
+option numdgt=4
+set temp=25
+op
+.endc
+.end"""
     result = utils.pyspice_op_sim(netlist, "vout1")  # input should be string here
     print("==pyspice_op_sim", result)
 
