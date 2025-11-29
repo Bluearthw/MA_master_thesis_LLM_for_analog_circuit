@@ -13,7 +13,7 @@ import numpy as np
 
 
 
-# region for tool
+# region for adding (tool)
 
 def get_file_to_str(path, str=""):
     try:
@@ -327,7 +327,24 @@ op
     return "\n".join(lines)
 # endregion
 
-
+#region for modifying
+def modify_DC_bias(netlist, V_name, isVincrease):
+    netlist = netlist.strip()
+    lines = netlist.splitlines()
+    new_V = float('inf')
+    for line in lines:
+        if V_name in line:
+            part1, old_value = line.split("=")
+            old_V = float(re.sub("\n","",old_value).strip())
+            if isVincrease:
+                new_V = old_V*1.1
+            else: 
+                new_V = old_V*0.9
+            new_line = part1 + f"={new_V}"
+            netlist = re.sub(line,new_line,netlist)
+            break
+    return netlist, new_V, old_V
+#endregion
 # region for pyspice
 def get_vector_and_make_array(plot, name):
     array = np.array(plot[name]._data)

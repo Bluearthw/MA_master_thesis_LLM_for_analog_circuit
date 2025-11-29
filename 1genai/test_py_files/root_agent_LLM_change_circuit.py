@@ -29,10 +29,7 @@ circuit_string = utils.get_file_to_str(cir_path)  # here adding .include also?
 class NetlistFlow(BaseModel):
     netlist: str = Field(description="The circuit netlist.")
     V_DC_to_change: List[str] = Field(
-        description="The DC bias like VB or VINCM to be tuned."
-    )
-    raise_V: List[bool] = Field(
-        description="If it is true, increase the voltage"
+        description="The DC bias like VB or Vincm to be tuned."
     )
     reason_for_nodes: List[str] = Field(
         description="The corresponding reason to change the bias."
@@ -126,50 +123,39 @@ print("==cir_str\n", netlist)
 
 output_bias_target = vdd / 2  # also from LLM
 output_bias_deviation_target = vdd / 10
-
+reason = ""
+config = ""
 isFirst = True
-## find a reason and tell python how to change
-contents = [netlist]
-output = utils.pyspice_op_sim(netlist, "vout1")
-output_bias_deviation = abs(output - output_bias_target)
-if output_bias_deviation > output_bias_deviation_target:
-    config = types.GenerateContentConfig(
-        thinking_config=types.ThinkingConfig(thinking_budget=0),
-        system_instruction=f"""
-                You are an experienced and helpful analog designer. 
-                You are given a simulated netlist. Analyse the netlist and tell which DC voltages could be change except VDD and VSS.
-                Now the output bias is {output}. Target is {output_bias_target}. 
-                You should response the voltage parameters to change, a boolean True if increasing and the reason to change the parameters.
-                """,
-        temperature=0,
-        response_mime_type="application/json",
-        response_json_schema=NetlistFlow.model_json_schema(),
-    )
-    response = client.models.generate_content(
-        model=model_used_25,  # should use 2.5 here, using 2.0 require 1 more step, also thinking is required
-        config=config,
-        contents=contents,
-    )
-    netlistFlow = NetlistFlow.model_validate_json(response.text)
-    reason = netlistFlow.reason_for_nodes
-    isIncrease = netlistFlow.raise_V
-    changed_V = netlistFlow.V_DC_to_change
-    # print("==isIncrease\n",isIncrease)
-    # print("==reason\n",reason)
-    # print("==changed_V\n",changed_V)
-    ## now I have the list of the bias voltage to change and how to change
-while len(changed_V):
-    # print("netlist",netlist)
-    output = utils.pyspice_op_sim(netlist, "vout1")
-    # print("==output\n", output)
+while True:
+    print("netlist",netlist)
+    output = utils.pyspice_op_sim(netlist,"vout1")
+    print("==output\n", output)
     output_bias_deviation = abs(output - output_bias_target)
     if output_bias_deviation < output_bias_deviation_target:
         break
 
+    contents = [netlist]
     contents.append(reason)
-
+    config = types.GenerateContentConfig(
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
+            system_instruction=f"""
+            You are an experienced and helpful analog designer. 
+            You are given a simulated netlist. Analyse the netlist and change the DC bias voltage value like VB and Vincm (except VDD VSS) to have a better output bias. 
+            Now the output bias is {output}. Target is {output_bias_target}. 
+            You should response the netlist and the reason to change the parameters.
+            """,
+            temperature=0,
+            response_mime_type="application/json",
+            response_json_schema=NetlistFlow.model_json_schema(),
+        )
     if isFirst:
         isFirst = False
+        
+        response = client.models.generate_content(
+            model=model_used_25,  # should use 2.5 here, using 2.0 require 1 more step, also thinking is required
+            config=config,
+            contents=contents,
+        )
 
         # print("==response", response.text)
 
@@ -182,11 +168,11 @@ while len(changed_V):
         config=config,
         contents=contents,
     )
-
+    netlistFlow = NetlistFlow.model_validate_json(response.text)
     # print("==analysis respo", netlistFlow)
     netlist = netlistFlow.netlist
-    print("==netlist", netlist)
+    print("==netlist",netlist)
     reason = netlistFlow.reason_for_nodes
-    print("==reason", reason)
+    print("==reason",reason)
     utils.test_delay(2)
 # endregion
