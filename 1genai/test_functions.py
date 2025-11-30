@@ -221,6 +221,14 @@ def test_find_OPAMP_num_from_file():
     path = "../material/dataset/tb_dataset"
     nums = utils.find_OPAMP_num_from_file(path)
     print("==nums\n",nums)
+    return nums
+def test_find_SISO_from_OPAMPs():
+    path = "../material/dataset/tb_dataset"
+    nums = utils.find_OPAMP_num_from_file(path)
+    print("==nums\n",nums)
+    SISO_nums = utils.find_SISO_from_OPAMPs(path,nums)
+    print("==SISO_nums\n",SISO_nums)
+
 # test_clean()
 # test_add_params()
 # test_add_source()
@@ -228,4 +236,5 @@ def test_find_OPAMP_num_from_file():
 # test_add_add_OP_simulation()
 # test_pycpice_op()
 # test_modify_DC_bias()
-test_find_OPAMP_num_from_file()
+# test_find_OPAMP_num_from_file()
+test_find_SISO_from_OPAMPs()

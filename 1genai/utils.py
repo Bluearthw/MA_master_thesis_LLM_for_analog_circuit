@@ -32,6 +32,7 @@ def find_OPAMP_num_from_file(dataset_path):
     # 4 to 1044
     i = 4
     exist_nums = []
+    lines_to_read = 7 # in the file, it is 1 line per empty line
     start_time = time.perf_counter()
     while True:
         
@@ -41,10 +42,10 @@ def find_OPAMP_num_from_file(dataset_path):
             with open(path, "r", encoding='utf-8') as file:
                 # print("File exists and is ready to read.")
                 # read 10 lines from the file
-                lines = file.readlines()[:10] # https://www.askpython.com/python/examples/read-multiple-lines-python
+                lines = file.readlines()[:lines_to_read] # https://www.askpython.com/python/examples/read-multiple-lines-python
 
                 for line in lines:
-                    if "amplifier" in line :
+                    if "amplifier" in line or "Amplifier" in line :
                         exist_nums.append(i)
                         break
         except FileNotFoundError:
@@ -57,6 +58,11 @@ def find_OPAMP_num_from_file(dataset_path):
     end_time = time.perf_counter()
     print("time used",end_time-start_time)
     return exist_nums
+
+# endregion for file IO
+
+
+# region for classification
 
 def find_SISO_from_OPAMPs(dataset_path, nums):
     exist_nums = []
@@ -74,8 +80,14 @@ def find_SISO_from_OPAMPs(dataset_path, nums):
                 else:
                     exist_nums.append(i)
         except FileNotFoundError:
+            print("???")
+        if i > 80: # to test
+            break
+    return exist_nums
 
-# endregion for file IO
+
+# endregion for classification
+
 
 
 # region for adding (tool)
