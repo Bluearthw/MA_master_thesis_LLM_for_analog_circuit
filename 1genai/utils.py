@@ -1,6 +1,6 @@
-
 import re
 import time
+
 DEFAULT_W = "0.5u"
 DEFAULT_L = "90n"
 DEFAULT_M = "1"
@@ -12,13 +12,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-
-# region for adding (tool)
-
+# region for file IO
 def get_file_to_str(path, str=""):
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            circuit_string = str + f.read()
+        with open(path, "r", encoding="utf-8") as file: # https://www.geeksforgeeks.org/python/read-file-as-string-in-python/
+            circuit_string = str + file.read()
             # print(f"Circuit loaded successfully from: {cir_path}")
             return circuit_string
     except FileNotFoundError:
@@ -26,10 +24,61 @@ def get_file_to_str(path, str=""):
 
 
 def check_file_and_overwrite(path, msg):
-    with open(f"{path}", "w") as f:
-        f.write(f"{msg}")
+    with open(f"{path}", "w") as file:
+        file.write(f"{msg}")
 
 
+def find_OPAMP_num_from_file(dataset_path):
+    # 4 to 1044
+    i = 4
+    exist_nums = []
+    start_time = time.perf_counter()
+    while True:
+        
+        path = dataset_path + f"/{i}/edited_explanation.md"
+        # print("path",path)
+        try:
+            with open(path, "r", encoding='utf-8') as file:
+                # print("File exists and is ready to read.")
+                # read 10 lines from the file
+                lines = file.readlines()[:10] # https://www.askpython.com/python/examples/read-multiple-lines-python
+
+                for line in lines:
+                    if "amplifier" in line :
+                        exist_nums.append(i)
+                        break
+        except FileNotFoundError:
+            # print("\nNOT THERE")
+            if i > 1044:
+                break
+            
+        i+=1
+        # print("i\n",i)
+    end_time = time.perf_counter()
+    print("time used",end_time-start_time)
+    return exist_nums
+
+def find_SISO_from_OPAMPs(dataset_path, nums):
+    exist_nums = []
+    for i in nums:
+        path = dataset_path + f"/{i}/{i}.cir"
+        try:
+            with open(path, "r", encoding='utf-8') as file:
+                # print("File exists and is ready to read.")
+                # read 10 lines from the file
+                cir_string = file.read() # https://www.askpython.com/python/examples/read-multiple-lines-python
+                
+                if "VOUT2" in cir_string or "VIN2" in cir_string:
+                    
+                    continue
+                else:
+                    exist_nums.append(i)
+        except FileNotFoundError:
+
+# endregion for file IO
+
+
+# region for adding (tool)
 def clean_netlist(netlist):
     """
     Cleans an analog SPICE netlist string by standardizing component names and removing
@@ -196,7 +245,7 @@ def add_params(netlist):  # input should be lines here
     return "\n".join(output)
 
 
-def add_DC_source(netlist, vdd="1.2", vb1 ="0.7"):
+def add_DC_source(netlist, vdd="1.2", vb1="0.7"):
     """
     Add DC source to the incomplete spice netlist if it is needed.
 
@@ -216,7 +265,7 @@ def add_DC_source(netlist, vdd="1.2", vb1 ="0.7"):
     vdd_source = "\nvdd VDD 0 dc=VDD"
     vss_source = "\nvss VSS 0 dc=0"  # VSS is typically ground reference
     vb1_source = "\nvb1 VB1 0 dc=VB1"  # VSS is typically ground reference
-    
+
     # source_block = f"\n{param_line}\n{vdd_source}\n"
     # vss_block = f"{vss_source}\n"
     # --- 2. Check for Node Usage ---
@@ -227,9 +276,8 @@ def add_DC_source(netlist, vdd="1.2", vb1 ="0.7"):
     vdd_in_use = re.search(r"\bVDD\b", netlist, re.IGNORECASE)
     vss_in_use = re.search(r"\bVSS\b", netlist, re.IGNORECASE)
     vb_in_use = re.search(r"\bVB1\b", netlist, re.IGNORECASE)
-    
+
     # --- 3. Determine Insertion Point and Insert ---
-    
 
     if vdd_in_use:
         insertion_point = 0
@@ -257,7 +305,7 @@ def add_DC_source(netlist, vdd="1.2", vb1 ="0.7"):
         if vss_in_use:
 
             lines.insert(len(lines), vss_source)
-        
+
         return "\n".join(lines)
 
     else:
@@ -265,7 +313,7 @@ def add_DC_source(netlist, vdd="1.2", vb1 ="0.7"):
         return netlist
 
 
-def add_C_load(netlist, node ="vout1", Cload="10p"):
+def add_C_load(netlist, node="vout1", Cload="10p"):
     """
     Add load capacitance to the incomplete spice netlist.
 
@@ -290,7 +338,8 @@ def add_C_load(netlist, node ="vout1", Cload="10p"):
 
     return "\n".join(lines)
 
-def add_OP_simulation(netlist, node ="vin1", VINCM="0.6"):
+
+def add_OP_simulation(netlist, node="vin1", VINCM="0.6"):
     """
     Add DC input to the incomplete spice netlist.
 
@@ -325,50 +374,62 @@ op
     lines.insert(len(lines), op_sim_block)
 
     return "\n".join(lines)
+
+
 # endregion
 
-#region for modifying
+
+# region for modifying
 def modify_DC_bias(netlist, V_name, isVincrease):
     netlist = netlist.strip()
     lines = netlist.splitlines()
-    new_V = float('inf')
+    new_V = float("inf")
     for line in lines:
         if V_name in line:
             part1, old_value = line.split("=")
-            old_V = float(re.sub("\n","",old_value).strip())
+            old_V = float(re.sub("\n", "", old_value).strip())
             if isVincrease:
-                new_V = old_V*1.1
-            else: 
-                new_V = old_V*0.9
+                new_V = old_V * 1.1
+            else:
+                new_V = old_V * 0.9
             new_line = part1 + f"={new_V}"
-            netlist = re.sub(line,new_line,netlist)
+            netlist = re.sub(line, new_line, netlist)
             break
     return netlist, new_V, old_V
-#endregion
+
+
+# endregion
+
+
 # region for pyspice
 def get_vector_and_make_array(plot, name):
     array = np.array(plot[name]._data)
     # array = np.array(vec.array)
     return array
 
-def pyspice_op_sim(circuit, node ="vout1" ):
+
+def pyspice_op_sim(circuit, node="vout1"):
     ngspice = NgSpiceShared.new_instance()
     ngspice.load_circuit(circuit)
     ngspice.run()
     # plot = ngspice.plot(simulation=None, plot_name="op1")# ngspice.last_plot
-    plot = ngspice.plot(simulation=None, plot_name=ngspice.last_plot)# ngspice.last_plot
+    plot = ngspice.plot(
+        simulation=None, plot_name=ngspice.last_plot
+    )  # ngspice.last_plot
     # print('Plots:\n', ngspice.plot_names)
     # print('plot?\n',plot)
-    vout = get_vector_and_make_array(plot,node)
+    vout = get_vector_and_make_array(plot, node)
     # .param VINCM=0.53
-    # .param VB1=0.45 
-    # * in this way Vout1 is 0.61 1/2 VDD 
+    # .param VB1=0.45
+    # * in this way Vout1 is 0.61 1/2 VDD
     # ==pyspice_op_sim (array([0.61209825]), array([1.2]), array([1.2]), array([5.2854921e-12]), array([6.19755257e-13]))
-#    others seem useless
+    #    others seem useless
     # 'vin1': variable: vin1 voltage, 'vdd': variable: vdd voltage, 'vb1': variable: vb1 voltage, 'vout1': variable: vout1 voltage}
-    return vout 
+    return vout
+
 
 # endregion
+
 
 def test_delay(sec):
     time.sleep(sec)

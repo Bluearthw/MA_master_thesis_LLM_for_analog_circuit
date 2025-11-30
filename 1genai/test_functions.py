@@ -217,11 +217,15 @@ op
     print("==old\n",old_V)
     return 0
 
+def test_find_OPAMP_num_from_file():
+    path = "../material/dataset/tb_dataset"
+    nums = utils.find_OPAMP_num_from_file(path)
+    print("==nums\n",nums)
 # test_clean()
 # test_add_params()
 # test_add_source()
 # test_add_C_load()
 # test_add_add_OP_simulation()
 # test_pycpice_op()
-test_modify_DC_bias()
-
+# test_modify_DC_bias()
+test_find_OPAMP_num_from_file()
