@@ -125,9 +125,10 @@ print("==cir_str\n", netlist)
 
 
 output_bias_target = vdd / 2  # also from LLM
-output_bias_deviation_target = vdd / 10
+output_bias_deviation_target = output_bias_target / 100
 
 isFirst = True
+
 ## find a reason and tell python how to change
 contents = [netlist]
 output = utils.pyspice_op_sim(netlist, "vout1")
@@ -152,41 +153,28 @@ if output_bias_deviation > output_bias_deviation_target:
     )
     netlistFlow = NetlistFlow.model_validate_json(response.text)
     reason = netlistFlow.reason_for_nodes
-    isIncrease = netlistFlow.raise_V
-    changed_V = netlistFlow.V_DC_to_change
-    # print("==isIncrease\n",isIncrease)
+    isIncreases = netlistFlow.raise_V
+    V_changed_names = netlistFlow.V_DC_to_change
+    V_changed_name = V_changed_names[0]
+    isIncrease = isIncreases[0]
+    print("==isIncrease\n",isIncreases)
     # print("==reason\n",reason)
-    # print("==changed_V\n",changed_V)
+    print("==changed_V\n",V_changed_name)
     ## now I have the list of the bias voltage to change and how to change
-while len(changed_V):
-    # print("netlist",netlist)
+    utils.test_delay(10)
+while len(V_changed_names):
+    print("==netlist\n",netlist)
     output = utils.pyspice_op_sim(netlist, "vout1")
-    # print("==output\n", output)
+    print("==output\n", output)
     output_bias_deviation = abs(output - output_bias_target)
     if output_bias_deviation < output_bias_deviation_target:
         break
 
-    contents.append(reason)
+    
 
-    if isFirst:
-        isFirst = False
+    if isIncreases:
+        netlist, new_V, old_V = utils.modify_DC_bias(netlist,V_changed_name,isIncrease)
 
-        # print("==response", response.text)
 
-    contents.append(
-        types.Content(role="user", parts=[{"text": response.text}])
-    )  # Append the analysis response
-    # print("contents",contents)
-    response = client.models.generate_content(
-        model=model_used_25,  # should use 2.5 here, using 2.0 require 1 more step, also thinking is required
-        config=config,
-        contents=contents,
-    )
-
-    # print("==analysis respo", netlistFlow)
-    netlist = netlistFlow.netlist
-    print("==netlist", netlist)
-    reason = netlistFlow.reason_for_nodes
-    print("==reason", reason)
     utils.test_delay(2)
 # endregion
