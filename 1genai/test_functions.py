@@ -3,7 +3,7 @@ from google.genai import types
 import os
 import utils
 from pydantic import BaseModel, Field
-
+import local_config
 
 def test_clean():
     for i in range(2, 20):
@@ -110,71 +110,7 @@ Cload VOUT1 VSS {Cload}
     print("==add_Cload", nl)
 
 def test_pycpice_op():
-    netlist ="""*params
-.param temperature=25.0
-
-.param VINCM=0.53
-
-.param Cload=10p
-.param VB1=0.45
-
-.param VDD=1.2
-.param w0=0.5u l0=90n m0=1
-.param w1=0.5u l1=90n m1=1
-.include "1genai/data/45nm.sp"
-M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
-M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
-
-vdd VDD 0 dc=VDD
-
-vb1 VB1 0 dc=VB1
-
-vss VSS 0 dc=0
-
-Cload VOUT1 VSS {Cload}
-
-Vicm VIN1 VSS dc=VINCM
-
-.control
-
-option numdgt=4
-set temp=temperature
-op
-.endc
-.end
-"""
-    netlist ="""
-*params 
-
-.param VINCM=0.6
-
-.param Cload=10p
-.param VB1=0.2
-
-.param VDD=1.2
-.param w0=0.5u l0=90n m0=1
-.param w1=0.5u l1=90n m1=1
-.include "1genai/data/45nm.sp"
-M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
-M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
-
-vdd VDD 0 dc=VDD
-
-vb1 VB1 0 dc=VB1
-
-vss VSS 0 dc=0
-
-Cload vout1 VSS {Cload}
-
-Vicm vin1 VSS dc=VINCM
-
-.control
-
-option numdgt=4
-set temp=25
-op
-.endc
-.end"""
+    netlist = local_config.netlist_14
     result = utils.pyspice_op_sim(netlist, "vout1")  # input should be string here
     print("==pyspice_op_sim", result)
 
@@ -222,6 +158,7 @@ def test_find_OPAMP_num_from_file():
     nums = utils.find_OPAMP_num_from_file(path)
     print("==nums\n",nums)
     return nums
+
 def test_find_SISO_from_OPAMPs():
     path = "../material/dataset/tb_dataset"
     nums = utils.find_OPAMP_num_from_file(path)
@@ -234,7 +171,17 @@ def test_find_SISO_from_OPAMPs():
 # test_add_source()
 # test_add_C_load()
 # test_add_add_OP_simulation()
-# test_pycpice_op()
 # test_modify_DC_bias()
 # test_find_OPAMP_num_from_file()
-test_find_SISO_from_OPAMPs()
+# test_find_SISO_from_OPAMPs()
+
+test_pycpice_op()
+
+"""
+VDD
+R
+VDD/2
+M1 B:0
+VINCM/2
+VSS B:VDD
+"""

@@ -14,14 +14,13 @@ import tools
 # initiation
 model_used = "gemini-2.0-flash"
 model_used_25 = "gemini-2.5-flash"
-
 # cir_num = input()
-cir_num = 9
-cir_path = f"1genai/data/{cir_num}/{cir_num}.cir"
+cir_num = local_config.num_SISOs[1]
+cir_path = local_config.dataset_path + f"/{cir_num}/{cir_num}.cir"
 print("==cir_path\n", cir_path)
 
 circuit_string = utils.get_file_to_str(cir_path)  # here adding .include also?
-
+print("==circuit_string\n",circuit_string)
 
 ######################
 # structure output
@@ -41,7 +40,6 @@ class NetlistFlow(BaseModel):
 
 client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
 vdd = 1.2  # this is retrieved from LLM
-contents = [circuit_string]
 circuit_string = utils.clean_netlist(circuit_string)
 circuit_string = utils.add_params(circuit_string)
 circuit_string = utils.add_DC_source(circuit_string)

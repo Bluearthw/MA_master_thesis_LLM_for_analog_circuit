@@ -21,6 +21,7 @@ def get_file_to_str(path, str=""):
             return circuit_string
     except FileNotFoundError:
         print(f"Error: no files at: {path}")
+        raise FileNotFoundError(" No File")
 
 
 def check_file_and_overwrite(path, msg):
@@ -67,7 +68,7 @@ def find_OPAMP_num_from_file(dataset_path):
 def find_SISO_from_OPAMPs(dataset_path, nums):
     exist_nums = []
     for i in nums:
-        path = dataset_path + f"/{i}/{i}.cir"
+        path = dataset_path + f"/{i}/Port{i}.txt"
         try:
             with open(path, "r", encoding='utf-8') as file:
                 # print("File exists and is ready to read.")
@@ -81,8 +82,8 @@ def find_SISO_from_OPAMPs(dataset_path, nums):
                     exist_nums.append(i)
         except FileNotFoundError:
             print("???")
-        if i > 80: # to test
-            break
+        # if i > 80: # to test
+        #     break
     return exist_nums
 
 
@@ -429,8 +430,12 @@ def pyspice_op_sim(circuit, node="vout1"):
         simulation=None, plot_name=ngspice.last_plot
     )  # ngspice.last_plot
     # print('Plots:\n', ngspice.plot_names)
-    # print('plot?\n',plot)
+    print('plot?\n',plot)
     vout = get_vector_and_make_array(plot, node)
+    net2 = get_vector_and_make_array(plot, "net2")
+    print("==net2\n",net2)
+
+    
     # .param VINCM=0.53
     # .param VB1=0.45
     # * in this way Vout1 is 0.61 1/2 VDD
