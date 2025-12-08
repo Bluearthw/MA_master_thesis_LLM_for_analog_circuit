@@ -159,17 +159,17 @@ def test_find_OPAMP_num_from_file():
     print("==nums\n",nums)
     return nums
 
-def test_find_SISO_from_OPAMPs():
+def test_find_SISO_V_from_OPAMPs():
     path = "../material/dataset/tb_dataset"
     nums = utils.find_OPAMP_num_from_file(path)
     # print("==nums\n",nums)
-    SISO_nums = utils.find_SISO_from_OPAMPs(path,nums)
+    SISO_nums = utils.find_SISO_V_from_OPAMPs(path,nums)
     print("==SISO_nums\n",SISO_nums)
     print("==how much\n",len(SISO_nums))
     return SISO_nums
 def test_find_ports_from_all():
     dataset_path = "../material/dataset/tb_dataset"
-    SISO_nums = test_find_SISO_from_OPAMPs()
+    SISO_nums = test_find_SISO_V_from_OPAMPs()
     # ports = utils.find_ports_from_all(dataset_path)# all    
     ports2 = utils.find_ports_from_all(dataset_path,SISO_nums)# for only SISO    
     # if(ports == ports2): #it is not yes
