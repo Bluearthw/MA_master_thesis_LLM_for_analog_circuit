@@ -161,15 +161,18 @@ def test_find_OPAMP_num_from_file():
 
 def test_find_SISO_V_from_OPAMPs():
     path = "../material/dataset/tb_dataset"
-    nums = utils.find_OPAMP_num_from_file(path)
+    # nums = utils.find_OPAMP_num_from_file(path)
+    nums = local_config.num_amplifier
     # print("==nums\n",nums)
-    SISO_nums = utils.find_SISO_V_from_OPAMPs(path,nums)
+    SISO_nums, SISO_RF_nums = utils.find_SISO_V_from_OPAMPs(path,nums)
     print("==SISO_nums\n",SISO_nums)
     print("==how much\n",len(SISO_nums))
+    print("==RF\n",SISO_RF_nums)
+    print("==how much\n",len(SISO_RF_nums))
     return SISO_nums
 def test_find_ports_from_all():
     dataset_path = "../material/dataset/tb_dataset"
-    SISO_nums = test_find_SISO_V_from_OPAMPs()
+    SISO_nums, SISO_RF_nums = test_find_SISO_V_from_OPAMPs()
     # ports = utils.find_ports_from_all(dataset_path)# all    
     ports2 = utils.find_ports_from_all(dataset_path,SISO_nums)# for only SISO    
     # if(ports == ports2): #it is not yes
@@ -177,14 +180,15 @@ def test_find_ports_from_all():
     # else:
         # print("ports",ports)
     print("ports2\n",ports2)
+    # print("SISO_RF_nums",SISO_RF_nums)
 # test_clean()
 # test_add_params()
 # test_add_source()
 # test_add_C_load()
 # test_add_add_OP_simulation()
 # test_modify_DC_bias()
-test_find_OPAMP_num_from_file()
-# test_find_SISO_from_OPAMPs()
+# test_find_OPAMP_num_from_file()
+test_find_SISO_V_from_OPAMPs()
 # test_find_ports_from_all()
 
 # test_pycpice_op()

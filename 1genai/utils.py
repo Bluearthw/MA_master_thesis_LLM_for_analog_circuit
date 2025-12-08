@@ -17,7 +17,10 @@ import local_config
 def get_file_to_str(path, str=""):
     try:
         with open(path, "r", encoding="utf-8") as file: # https://www.geeksforgeeks.org/python/read-file-as-string-in-python/
-            circuit_string = str + file.read()
+            circuit_string = file.read() # # https://www.askpython.com/python/examples/read-multiple-lines-python
+                
+            if len(str) > 0:
+                circuit_string = str + circuit_string
             # print(f"Circuit loaded successfully from: {cir_path}")
             return circuit_string
     except FileNotFoundError:
@@ -71,32 +74,37 @@ def find_OPAMP_num_from_file(dataset_path):
 # region for classification
 
 def find_SISO_V_from_OPAMPs(dataset_path, nums):
-    exist_nums = []
+    SISO_V_nums = []
+    SISO_RF_nums = []
     # no differential, no current output, not clock
     ports_wanted = ["VOUT1", "VIN1", 'VDD',"VBx","VSS"]
     ports_wanted = ports_wanted + local_config.VB_ports 
     for i in nums:
-        path = dataset_path + f"/{i}/Port{i}.txt"
-        try:
-            with open(path, "r", encoding='utf-8') as file:
-                # print("File exists and is ready to read.")
-                # read 10 lines from the file
-                cir_string = file.read() # https://www.askpython.com/python/examples/read-multiple-lines-python
-                cir_string = re.sub('\n',"",cir_string)
-                ports = cir_string.split(" ")
+        path_port = dataset_path + f"/{i}/Port{i}.txt"
+        path_nl = dataset_path + f"/{i}/{i}.cir"
+       
+        port_string = get_file_to_str(path_port) 
+        port_string = re.sub('\n',"",port_string)
+        ports = port_string.split(" ")
 
-                is_wanted = True
-                for p in ports:
-                    if p not in ports_wanted:
-                        is_wanted = False
-                        break
-                if is_wanted:
-                    exist_nums.append(i)
-        except FileNotFoundError:
-            print("???")
-        # if i > 80: # to test
-        #     break
-    return exist_nums
+        is_wanted = True
+        for p in ports:
+            if p not in ports_wanted:
+                is_wanted = False
+                break
+        cir_string = get_file_to_str(path_nl)
+        
+        # print(cir_string)
+        if is_wanted:
+            if "L0" in cir_string:
+                SISO_RF_nums.append(i)
+                
+            else:
+                SISO_V_nums.append(i)
+
+        if i > 660: # to test
+            break
+    return SISO_V_nums, SISO_RF_nums
 
 def find_ports_from_all(dataset_path,nums = list(range(4,1045))):
     

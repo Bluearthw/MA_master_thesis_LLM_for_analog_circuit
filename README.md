@@ -12,3 +12,6 @@ SISO_opamps with only VB,VIN1,VOUT1 and VBn : 171
 467 has L and it is LNA (low nosie) for RF
 578 with L, it is PA (power)
 643 is a schimtt trigger including amplifier
+832 is 3 stages
+906 2 stage with feedback
+1017 parallel path
