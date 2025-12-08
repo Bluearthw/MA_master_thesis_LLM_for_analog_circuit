@@ -162,10 +162,21 @@ def test_find_OPAMP_num_from_file():
 def test_find_SISO_from_OPAMPs():
     path = "../material/dataset/tb_dataset"
     nums = utils.find_OPAMP_num_from_file(path)
-    print("==nums\n",nums)
+    # print("==nums\n",nums)
     SISO_nums = utils.find_SISO_from_OPAMPs(path,nums)
     print("==SISO_nums\n",SISO_nums)
-
+    print("==how much\n",len(SISO_nums))
+    return SISO_nums
+def test_find_ports_from_all():
+    dataset_path = "../material/dataset/tb_dataset"
+    SISO_nums = test_find_SISO_from_OPAMPs()
+    # ports = utils.find_ports_from_all(dataset_path)# all    
+    ports2 = utils.find_ports_from_all(dataset_path,SISO_nums)# for only SISO    
+    # if(ports == ports2): #it is not yes
+    #     print("yes")
+    # else:
+        # print("ports",ports)
+    print("ports2\n",ports2)
 # test_clean()
 # test_add_params()
 # test_add_source()
@@ -174,9 +185,9 @@ def test_find_SISO_from_OPAMPs():
 # test_modify_DC_bias()
 # test_find_OPAMP_num_from_file()
 # test_find_SISO_from_OPAMPs()
+test_find_ports_from_all()
 
-test_pycpice_op()
-
+# test_pycpice_op()
 """
 VDD
 R

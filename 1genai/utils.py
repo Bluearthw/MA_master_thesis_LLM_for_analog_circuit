@@ -1,5 +1,6 @@
 import re
 import time
+import os
 
 DEFAULT_W = "0.5u"
 DEFAULT_L = "90n"
@@ -34,30 +35,34 @@ def find_OPAMP_num_from_file(dataset_path):
     i = 4
     exist_nums = []
     lines_to_read = 7 # in the file, it is 1 line per empty line
-    start_time = time.perf_counter()
+    # start_time = time.perf_counter()
     while True:
         
         path = dataset_path + f"/{i}/edited_explanation.md"
         # print("path",path)
-        try:
-            with open(path, "r", encoding='utf-8') as file:
-                # print("File exists and is ready to read.")
-                # read 10 lines from the file
-                lines = file.readlines()[:lines_to_read] # https://www.askpython.com/python/examples/read-multiple-lines-python
+        
+        if os.path.isfile(path):
+            try:
+                with open(path, "r", encoding='utf-8') as file:
+                    # print("File exists and is ready to read.")
+                    # read 10 lines from the file
+                    lines = file.readlines()[:lines_to_read] # https://www.askpython.com/python/examples/read-multiple-lines-python
 
-                for line in lines:
-                    if "amplifier" in line or "Amplifier" in line :
-                        exist_nums.append(i)
-                        break
-        except FileNotFoundError:
-            # print("\nNOT THERE")
-            if i > 1044:
-                break
-            
+                    for line in lines:
+                        if "amplifier" in line or "Amplifier" in line :
+                            exist_nums.append(i)
+                            break
+            except FileNotFoundError:
+                print("\nNOT THERE")
+                
+                
         i+=1
+        if i > 1044:
+            break
+            
         # print("i\n",i)
-    end_time = time.perf_counter()
-    print("time used",end_time-start_time)
+    # end_time = time.perf_counter()
+    # print("time used",end_time-start_time)
     return exist_nums
 
 # endregion for file IO
@@ -67,6 +72,8 @@ def find_OPAMP_num_from_file(dataset_path):
 
 def find_SISO_from_OPAMPs(dataset_path, nums):
     exist_nums = []
+    # no differential, no current output, not clock
+    ports = ["VOUT2", "VIN2", 'IOUT1',"VCLK1"]
     for i in nums:
         path = dataset_path + f"/{i}/Port{i}.txt"
         try:
@@ -74,9 +81,12 @@ def find_SISO_from_OPAMPs(dataset_path, nums):
                 # print("File exists and is ready to read.")
                 # read 10 lines from the file
                 cir_string = file.read() # https://www.askpython.com/python/examples/read-multiple-lines-python
-                
-                if "VOUT2" in cir_string or "VIN2" in cir_string:
-                    
+                i_skip = False
+                for p in ports:
+                    if p in cir_string:
+                        i_skip = True
+                        break
+                if  i_skip:
                     continue
                 else:
                     exist_nums.append(i)
@@ -86,7 +96,29 @@ def find_SISO_from_OPAMPs(dataset_path, nums):
         #     break
     return exist_nums
 
-
+def find_ports_from_all(dataset_path,nums = list(range(4,1045))):
+    
+    exist_ports = []
+    
+    for i in nums:
+        path = dataset_path + f"/{i}/Port{i}.txt"
+        # print(path)
+        if os.path.isfile(path):
+            try:
+                with open(path, "r", encoding='utf-8') as file:
+                    # print("File exists and is ready to read.")
+                    # read 10 lines from the file
+                    cir_string = file.read() # https://www.askpython.com/python/examples/read-multiple-lines-python
+                    ports = cir_string.split(" ")
+                    for port in ports:
+                        if port in exist_ports:
+                            
+                            continue
+                        else:
+                            exist_ports.append(port)
+            except FileNotFoundError:
+                print("???")
+    return exist_ports
 # endregion for classification
 
 
