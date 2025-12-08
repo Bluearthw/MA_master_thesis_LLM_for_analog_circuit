@@ -155,7 +155,7 @@ op
 
 def test_find_OPAMP_num_from_file():
     path = "../material/dataset/tb_dataset"
-    nums = utils.find_OPAMP_num_from_file(path)
+    nums = utils.find_OPAMP_num_from_file(path) #amplifier
     print("==nums\n",nums)
     return nums
 
@@ -183,9 +183,9 @@ def test_find_ports_from_all():
 # test_add_C_load()
 # test_add_add_OP_simulation()
 # test_modify_DC_bias()
-# test_find_OPAMP_num_from_file()
+test_find_OPAMP_num_from_file()
 # test_find_SISO_from_OPAMPs()
-test_find_ports_from_all()
+# test_find_ports_from_all()
 
 # test_pycpice_op()
 """

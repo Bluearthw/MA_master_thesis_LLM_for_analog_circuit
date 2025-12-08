@@ -11,7 +11,7 @@ DEFAULT_C = "3p"
 from PySpice.Spice.NgSpice.Shared import NgSpiceShared
 import matplotlib.pyplot as plt
 import numpy as np
-
+import local_config
 
 # region for file IO
 def get_file_to_str(path, str=""):
@@ -73,7 +73,8 @@ def find_OPAMP_num_from_file(dataset_path):
 def find_SISO_V_from_OPAMPs(dataset_path, nums):
     exist_nums = []
     # no differential, no current output, not clock
-    ports = ["VOUT2", "VIN2", 'IOUT1',"VCLK1"]
+    ports_wanted = ["VOUT1", "VIN1", 'VDD',"VBx","VSS"]
+    ports_wanted = ports_wanted + local_config.VB_ports 
     for i in nums:
         path = dataset_path + f"/{i}/Port{i}.txt"
         try:
@@ -81,14 +82,15 @@ def find_SISO_V_from_OPAMPs(dataset_path, nums):
                 # print("File exists and is ready to read.")
                 # read 10 lines from the file
                 cir_string = file.read() # https://www.askpython.com/python/examples/read-multiple-lines-python
-                i_skip = False
+                cir_string = re.sub('\n',"",cir_string)
+                ports = cir_string.split(" ")
+
+                is_wanted = True
                 for p in ports:
-                    if p in cir_string:
-                        i_skip = True
+                    if p not in ports_wanted:
+                        is_wanted = False
                         break
-                if  i_skip:
-                    continue
-                else:
+                if is_wanted:
                     exist_nums.append(i)
         except FileNotFoundError:
             print("???")
@@ -109,9 +111,9 @@ def find_ports_from_all(dataset_path,nums = list(range(4,1045))):
                     # print("File exists and is ready to read.")
                     # read 10 lines from the file
                     cir_string = file.read() # https://www.askpython.com/python/examples/read-multiple-lines-python
-                    print(cir_string)
+                    # print(cir_string)
                     cir_string = re.sub('\n',"",cir_string)
-                    print(cir_string)
+                    # print(cir_string)
                     ports = cir_string.split(" ")
                     
                     for port in ports:
@@ -124,7 +126,7 @@ def find_ports_from_all(dataset_path,nums = list(range(4,1045))):
                 print("???")
         # if(i > 220):
         #     break
-    exist_ports.remove('')
+    # exist_ports.remove('')
     return exist_ports
 # endregion for classification
 
