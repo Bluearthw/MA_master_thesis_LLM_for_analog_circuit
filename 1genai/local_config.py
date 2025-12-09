@@ -1,5 +1,7 @@
 GOOGLE_API_KEY="AIzaSyBCCHDhKIabEjdhfFI0vyXBM6Fc_AhhKQY"
-
+dataset_path = "../material/dataset/tb_dataset"
+model_used = "gemini-2.0-flash"
+model_used_25 = "gemini-2.5-flash"
 # netlist 9
 netlist_with_load ="""*params
 

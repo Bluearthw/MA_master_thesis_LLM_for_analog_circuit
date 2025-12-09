@@ -12,7 +12,10 @@ from PySpice.Spice.NgSpice.Shared import NgSpiceShared
 import matplotlib.pyplot as plt
 import numpy as np
 import local_config
+from google import genai
 
+def get_client():
+    return genai.Client(api_key=local_config.GOOGLE_API_KEY)
 # region for file IO
 def get_file_to_str(path, str="",):
     if os.path.isfile(path):
@@ -148,6 +151,8 @@ def find_RF_from_cir_str(path_exaplain, cir_string):
         return True
 
     return False
+def find_correct_RF_from_num_with_agent(dataset_path, nums = []):
+    nums = local_config.num_SISO_RF_before_filtered 
 
 def find_ports_from_all(dataset_path,nums = list(range(4,1045))):
     
