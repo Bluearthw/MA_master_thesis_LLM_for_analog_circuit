@@ -157,6 +157,7 @@ def test_find_OPAMP_num_from_file():
     path = "../material/dataset/tb_dataset"
     nums = utils.find_OPAMP_num_from_file(path) #amplifier
     print("==nums\n",nums)
+    print(len(nums))
     return nums
 
 def test_find_SISO_V_from_OPAMPs():

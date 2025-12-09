@@ -1,7 +1,7 @@
 import re
 import time
 import os
-
+import itertools
 DEFAULT_W = "0.5u"
 DEFAULT_L = "90n"
 DEFAULT_M = "1"
@@ -14,19 +14,50 @@ import numpy as np
 import local_config
 
 # region for file IO
-def get_file_to_str(path, str=""):
-    try:
-        with open(path, "r", encoding="utf-8") as file: # https://www.geeksforgeeks.org/python/read-file-as-string-in-python/
-            circuit_string = file.read() # # https://www.askpython.com/python/examples/read-multiple-lines-python
+def get_file_to_str(path, str="",):
+    if os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as file: # https://www.geeksforgeeks.org/python/read-file-as-string-in-python/
                 
-            if len(str) > 0:
-                circuit_string = str + circuit_string
-            # print(f"Circuit loaded successfully from: {cir_path}")
-            return circuit_string
-    except FileNotFoundError:
-        print(f"Error: no files at: {path}")
-        raise FileNotFoundError(" No File")
+                circuit_string = file.read() 
+                    
+                if len(str) > 0:
+                    circuit_string = str + circuit_string
+                # print(f"Circuit loaded successfully from: {cir_path}")
+                return circuit_string
+                
+        except FileNotFoundError:
+            print(f"Error: no files at: {path}")
+            raise FileNotFoundError(" No File")
+        
+def get_file_to_lines(path, n_line, start_from_end = False):
+    if os.path.isfile(path):
+        lines = []
+        try:
+            with open(path, "r", encoding="utf-8") as file: 
+                if start_from_end: # .remove("\n")
+                    lines = file.readlines()[-n_line:]
+                    # lines.remove('\n') # it removes only 1
 
+                else:
+                    lines = file.readlines()[:n_line]
+                return lines
+                ##################
+                # don't use your own function, very slow #
+                ###########################
+                # line = file.readline()
+                # counter = 0
+                # while line:
+                #     lines.append(line)
+                #     line = file.readline()
+                #     counter += 1
+                #     if counter > n_line:
+                #         return lines
+                
+        except FileNotFoundError:
+            print(f"Error: no files at: {path}")
+            raise FileNotFoundError(" No File")            
+    return []       
 
 def check_file_and_overwrite(path, msg):
     with open(f"{path}", "w") as file:
@@ -44,21 +75,13 @@ def find_OPAMP_num_from_file(dataset_path):
         path = dataset_path + f"/{i}/edited_explanation.md"
         # print("path",path)
         
-        if os.path.isfile(path):
-            try:
-                with open(path, "r", encoding='utf-8') as file:
-                    # print("File exists and is ready to read.")
-                    # read 10 lines from the file
-                    lines = file.readlines()[:lines_to_read] # https://www.askpython.com/python/examples/read-multiple-lines-python
-
-                    for line in lines:
-                        if "amplifier" in line or "Amplifier" in line :
-                            exist_nums.append(i)
-                            break
-            except FileNotFoundError:
-                print("\nNOT THERE")
-                
-                
+        
+        lines = get_file_to_lines(path, lines_to_read)
+        for line in lines:
+            if "amplifier" in line or "Amplifier" in line :
+                exist_nums.append(i)
+                break
+        
         i+=1
         if i > 1044:
             break
@@ -77,34 +100,54 @@ def find_SISO_V_from_OPAMPs(dataset_path, nums):
     SISO_V_nums = []
     SISO_RF_nums = []
     # no differential, no current output, not clock
-    ports_wanted = ["VOUT1", "VIN1", 'VDD',"VBx","VSS"]
-    ports_wanted = ports_wanted + local_config.VB_ports 
+    ports_wanted = ["VOUT1", "VIN1", 'VDD',"VSS"]
+    ports_wanted = ports_wanted + local_config.VB_ports +local_config.IB_ports
     for i in nums:
         path_port = dataset_path + f"/{i}/Port{i}.txt"
         path_nl = dataset_path + f"/{i}/{i}.cir"
-       
+        path_exaplain = dataset_path +f"/{i}/edited_explanation.md"
+    
         port_string = get_file_to_str(path_port) 
         port_string = re.sub('\n',"",port_string)
         ports = port_string.split(" ")
 
         is_wanted = True
         for p in ports:
-            if p not in ports_wanted:
+            if p not in ports_wanted or "VIN1" not in port_string:
                 is_wanted = False
                 break
         cir_string = get_file_to_str(path_nl)
-        
+        if (i == 465):
+            print(i)
         # print(cir_string)
         if is_wanted:
-            if "L0" in cir_string:
+            if find_RF_from_cir_str(path_exaplain, cir_string):
                 SISO_RF_nums.append(i)
                 
             else:
                 SISO_V_nums.append(i)
 
-        if i > 660: # to test
-            break
+        # if i > 660: # to test
+        #     break
     return SISO_V_nums, SISO_RF_nums
+
+def find_RF_from_cir_str(path_exaplain, cir_string):
+    # start_time = time.perf_counter()
+    if "L0" in cir_string:
+        return True
+    lines = get_file_to_lines(path_exaplain,10,True)
+    
+    for line in lines:
+        if "RF" in line:
+            return True
+    lines2 = get_file_to_lines(path_exaplain,8)
+    string = "".join(lines2)
+    if "RF" in string:
+        # end_time = time.perf_counter()
+        # print("time used",end_time-start_time)
+        return True
+
+    return False
 
 def find_ports_from_all(dataset_path,nums = list(range(4,1045))):
     
