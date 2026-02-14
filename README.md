@@ -2,7 +2,7 @@
 
 number of netlists : 894
 "amplifier" and "Amplifier"
-opamp : 595
+opamp : 470
 SISO_opamps : 334
 SISO_opamps without clk Iin Iout : 289
 SISO_opamps with only VB,VIN1,VOUT1 and VBn : 171

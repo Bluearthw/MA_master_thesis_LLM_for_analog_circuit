@@ -66,17 +66,18 @@ def check_file_and_overwrite(path, msg):
     with open(f"{path}", "w") as file:
         file.write(f"{msg}")
 
-def is_port_name_exist(path, target_port="VIN1"):
+def is_port_name_exist(path, target_ports=["VIN1"]):
     if os.path.isfile(path):
         with open(path, 'r') as f:
             content = f.read()
-              
-        pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
-        
-        if re.search(pattern, content):
-            return True
-        return False
-
+        for target_port in target_ports:
+            pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
+            
+            if re.search(pattern, content):
+                continue
+            return False
+        return True
+    
 def find_OPAMP_num_from_file(dataset_path):
     # 4 to 1044
     i = 4
@@ -87,7 +88,8 @@ def find_OPAMP_num_from_file(dataset_path):
         path_nl = dataset_path + f"/{i}/{i}.cir"
         # print("path_nl",path_nl)
         # let's check cir file first, only when it has vin
-        if is_port_name_exist(path_nl,"VIN1"):
+        ports_name_to_check = ["VIN1","VOUT1"]
+        if is_port_name_exist(path_nl,ports_name_to_check):
             # if VIN1 exists, continue
             path = dataset_path + f"/{i}/edited_explanation.md"
             # print("path",path)
@@ -319,10 +321,7 @@ def add_params(netlist):  # input should be lines here
     resistor_ids_processed = set()
     capacitor_ids_processed = set()
     m_line_pattern = re.compile(r"^(M\S+)\s+(.+?)$", re.IGNORECASE)
-    """
-    [RC], either 'R' or 'C'
-    \Rs+, match 1 more which is not white space
-    """
+    #[RC], either 'R' or 'C'    \Rs+, match 1 more which is not white space
     rc_line_pattern = re.compile(r"^([RC]\S+)\s+(\S+)\s+(\S+)$", re.IGNORECASE)
     digit_extractor = re.compile(r"\d+")
     lines = netlist.strip().split("\n")
