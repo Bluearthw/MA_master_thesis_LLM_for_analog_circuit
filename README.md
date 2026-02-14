@@ -1,6 +1,6 @@
 # MA_master_thesis_LLM_for_analog_circuit
 
-number of netlists : 892
+number of netlists : 894
 "amplifier" and "Amplifier"
 opamp : 595
 SISO_opamps : 334

@@ -66,32 +66,43 @@ def check_file_and_overwrite(path, msg):
     with open(f"{path}", "w") as file:
         file.write(f"{msg}")
 
+def is_port_name_exist(path, target_port="VIN1"):
+    if os.path.isfile(path):
+        with open(path, 'r') as f:
+            content = f.read()
+              
+        pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
+        
+        if re.search(pattern, content):
+            return True
+        return False
 
 def find_OPAMP_num_from_file(dataset_path):
     # 4 to 1044
     i = 4
     exist_nums = []
     lines_to_read = 7 # in the file, it is 1 line per empty line
-    # start_time = time.perf_counter()
     while True:
         
-        path = dataset_path + f"/{i}/edited_explanation.md"
-        # print("path",path)
-        
-        
-        lines = get_file_to_lines(path, lines_to_read)
-        for line in lines:
-            if "amplifier" in line or "Amplifier" in line :
-                exist_nums.append(i)
-                break
-        
+        path_nl = dataset_path + f"/{i}/{i}.cir"
+        # print("path_nl",path_nl)
+        # let's check cir file first, only when it has vin
+        if is_port_name_exist(path_nl,"VIN1"):
+            # if VIN1 exists, continue
+            path = dataset_path + f"/{i}/edited_explanation.md"
+            # print("path",path)
+            lines = get_file_to_lines(path, lines_to_read)
+            for line in lines:
+                if "amplifier" in line or "Amplifier" in line :
+                    exist_nums.append(i)
+                    break
+        # counter part
         i+=1
         if i > 1044:
             break
             
         # print("i\n",i)
-    # end_time = time.perf_counter()
-    # print("time used",end_time-start_time)
+
     return exist_nums
 
 # endregion for file IO

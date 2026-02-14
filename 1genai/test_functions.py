@@ -4,7 +4,7 @@ import os
 import utils
 from pydantic import BaseModel, Field
 import local_config
-
+import time
 def test_clean():
     for i in range(2, 20):
         cir_path = f"../material/dataset/tb_dataset/{i}/{i}.cir"
@@ -182,16 +182,24 @@ def test_find_ports_from_all():
         # print("ports",ports)
     print("ports2\n",ports2)
     # print("SISO_RF_nums",SISO_RF_nums)
+# region test
+start_time = time.perf_counter()
 # test_clean()
 # test_add_params()
 # test_add_source()
 # test_add_C_load()
 # test_add_add_OP_simulation()
 # test_modify_DC_bias()
-# test_find_OPAMP_num_from_file()
-test_find_SISO_V_from_OPAMPs()
+test_find_OPAMP_num_from_file()
+# test_find_SISO_V_from_OPAMPs()
 # test_find_ports_from_all()
 
+end_time = time.perf_counter()
+# endregion
+
+
+
+print(f"Execution time: {end_time - start_time:.6f} seconds")
 # test_pycpice_op()
 """
 VDD
