@@ -156,14 +156,14 @@ op
 def test_find_OPAMP_num_from_file():
     path = "../material/dataset/tb_dataset"
     nums = utils.find_OPAMP_num_from_file(path) #amplifier
-    print("==nums\n",nums)
-    print(len(nums))
+    print("# ", len(nums))
+    print("nums = ",nums)
     return nums
 
 def test_find_OPAMPs_without_clk():
     path = "../material/dataset/tb_dataset"
     # nums = utils.find_OPAMP_num_from_file(path)
-    nums = local_config.num_amplifier_included_with_vin_vout
+    nums = local_config.num_amplifier_with_vin_vout
     # print("==nums\n",nums)
     SISO_nums = utils.find_OPAMPs_without_clk(path,nums)
     print("==SISO_nums\n",SISO_nums)
@@ -189,11 +189,38 @@ def test_find_num_by_port_name(port = ["VB1"],nums = [4]):
     dataset_path = "../material/dataset/tb_dataset"
     result_nums = utils.find_num_by_port_name(dataset_path,port,nums)# for only SISO    
     print(port[0]," = ",result_nums, "# ",len(result_nums))
-def test_find_cir_without_port_from1044():
+
+
+def test_find_RF_from_cir_pattern():
     dataset_path = "../material/dataset/tb_dataset"
     # port = ["VOUT1"]
-    port = ["VIN1"]
-    nums = utils.find_cir_without_port_from1044(dataset_path,port)
+    nums1 = utils.find_cir_with_pattern_from_1044cir(dataset_path,["L0"])
+    
+    print("# ", len(nums1))
+    print(nums1)
+
+
+def test_find_all():
+    dataset_path = "../material/dataset/tb_dataset"
+    # port = ["VOUT1"]
+    n = utils.find_all(dataset_path)
+    print("# ", len(n))
+    print(n)
+
+
+def test_find_cir_without_mos():
+    dataset_path = "../material/dataset/tb_dataset"
+    # port = ["VOUT1"]
+    nums = utils.find_cir_without_pattern_from_1044cir(dataset_path,["nmos4", "pmos4", "npn"])
+    print("# ", len(nums))
+    print(nums)
+
+def test_find_cir_without_vout():
+    dataset_path = "../material/dataset/tb_dataset"
+    # port = ["VOUT1"]
+    port = ["VOUT1"]
+    num_test = local_config.nums_with_transistors
+    nums = utils.find_cir_without_pattern_from_1044cir(dataset_path,port,num_test)
     print("# ", len(nums))
     print(nums)
     
@@ -210,11 +237,19 @@ start_time = time.perf_counter()
 # test_find_SISOs_from_OPAMPs()
 # test_find_ports_from_nums(local_config.num_SISOs)
 # test_find_num_by_port_name(["VCLK1"],local_config.num_amplifier_included_with_VCLK_and_so_on)
+# test_find_cir_without_out()
+# test_find_RF_from_cir_pattern()
+# test_find_all()
+test_find_cir_without_mos()
+
+
+end_time = time.perf_counter()
+
+# endregion
+
 # utils.difference_of_nums(local_config.num_amplifier_without_mixer_comparator_ports, local_config.num_amplifier_included_with_VCLK_and_so_on)
 # utils.difference_of_nums( local_config.num_amplifier_included_with_in_out,local_config.num_amplifier_without_mixer_comparator_ports)
-test_find_cir_without_out()
-end_time = time.perf_counter()
-# endregion
+# utils.difference_of_nums( local_config.num_all, local_config.num_no_mos)
 
 
 

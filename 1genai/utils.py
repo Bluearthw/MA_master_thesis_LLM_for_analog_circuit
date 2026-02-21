@@ -77,30 +77,47 @@ def are_ports_all_exist(path, target_ports=["VIN1"]):
                 continue
             return False
         return True
+# if 1 of theses exists, return True
 def is_port_exist(path, target_ports=["VIN1"]):
-    if os.path.isfile(path):
-        with open(path, 'r') as f:
-            content = f.read()
-        for target_port in target_ports:
-            pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
-            
-            if re.search(pattern, content):
-                return True
-        return False
+    with open(path, 'r') as f:
+        content = f.read()
+    for target_port in target_ports:
+        pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
+        
+        if re.search(pattern, content):
+            return True
+    return False
+    
         
 
 # endregion for file IO
 
 
 # region for classification
-def find_num_by_port_name(dataset_path,port_name=["VB1"],num_range = [4]):
+def find_all(dataset_path):
+    i = 4
+    exist_nums = []
+    lines_to_read = 7 # in the file, it is 1 line per empty line
+    while True:
+        path_nl = dataset_path + f"/{i}/{i}.cir"
+        if os.path.isfile(path_nl):
+            exist_nums.append(i)
+        i+=1
+        if i > 1044:
+            break
+            
+        # print("i\n",i)
+
+    return exist_nums
+
+def find_num_by_port_name(dataset_path,port_name=["VB1"],num_range = list(range(4,1045))):
     exist_nums = []
     for i in num_range: #4 to 1144
+        if os.path.isfile(dataset_path):
+            path_nl = dataset_path + f"/{i}/{i}.cir"
+            if is_port_exist(path_nl,port_name):
 
-        path_nl = dataset_path + f"/{i}/{i}.cir"
-        if is_port_exist(path_nl,port_name):
-
-                exist_nums.append(i)
+                    exist_nums.append(i)
     return exist_nums
         
 def find_OPAMP_num_from_file(dataset_path):
@@ -111,18 +128,19 @@ def find_OPAMP_num_from_file(dataset_path):
     while True:
 
         path_nl = dataset_path + f"/{i}/{i}.cir"
+        if os.path.isfile(path_nl):
         # print("path_nl",path_nl)
         # let's check cir file first, only when it has vin
-        ports_name_to_check = ["VIN1","VOUT1"]
-        if are_ports_all_exist(path_nl,ports_name_to_check):
-            # if VIN1 exists, continue
-            path = dataset_path + f"/{i}/edited_explanation.md"
-            # print("path",path)
-            lines = get_file_to_lines(path, lines_to_read)
-            for line in lines:
-                if "amplifier" in line or "Amplifier" in line :
-                    exist_nums.append(i)
-                    break
+            ports_name_to_check = ["VIN1","VOUT1"]
+            if are_ports_all_exist(path_nl,ports_name_to_check):
+                # if VIN1 exists, continue
+                path = dataset_path + f"/{i}/edited_explanation.md"
+                # print("path",path)
+                lines = get_file_to_lines(path, lines_to_read)
+                for line in lines:
+                    if "amplifier" in line or "Amplifier" in line :
+                        exist_nums.append(i)
+                        break
         # counter part
         i+=1
         if i > 1044:
@@ -137,48 +155,66 @@ def find_OPAMPs_without_clk(dataset_path, nums):
     # no differential, no current output, not clock
     for i in nums:
         path_nl = dataset_path + f"/{i}/{i}.cir"
+        if os.path.isfile(path_nl):
         # print("path_nl",path_nl)
         # let's check cir file first, only when it has vin
-        ports_name_to_check = local_config.mixer_comparator_ports 
-        # print(ports_name_to_check)
-        if not is_port_exist(path_nl,ports_name_to_check):
-            exist_nums.append(i)
+            ports_name_to_check = local_config.mixer_comparator_ports 
+            # print(ports_name_to_check)
+            if not is_port_exist(path_nl,ports_name_to_check):
+                exist_nums.append(i)
 
     return exist_nums
 def find_SISOs_from_OPAMPs(dataset_path, nums):
     exist_nums = []
     # no differential, no current output, not clock
     for i in nums:
+
         path_nl = dataset_path + f"/{i}/{i}.cir"
-        # print("path_nl",path_nl)
+        if os.path.isfile(path_nl):
+            # print("path_nl",path_nl)
         # let's check cir file first, only when it has vin
-        ports_name_to_check = local_config.differential_ports
-        # print(ports_name_to_check)
-        if not is_port_exist(path_nl,ports_name_to_check):
-            exist_nums.append(i)
+            ports_name_to_check = local_config.differential_ports
+            # print(ports_name_to_check)
+            if not is_port_exist(path_nl,ports_name_to_check):
+                exist_nums.append(i)
 
     return exist_nums
 
-def find_cir_without_port_from1044(dataset_path,ports_name_to_check):
+def difference_of_nums(nums_big, nums2):
+    difference = list(set(nums_big).difference(set(nums2)))
+    print("# ", len(difference))
+    print(sorted(difference))
+
+def find_cir_without_pattern_from_1044cir(dataset_path,name_to_check,nums = list(range(4,1045))):
+    i = 4
+    exist_nums = []
+    for i in nums:
+
+        path_nl = dataset_path + f"/{i}/{i}.cir"
+        if os.path.isfile(path_nl):
+            # let's check cir file first, only when it has vin
+        
+            if not is_port_exist(path_nl,name_to_check):
+                exist_nums.append(i)
+            # counter part
+    return exist_nums
+
+def find_cir_with_pattern_from_1044cir(dataset_path,name_to_check):
     i = 4
     exist_nums = []
     while True:
 
         path_nl = dataset_path + f"/{i}/{i}.cir"
-        # let's check cir file first, only when it has vin
+        if os.path.isfile(path_nl):
+            # let's check cir file first, only when it has vin
         
-        if not is_port_exist(path_nl,ports_name_to_check):
-            exist_nums.append(i)
-        # counter part
+            if is_port_exist(path_nl,name_to_check):
+                exist_nums.append(i)
+            # counter part
         i+=1
         if i > 1044:
             break
     return exist_nums
-
-def difference_of_nums(nums_small, nums2):
-    difference = list(set(nums_small).difference(set(nums2)))
-    print(sorted(difference))
-    print("# ", len(difference))
 
 def find_RF_from_cir_str(path_exaplain, cir_string):
     # start_time = time.perf_counter()
@@ -197,6 +233,9 @@ def find_RF_from_cir_str(path_exaplain, cir_string):
         return True
 
     return False
+
+
+
 def find_correct_RF_from_num_with_agent(dataset_path, nums = []):
     nums = local_config.num_SISO_RF_before_filtered 
 
@@ -229,6 +268,8 @@ def find_ports_from_all(dataset_path,nums = list(range(4,1045))):
         #     break
     # exist_ports.remove('')
     return exist_ports
+
+
 # endregion for classification
 
 
