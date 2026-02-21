@@ -17,7 +17,7 @@ from google import genai
 def get_client():
     return genai.Client(api_key=local_config.GOOGLE_API_KEY)
 # region for file IO
-def get_file_to_str(path, str="",):
+def get_file_to_str(path, str=""):
     if os.path.isfile(path):
         try:
             with open(path, "r", encoding="utf-8") as file: # https://www.geeksforgeeks.org/python/read-file-as-string-in-python/
@@ -236,9 +236,6 @@ def find_RF_from_cir_str(path_exaplain, cir_string):
 
 
 
-def find_correct_RF_from_num_with_agent(dataset_path, nums = []):
-    nums = local_config.num_SISO_RF_before_filtered 
-
 def find_ports_from_all(dataset_path,nums = list(range(4,1045))):
     
     exist_ports = []
@@ -270,6 +267,17 @@ def find_ports_from_all(dataset_path,nums = list(range(4,1045))):
     return exist_ports
 
 
+def find_num_from_class(class_id):
+    exist_nums = []
+    for i in local_config.num_all:
+
+        path = local_config.classified_dataset_path + f"/{i}/detected_class.txt"
+        if int(get_file_to_str(path)) == class_id:
+            exist_nums.append(i)
+            # counter part
+        
+    return exist_nums
+    
 # endregion for classification
 
 
@@ -596,33 +604,38 @@ def modify_DC_bias(netlist, V_name, isVincrease):
 
 # region for pyspice
 def get_vector_and_make_array(plot, name):
+
     array = np.array(plot[name]._data)
     # array = np.array(vec.array)
     return array
 
 
 def pyspice_op_sim(circuit, node="vout1"):
-    ngspice = NgSpiceShared.new_instance()
-    ngspice.load_circuit(circuit)
-    ngspice.run()
-    # plot = ngspice.plot(simulation=None, plot_name="op1")# ngspice.last_plot
-    plot = ngspice.plot(
-        simulation=None, plot_name=ngspice.last_plot
-    )  # ngspice.last_plot
-    # print('Plots:\n', ngspice.plot_names)
-    print('plot?\n',plot)
-    vout = get_vector_and_make_array(plot, node)
-    net2 = get_vector_and_make_array(plot, "net2")
-    print("==net2\n",net2)
+    try:
+        ngspice = NgSpiceShared.new_instance()
+        ngspice.load_circuit(circuit)
+        ngspice.run()
+        # plot = ngspice.plot(simulation=None, plot_name="op1")# ngspice.last_plot
+        plot = ngspice.plot(
+            simulation=None, plot_name=ngspice.last_plot
+        )  # ngspice.last_plot
+        # print('Plots:\n', ngspice.plot_names)
+        print('plot?\n',plot)
+        vout = get_vector_and_make_array(plot, node)
+        ## why net2?
+        # net2 = get_vector_and_make_array(plot, "net2")
+        # print("==net2\n",net2)
 
-    
-    # .param VINCM=0.53
-    # .param VB1=0.45
-    # * in this way Vout1 is 0.61 1/2 VDD
-    # ==pyspice_op_sim (array([0.61209825]), array([1.2]), array([1.2]), array([5.2854921e-12]), array([6.19755257e-13]))
-    #    others seem useless
-    # 'vin1': variable: vin1 voltage, 'vdd': variable: vdd voltage, 'vb1': variable: vb1 voltage, 'vout1': variable: vout1 voltage}
-    return vout
+        
+        # .param VINCM=0.53
+        # .param VB1=0.45
+        # * in this way Vout1 is 0.61 1/2 VDD
+        # ==pyspice_op_sim (array([0.61209825]), array([1.2]), array([1.2]), array([5.2854921e-12]), array([6.19755257e-13]))
+        #    others seem useless
+        # 'vin1': variable: vin1 voltage, 'vdd': variable: vdd voltage, 'vb1': variable: vb1 voltage, 'vout1': variable: vout1 voltage}
+        return {"success": True, "message": "Simulation OK", "data": vout}
+    except Exception as e :
+        return {"success": False, "message": str(e) , "data": vout}
 
 
 # endregion

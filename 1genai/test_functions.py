@@ -223,7 +223,11 @@ def test_find_cir_without_vout():
     nums = utils.find_cir_without_pattern_from_1044cir(dataset_path,port,num_test)
     print("# ", len(nums))
     print(nums)
-    
+
+def test_find_num_from_class():
+    nums =utils.find_num_from_class(1)
+    print("# ", len(nums))
+    print(nums)
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -240,8 +244,8 @@ start_time = time.perf_counter()
 # test_find_cir_without_out()
 # test_find_RF_from_cir_pattern()
 # test_find_all()
-test_find_cir_without_mos()
-
+# test_find_cir_without_mos()
+test_find_num_from_class()
 
 end_time = time.perf_counter()
 

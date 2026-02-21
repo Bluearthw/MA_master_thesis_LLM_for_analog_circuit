@@ -1,3 +1,4 @@
+venv\Scripts\Activate.ps1
 # MA_master_thesis_LLM_for_analog_circuit
 
 number of netlists : 894
