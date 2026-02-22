@@ -228,6 +228,18 @@ def test_find_num_from_class():
     nums =utils.find_num_from_class(1)
     print("# ", len(nums))
     print(nums)
+def test_modify_duplicate_component():
+    raw_netlist = """
+M3 (net8 VB1 VDD VDD) pmos4
+M2 (VOUT1 VB1 VDD VDD) pmos4
+M1 (net8 VIN1 VSS VSS) nmos4
+M0 (VOUT1 net8 VSS VSS) nmos4
+C1 (VOUT1 VSS) capacitor
+C1 (net8 VSS) capacitor
+    """
+
+    clean_netlist = utils.modify_duplicate_component(raw_netlist)
+    print(clean_netlist)
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -245,8 +257,8 @@ start_time = time.perf_counter()
 # test_find_RF_from_cir_pattern()
 # test_find_all()
 # test_find_cir_without_mos()
-test_find_num_from_class()
-
+# test_find_num_from_class()
+test_modify_duplicate_component()
 end_time = time.perf_counter()
 
 # endregion

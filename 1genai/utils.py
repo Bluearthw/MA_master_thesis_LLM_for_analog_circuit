@@ -581,6 +581,37 @@ op
 
 
 # region for modifying
+def modify_duplicate_component(circuit_string):
+    seen_names = set()
+    new_lines = []
+    
+    for line in circuit_string.strip().splitlines():
+        parts = line.split()
+        if not parts: # Skip empty lines
+            new_lines.append(line)
+            continue
+            
+        designator = parts[0]
+        original_name = designator
+        counter = 0
+        isChanged = False
+        # If the name exists, keep adding to the counter until we find a unique name
+        # e.g., C1 -> C0 -> C1 -> C2
+        while designator in seen_names:
+            designator = f"{original_name[0]}{counter}"
+            counter += 1
+            isChanged = True
+        seen_names.add(designator)
+        if isChanged:
+        # Rebuild the line with the (potentially new) designator
+            new_line = f"{designator} {' '.join(parts[1:])}"
+            new_lines.append(new_line)
+        else:
+            new_lines.append(line)
+        
+    return "\n".join(new_lines)
+
+
 def modify_DC_bias(netlist, V_name, isVincrease):
     netlist = netlist.strip()
     lines = netlist.splitlines()
@@ -620,7 +651,7 @@ def pyspice_op_sim(circuit, node="vout1"):
             simulation=None, plot_name=ngspice.last_plot
         )  # ngspice.last_plot
         # print('Plots:\n', ngspice.plot_names)
-        print('plot?\n',plot)
+        # print('plot?\n',plot)
         vout = get_vector_and_make_array(plot, node)
         ## why net2?
         # net2 = get_vector_and_make_array(plot, "net2")
@@ -635,7 +666,7 @@ def pyspice_op_sim(circuit, node="vout1"):
         # 'vin1': variable: vin1 voltage, 'vdd': variable: vdd voltage, 'vb1': variable: vb1 voltage, 'vout1': variable: vout1 voltage}
         return {"success": True, "message": "Simulation OK", "data": vout}
     except Exception as e :
-        return {"success": False, "message": str(e) , "data": vout}
+        return {"success": False, "message": str(e) , "data": None}
 
 
 # endregion
