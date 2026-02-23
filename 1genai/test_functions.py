@@ -109,7 +109,7 @@ Cload VOUT1 VSS {Cload}
     nl = utils.add_OP_simulation(netlist, node)  # input should be string here
     print("==add_Cload", nl)
 
-def test_pycpice_op():
+def test_pycpice_op_sim():
     netlist = local_config.netlist_14
     result = utils.pyspice_op_sim(netlist, "vout1")  # input should be string here
     print("==pyspice_op_sim", result)
@@ -237,9 +237,21 @@ M0 (VOUT1 net8 VSS VSS) nmos4
 C1 (VOUT1 VSS) capacitor
 C1 (net8 VSS) capacitor
     """
-
     clean_netlist = utils.modify_duplicate_component(raw_netlist)
     print(clean_netlist)
+
+def test_find_cir_without_vdd():
+    dataset_path = "../material/dataset/tb_dataset"
+    # port = ["VOUT1"]
+    port = ["VSS"]
+    num_test = local_config.num_class_1 # only 621
+    num_test = local_config.num_all#
+    nums = utils.find_cir_without_pattern_from_1044cir(dataset_path,port,num_test)
+    print("# ", len(nums))
+    print(nums)
+def test_pyspice_sim():
+    nl = local_config.nl_feb23
+    utils.pyspice_op_sim(nl)
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -258,7 +270,9 @@ start_time = time.perf_counter()
 # test_find_all()
 # test_find_cir_without_mos()
 # test_find_num_from_class()
-test_modify_duplicate_component()
+# test_modify_duplicate_component()
+# test_find_cir_without_vdd()
+test_pyspice_sim()
 end_time = time.perf_counter()
 
 # endregion
@@ -267,7 +281,7 @@ end_time = time.perf_counter()
 # utils.difference_of_nums( local_config.num_amplifier_included_with_in_out,local_config.num_amplifier_without_mixer_comparator_ports)
 # utils.difference_of_nums( local_config.num_all, local_config.num_no_mos)
 
-
+  
 
 print(f"Execution time: {end_time - start_time:.6f} seconds")
 # test_pycpice_op()

@@ -1,15 +1,16 @@
 GOOGLE_API_KEY="AIzaSyBCCHDhKIabEjdhfFI0vyXBM6Fc_AhhKQY"
 dataset_path = "../material/dataset/tb_dataset"
 classified_dataset_path = "../material/classified_dataset_from_mohsen/Dataset"
-model_used = "gemini-2.0-flash"
 model_used_25 = "gemini-2.5-flash"
 # netlist 9
+
+str_nl_include = '.include "1genai/data/p045_TT.sp"\n'
 netlist_with_load ="""*params
 
 .param VDD=1.2
 .param r0=1k
 .param c0=3p
-.include "1genai/data/45nm.sp"
+.include "1genai/data/p045_TT.sp"
 
 "M0 VDD VDD VOUT1 VSS nmos
 R0 VOUT1 VSS {r0}
@@ -102,6 +103,11 @@ num_SISOs =  [9, 14, 17, 20, 22, 24, 27, 29, 31, 35, 37, 38, 41, 43, 46, 48, 50,
 #  90
 nums_with_L = [412, 413, 417, 418, 419, 420, 422, 424, 425, 426, 427, 428, 436, 437, 438, 444, 461, 462, 463, 464, 467, 468, 469, 470, 471, 472, 473, 474, 475, 476, 480, 481, 482, 483, 484, 485, 491, 492, 505, 508, 509, 513, 515, 516, 519, 524, 525, 527, 528, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541, 542, 543, 544, 545, 546, 547, 564, 565, 572, 573, 574, 575, 578, 579, 580, 581, 582, 583, 584, 585, 586, 587, 588, 589, 590, 591, 592, 645, 646, 821]
 
+#  76
+num_no_vdd = [358, 359, 385, 388, 389, 394, 424, 425, 458, 460, 492, 493, 494, 495, 496, 511, 512, 514, 528, 530, 548, 596, 597, 598, 604, 605, 606, 607, 609, 610, 611, 612, 613, 614, 615, 620, 621, 626, 651, 654, 655, 656, 666, 667, 671, 672, 676, 688, 693, 697, 698, 709, 710, 711, 712, 721, 723, 726, 767, 777, 783, 816, 835, 836, 839, 840, 841, 849, 850, 864, 915, 933, 934, 935, 936, 1023]
+# all cir has VSS!!!
+
+
 # #removing Iout Iin and clk, ## 289
 # num_SISO_withou_Iout_Iin_clk = [9, 14, 17, 20, 22, 24, 27, 29, 31, 35, 37, 38, 41, 43, 46, 48, 
 # 50, 52, 54, 57, 59, 61, 63, 65, 67, 120, 123, 125, 127, 129, 132, 134, 136, 138, 
@@ -173,3 +179,59 @@ IB_ports =['IB1','IB2','IB3','IB4','IB5','IB6']
 #  152
 num_class_1 = [9, 14, 17, 22, 24, 27, 31, 35, 37, 38, 41, 46, 48, 52, 54, 57, 59, 61, 63, 65, 67, 120, 123, 125, 127, 129, 138, 140, 161, 162, 166, 167, 168, 170, 174, 177, 178, 179, 180, 188, 195, 198, 199, 200, 201, 202, 205, 206, 217, 218, 219, 222, 223, 226, 229, 230, 232, 235, 242, 248, 251, 254, 260, 263, 264, 265, 266, 271, 274, 275, 276, 277, 278, 284, 287, 289, 290, 302, 303, 319, 321, 322, 324, 332, 337, 341, 342, 343, 344, 346, 348, 441, 446, 447, 448, 449, 452, 479, 486, 621, 661, 662, 663, 668, 670, 674, 678, 679, 682, 683, 684, 689, 690, 691, 692, 694, 695, 696, 706, 707, 708, 779, 807, 822, 823, 825, 826, 829, 830, 831, 842, 843, 878, 881, 906, 917, 955, 959, 960, 961, 962, 966, 967, 968, 969, 977, 979, 995, 996, 997, 1002, 1003]
 num_class_1_npn = [621,917,822, 779, 621]
+num_class_1_no_VDD = [621]
+
+nl_feb22 = """* Single-Ended Baseband Voltage Amplifier
+.param Cload=10p
+.param VB1=0.7
+.param VDD=1.2
+.param w0=0.5u l0=90n m0=1
+.param w1=0.5u l1=90n m1=1
+.include "1genai/data/45nm.sp"
+M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
+M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
+vdd VDD 0 dc=VDD
+vb1 VB1 0 dc=VB1
+vss VSS 0 dc=0
+Cload VOUT1 VSS {10p}
+VinDM VIN1 VSS dc=0.6 ac=1
+.control
+option numdgt=4
+set temp=25
+op
+ac dec 10 1 10G
+meas ac gain_db max vdb(VOUT1)
+meas ac unity_freq when vdb(VOUT1)=0
+meas ac phase_at_unity find vp(VOUT1) at=unity_freq
+let phase_margin = 180 + phase_at_unity
+print gain_db unity_freq phase_margin
+noise v(VOUT1) VinDM dec 10 1 1G
+tran 1n 100n
+.endc
+.end
+"""
+
+nl_feb23 = """.param Cload=10p
+.param VB1=0.7
+.param VDD=1.2
+.param VinDC=0.6
+.param w0=0.5u l0=90n m0=1
+.param w1=0.5u l1=90n m1=1
+.include "1genai/data/p045_TT.sp"
+M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
+M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
+vdd VDD 0 dc=VDD
+vb1 VB1 0 dc=VB1
+vss VSS 0 dc=0
+Cload VOUT1 VSS {Cload}
+VinDM VIN1 VSS dc=VinDC ac=1 pulse(0.55 0.65 10n 1n 1n 100n 200n)
+.control
+option numdgt=4
+set temp=25
+op
+ac dec 10 1 10G
+noise v(VOUT1) VinDM dec 10 1 1G
+tran 1n 500n
+.endc
+.end
+"""

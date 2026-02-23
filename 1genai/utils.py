@@ -309,7 +309,7 @@ def clean_netlist(netlist):
     netlist = re.sub(r"\s*resistor\s*", "\n", netlist, flags=re.IGNORECASE)
     netlist = re.sub(r"\s*capacitor\s*", "\n", netlist, flags=re.IGNORECASE)
 
-    return '\n.include "1genai/data/45nm.sp"\n' + netlist
+    return local_config.str_nl_include + netlist
 
 
 def match_transistor(match):
@@ -446,7 +446,7 @@ def add_params(netlist):  # input should be lines here
     return "\n".join(output)
 
 
-def add_DC_source(netlist, vdd="1.2", vb1="0.7"):
+def add_DC_source(netlist, vdd="1.2", vb1="0.7", ib1 = "0.01"):
     """
     Add DC source to the incomplete spice netlist if it is needed.
 
@@ -460,12 +460,14 @@ def add_DC_source(netlist, vdd="1.2", vb1="0.7"):
         The netlist added with parameters as a string.
     """
     param_line = f"\n.param VDD={vdd}"
-    param_vb1_line = f"\n.param VB1={vb1}"
+    param_line_vb1 = f"\n.param VB1={vb1}"
+    param_line_ib1 = f"\n.param IB1={ib1}"
 
     # Standard source definitions using the parameter
     vdd_source = "\nvdd VDD 0 dc=VDD"
     vss_source = "\nvss VSS 0 dc=0"  # VSS is typically ground reference
     vb1_source = "\nvb1 VB1 0 dc=VB1"  # VSS is typically ground reference
+    ib1_source = "\nib1 IB1 0 dc=IB1"  # VSS is typically ground reference
 
     # source_block = f"\n{param_line}\n{vdd_source}\n"
     # vss_block = f"{vss_source}\n"
@@ -477,13 +479,12 @@ def add_DC_source(netlist, vdd="1.2", vb1="0.7"):
     vdd_in_use = re.search(r"\bVDD\b", netlist, re.IGNORECASE)
     vss_in_use = re.search(r"\bVSS\b", netlist, re.IGNORECASE)
     vb_in_use = re.search(r"\bVB1\b", netlist, re.IGNORECASE)
+    ib_in_use = re.search(r"\bIB1\b", netlist, re.IGNORECASE)
 
     # --- 3. Determine Insertion Point and Insert ---
 
-    if vdd_in_use:
-        insertion_point = 0
-
-        for i, line in enumerate(netlist.splitlines()):
+    insertion_point = 0
+    for i, line in enumerate(netlist.splitlines()):
             line_stripped = line.strip()
 
             if line_stripped and (
@@ -491,30 +492,34 @@ def add_DC_source(netlist, vdd="1.2", vb1="0.7"):
             ):
                 insertion_point = i
                 break
+    if vdd_in_use:
 
         lines = netlist.splitlines()
-
         # Insert the source block at the determined point
         # We replace the line at insertion_point with itself + the new block
         lines.insert(insertion_point, param_line)
 
         lines.insert(len(lines), vdd_source)
-        if vb_in_use:
-            lines.insert(insertion_point, param_vb1_line)
-            lines.insert(len(lines), vb1_source)
 
-        if vss_in_use:
+    if ib_in_use:
+        lines = netlist.splitlines()
+        lines.insert(insertion_point, param_line_ib1)
+        lines.insert(len(lines), ib1_source)
 
-            lines.insert(len(lines), vss_source)
+    if vb_in_use:
+        lines.insert(insertion_point, param_line_vb1)
+        lines.insert(len(lines), vb1_source)
 
-        return "\n".join(lines)
+    if vss_in_use:
 
+        lines.insert(len(lines), vss_source)
     else:
-        print("VDD and VSS nodes not found in netlist. Skipping DC source addition.")
+        print("VSS nodes not found in netlist. Skipping DC source addition.")
         return netlist
+    return "\n".join(lines)
 
 
-def add_C_load(netlist, node="vout1", Cload="10p"):
+def add_C_load(netlist, node="VOUT1", Cload="10p"):
     """
     Add load capacitance to the incomplete spice netlist.
 
@@ -573,6 +578,26 @@ op
     # lines.insert(2, temp_line)
     lines.insert(len(lines), vincm_line)
     lines.insert(len(lines), op_sim_block)
+
+    return "\n".join(lines)
+
+def add_AC_simulation(netlist, node="VIN1"):
+    
+    # isUsed = re.search(r'\bVDD\b', circuit_string, re.IGNORECASE)
+    VinDM_line = f"\nVinDM {node} VSS dc=0 ac = 1"
+    # temp_line = "\n.param temperature=25.0"
+    sim_block = """
+.control
+
+option numdgt=4
+set temp=25
+ac dec 10 1 1G
+.endc
+.end
+"""
+    lines = netlist.strip().splitlines()
+    lines.insert(len(lines), VinDM_line)
+    lines.insert(len(lines), sim_block)
 
     return "\n".join(lines)
 
@@ -650,8 +675,8 @@ def pyspice_op_sim(circuit, node="vout1"):
         plot = ngspice.plot(
             simulation=None, plot_name=ngspice.last_plot
         )  # ngspice.last_plot
-        # print('Plots:\n', ngspice.plot_names)
-        # print('plot?\n',plot)
+        print('Plots:\n', ngspice.plot_names)
+        print('plot?\n',plot)
         vout = get_vector_and_make_array(plot, node)
         ## why net2?
         # net2 = get_vector_and_make_array(plot, "net2")
