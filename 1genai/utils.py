@@ -692,22 +692,22 @@ def pyspice_op_sim(circuit, node="vout1"):
         ngspice.run()
         # plot = ngspice.plot(simulation=None, plot_name="op1")# ngspice.last_plot
         all_plots = ngspice.plot_names
-        print('Plots:\n', all_plots)
+        # print('Plots:\n', all_plots)
         plot = ngspice.plot(
             simulation=None, plot_name=ngspice.last_plot
         )  # ngspice.last_plot
         
-        print('Plots:\n', ngspice.plot_names)
-        print('plot?\n',plot)
+        # print('Plots:\n', ngspice.plot_names)
+        # print('plot?\n',plot)
         vout = 0
         # vout = get_vector_and_make_array(plot, node)
         ## why net2?
         # net2 = get_vector_and_make_array(plot, "net2")
         # print("==net2\n",net2)
 
-        # errors = [msg for msg in ngspice.stdout_buffer if "Error" in msg or "failed" in msg]
-        # if errors:
-        #     return {"success": False, "message": " | ".join(errors)}
+        errors = [msg for msg in ngspice.stdout_buffer if "Error" in msg or "failed" in msg]
+        if errors:
+            return {"success": False, "message": " | ".join(errors)}
         # .param VINCM=0.53
         # .param VB1=0.45
         # * in this way Vout1 is 0.61 1/2 VDD
