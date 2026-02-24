@@ -5,6 +5,7 @@ import utils
 from pydantic import BaseModel, Field
 import local_config
 import time
+import root_agent_2026
 def test_clean():
     for i in range(2, 20):
         cir_path = f"../material/dataset/tb_dataset/{i}/{i}.cir"
@@ -249,9 +250,14 @@ def test_find_cir_without_vdd():
     nums = utils.find_cir_without_pattern_from_1044cir(dataset_path,port,num_test)
     print("# ", len(nums))
     print(nums)
-def test_pyspice_sim():
-    nl = local_config.nl_feb23
-    utils.pyspice_op_sim(nl)
+def test_pyspice_sim(nl = local_config.nl_feb24):
+    # nl = local_config.nl_feb23_wuhu
+    
+    success = utils.pyspice_op_sim(nl)
+    if success["success"]:
+        print("Simulation successful!")
+    else:
+        print("Simulation failed with message:", success["message"])
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -272,7 +278,7 @@ start_time = time.perf_counter()
 # test_find_num_from_class()
 # test_modify_duplicate_component()
 # test_find_cir_without_vdd()
-test_pyspice_sim()
+test_pyspice_sim(local_config.nl_feb24)
 end_time = time.perf_counter()
 
 # endregion

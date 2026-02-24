@@ -3,7 +3,7 @@ from google.genai import types
 
 # import os
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List # after python 3.9. before it is List
 
 ######################
 # local import
@@ -15,10 +15,16 @@ import tools
 ######################
 # structure output
 ######################
+class Struct_sim_task(BaseModel):
+    name: str = Field(description="The name of the simulation. It contains simulation name and what specs it is for. e.g., 'ac_gain'.")
+    reason: str = Field(description="The engineering justification for this sim.")
 class Struct_flow(BaseModel):
-    netlist: str = Field(description="The circuit netlist.")
+    netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
+    sims : list[Struct_sim_task] = Field(description="simulations needed and why")
+    sim_name : list[str] =Field(description="list of names of simulations")
     # category_requirement: str = Field(description="The description and requirement of this type of circuit")
-
+class Struct_netlist(BaseModel):
+    netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
 # initiation
 agent_model = "gemini-3-flash-preview" 
 # agent_model = "gemini-2.5-flash"
@@ -36,9 +42,9 @@ def test_make_cir_sim(cir_num):
     circuit_string = utils.add_DC_source(circuit_string)
     # print("==cir_str\n", circuit_string)
 
-    circuit_string = utils.add_C_load(circuit_string)
+    # circuit_string = utils.add_C_load(circuit_string)# some does not need to add C load.
     # netlist = utils.add_OP_simulation(circuit_string)
-    netlist = utils.add_AC_simulation(circuit_string)
+    netlist = utils.add_control(circuit_string)
     print("==cir_str\n", netlist)
     category = """### 1. Single-Ended Baseband Voltage Amplifiers (Linear Gain Stages)
 A fundamental gain block intended for signal conditioning, typically operating in the "small-signal" regime where linearity is assumed and crossover distortion is negligible. These circuits prioritize voltage gain accuracy, bandwidth, and feedback stability.
@@ -80,11 +86,20 @@ A fundamental gain block intended for signal conditioning, typically operating i
 def add_sim_agent(netlist, category):
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
     contents = f"""You are an experienced amplifier designer. You are given an incomplete netlist : {netlist}, and a brief requirement about this type of circuit : {category}.
-You need to complete simulation of the netlist and make sure the result netlist can be simulated.
+You need to complete simulation of the netlist and make sure the result netlist can be simulated. 
 Here are some rules.
+0. If the circuit already has a load, do not add more loads. If the circuit does not have a load, add a capacitor load. Example: 
+.param Cload=10p 
+Cload VOUT1 VSS {{Cload}} 
 1. When it comes to the transistors parameters, patterns like w={{}} are not allowed. the curly brackets cause error. It should be w= a variable. The variable is assigned a value using .param. 
 2. When it comes to passive components like capacitor, it must have {{}} with a variable inside the brackets.
-3. You only need to add relevant simulation. Calculation of specification will be done by following agent.
+3. You should read category requirement and add relevant simulations needed. But, calculation/measurement of specification will be done by following agent.
+4. The netlist file should also write the required data to a file. Example:
+* for gain
+ac dec 10 1 10G
+wrdata ./1genai/output/ac_gain.csv v(VOUT1)
+
+In this example, the VOUT1 is the output node.
     """
     response = client.models.generate_content(
     model=agent_model,
@@ -97,13 +112,30 @@ Here are some rules.
     )
     str = response.parsed
     print(str.netlist)
+    print(str.sims)
+    print(str.sim_name)
     
 # for i in local_config.num_class_1:
 #     if i <= 917:
 #         continue
 #     test_make_cir_sim(i)
 #     utils.test_delay(1)
-test_make_cir_sim(9)
+# test_make_cir_sim(local_config.num_class_1[1])
 
-
-# Example usage:
+def debug_agent(netlist, error_message):
+    client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
+    contents = f"""You are an experienced amplifier designer. You are given a netlist : {netlist}, and an error message from simulation : {error_message}.
+    Fix the netlist based on the error message so that it can be simulated well. 
+"""
+    response = client.models.generate_content(
+    model=agent_model,
+    contents=contents,
+    config={
+        "response_mime_type": "application/json",
+        "response_schema": Struct_netlist,
+        # "response_json_schema": Struct_flow.model_json_schema(),
+    },
+    )
+    str = response.parsed
+    print(str.netlist)
+    

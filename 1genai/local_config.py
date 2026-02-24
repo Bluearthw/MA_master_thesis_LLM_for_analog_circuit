@@ -4,7 +4,7 @@ classified_dataset_path = "../material/classified_dataset_from_mohsen/Dataset"
 model_used_25 = "gemini-2.5-flash"
 # netlist 9
 
-str_nl_include = '.include "1genai/data/p045_TT.sp"\n'
+str_nl_include = '\n.include "1genai/data/p045_TT.sp"\n'
 netlist_with_load ="""*params
 
 .param VDD=1.2
@@ -211,27 +211,170 @@ tran 1n 100n
 .end
 """
 
-nl_feb23 = """.param Cload=10p
-.param VB1=0.7
+nl_feb23 = """* Single-Ended Baseband Voltage Amplifier
 .param VDD=1.2
-.param VinDC=0.6
-.param w0=0.5u l0=90n m0=1
+.param vbias=0.6
+.param vstep=0.7
 .param w1=0.5u l1=90n m1=1
+.param w0=0.5u l0=90n m0=1
+.param r0=1k
 .include "1genai/data/p045_TT.sp"
-M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
-M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
+M1 VOUT1 VIN1 net2 VSS nmos w=w1 l=l1 m=m1
+M0 VSS VSS net2 VDD pmos w=w0 l=l0 m=m0
+R0 VDD VOUT1 {r0}
 vdd VDD 0 dc=VDD
-vb1 VB1 0 dc=VB1
 vss VSS 0 dc=0
-Cload VOUT1 VSS {Cload}
-VinDM VIN1 VSS dc=VinDC ac=1 pulse(0.55 0.65 10n 1n 1n 100n 200n)
+VinDM VIN1 VSS dc={vbias} ac=1 pulse({vbias} {vstep} 1n 10p 10p 5n 10n)
 .control
 option numdgt=4
 set temp=25
-op
-ac dec 10 1 10G
+* Analysis 1: AC Gain, Phase, and Stability
+ac dec 10 1 1G
+* Analysis 2: Input-Referred Noise
 noise v(VOUT1) VinDM dec 10 1 1G
-tran 1n 500n
+* Analysis 3: PSRR (Supply Rejection)
+alter vdd ac=1
+alter VinDM ac=0
+ac dec 10 1 1G
+* Analysis 4: Slew Rate and Transient Response
+alter VinDM ac=0
+tran 1p 10n
 .endc
-.end
+.end"""
+
 """
+Plots:
+ ['tran3', 'noise3', 'noise2', 'ac2', 'ac1', 'op1', 'const']
+ """
+
+nl_feb23_2 = """* title line
+.param Cload=10p VDD=1.2 w1=0.5u l1=90n m1=1 w0=0.5u l0=90n m0=1 r0=1k
+.include "1genai/data/p045_TT.sp"
+M1 VOUT1 VIN1 net2 VSS nmos w=w1 l=l1 m=m1
+M0 VSS VSS net2 VDD pmos w=w0 l=l0 m=m0
+R0 VDD VOUT1 {r0}
+vdd VDD 0 dc=VDD
+vss VSS 0 dc=0
+Cload VOUT1 VSS {Cload}
+VinDM VIN1 VSS dc=0.6 ac=1 pulse(0.55 0.65 1n 0.1n 0.1n 50n 100n)
+.control
+option numdgt=4
+set temp=25
+ac dec 10 1 10G
+tran 0.1n 100n
+noise v(VOUT1) VinDM dec 10 1 1G
+.endc
+.end"""
+
+"""Plots2:
+ ['noise2', 'noise1', 'tran1', 'ac1', 'const']
+ """
+
+nl_feb23_with_error = """* title line
+.param VDD=1.2
+.param w1=0.5u l1=90n m1=1
+.param w0=0.5u l0=90n m0=1
+.param r0=1k
+.include "1genai/data/p045_TT.sp"
+M1 VOUT1 VIN1 net2 VSS nmos w=w1 l=l1 m=m1
+M0 VSS VSS net2 VDD pmos w=w0 l=l0 m=m0
+R0 VDD VOUT1 {r0}
+vdd VDD 0 dc=VDD ac=0
+vss VSS 0 dc=0
+VinDM VIN1 VSS dc=0.6 ac=1
+.control
+option numdgt=4
+set temp=25
+* Analysis 1: AC Gain, Phase, and Stability
+alter VinDM dc=0.6 ac=1
+ac dec 10 1 10G
+set curplotname = ac_gain
+* Analysis 2: PSRR
+alter VinDM ac=0
+alter vdd ac=1
+ac dec 10 1 10G
+set curplotname = ac_psrr
+* Analysis 3: Input-Referred Noise
+alter vdd ac=0
+alter VinDM ac=1
+noise v(VOUT1) VinDM dec 10 1 1G
+set curplotname = noise_sim
+* Analysis 4: Slew Rate
+alter VinDM dc=0.6 pulse(0.5 0.7 1n 1n 1n 50n 100n)
+tran 0.1n 200n
+set curplotname = tran_slew
+
+.endc
+.end"""
+
+nl_feb23_wuhu = """* title line
+.param VDD=1.2
+.param w1=0.5u l1=90n m1=1
+.param w0=0.5u l0=90n m0=1
+.param r0=1k
+.include "1genai/data/p045_TT.sp"
+M1 VOUT1 VIN1 net2 VSS nmos w=w1 l=l1 m=m1
+M0 VSS VSS net2 VDD pmos w=w0 l=l0 m=m0
+R0 VDD VOUT1 {r0}
+vdd VDD 0 dc=VDD ac=0
+vss VSS 0 dc=0
+VinDM VIN1 VSS dc=0.6 ac=1
+.control
+option numdgt=4
+set temp=25
+* Analysis 1: AC Gain, Phase, and Stability
+alter VinDM dc=0.6 ac=1
+ac dec 10 1 10G
+set curplotname = ac_gain
+set curplottitle = "Gain Analysis"
+* Analysis 2: PSRR
+alter VinDM ac=0
+alter vdd ac=1
+ac dec 10 1 10G
+set curplotname = ac_psrr
+* Analysis 3: Input-Referred Noise
+alter vdd ac=0
+alter VinDM ac=1
+noise v(VOUT1) VinDM dec 10 1 1G
+set curplotname = noise_sim
+* Analysis 4: Slew Rate
+alter VinDM dc=0.6 pulse(0.55 0.65 1n 0.1n 0.1n 50n 100n)
+tran 0.1n 200n
+set curplotname = tran_slew
+
+.endc
+.end"""
+
+nl_feb24 = """* title line
+.param VDD=1.2
+.param w1=0.5u l1=90n m1=1
+.param w0=0.5u l0=90n m0=1
+.param r0=1k
+.param cload=1p
+.param vbias=0.6
+.include "1genai/data/p045_TT.sp"
+M1 VOUT1 VIN1 net2 VSS nmos w=w1 l=l1 m=m1
+M0 VSS VSS net2 VDD pmos w=w0 l=l0 m=m0
+R0 VDD VOUT1 {r0}
+CL VOUT1 VSS {cload}
+vdd VDD 0 dc={VDD}
+vss VSS 0 dc=0
+vin1 VIN1 0 dc={vbias} ac=1 pulse(0.5 0.7 10n 1n 1n 100n 200n)
+.control
+option numdgt=4
+set temp=25
+set units=degrees
+set wr_vecnames
+ac dec 10 1 10G
+wrdata ./1genai/output/ac_gain.csv v(VOUT1)
+noise v(VOUT1) vin1 dec 10 1 10G
+wrdata ./1genai/output/noise.csv onoise_spectrum inoise_spectrum
+alter @vin1[acmag]=0
+alter @vdd[acmag]=1
+ac dec 10 1 10G
+wrdata ./1genai/output/psrr.csv v(VOUT1)
+alter @vdd[acmag]=0
+tran 1n 500n
+wrdata ./1genai/output/tran_slew.csv v(VOUT1) v(VIN1)
+.endc
+.end"""
