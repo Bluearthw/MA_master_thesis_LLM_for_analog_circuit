@@ -690,30 +690,6 @@ def pyspice_op_sim(circuit, node="vout1"):
         ngspice = NgSpiceShared.new_instance()
         ngspice.load_circuit(circuit)
         ngspice.run()
-        # plot = ngspice.plot(simulation=None, plot_name="op1")# ngspice.last_plot
-        all_plots = ngspice.plot_names
-        # print('Plots:\n', all_plots)
-        plot = ngspice.plot(
-            simulation=None, plot_name=ngspice.last_plot
-        )  # ngspice.last_plot
-        
-        # print('Plots:\n', ngspice.plot_names)
-        # print('plot?\n',plot)
-        vout = 0
-        # vout = get_vector_and_make_array(plot, node)
-        ## why net2?
-        # net2 = get_vector_and_make_array(plot, "net2")
-        # print("==net2\n",net2)
-
-        errors = [msg for msg in ngspice.stdout_buffer if "Error" in msg or "failed" in msg]
-        if errors:
-            return {"success": False, "message": " | ".join(errors)}
-        # .param VINCM=0.53
-        # .param VB1=0.45
-        # * in this way Vout1 is 0.61 1/2 VDD
-        # ==pyspice_op_sim (array([0.61209825]), array([1.2]), array([1.2]), array([5.2854921e-12]), array([6.19755257e-13]))
-        #    others seem useless
-        # 'vin1': variable: vin1 voltage, 'vdd': variable: vdd voltage, 'vb1': variable: vb1 voltage, 'vout1': variable: vout1 voltage}
         return {"success": True, "message": "Simulation OK"}
     except Exception as e :
         return {"success": False, "message": str(e) }
