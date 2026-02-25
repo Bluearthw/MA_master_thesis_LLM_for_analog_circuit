@@ -701,19 +701,20 @@ def pyspice_op_sim(circuit, node="vout1"):
     
     # Capture both stdout and stderr to detect ngspice errors
     stdout_capture = io.StringIO()
-    stderr_capture = io.StringIO()
+    # stderr_capture = io.StringIO()
     try:
         ngspice = NgSpiceShared.new_instance()
         
         # Redirect both stdout and stderr to capture any messages
-        with contextlib.redirect_stdout(stdout_capture), contextlib.redirect_stderr(stderr_capture):
+        with contextlib.redirect_stdout(stdout_capture):
+        # with contextlib.redirect_stdout(stdout_capture), contextlib.redirect_stderr(stderr_capture):
             ngspice.load_circuit(circuit)
             ngspice.run()
         
         # Check for errors in captured output
         stdout_output = stdout_capture.getvalue()
-        stderr_output = stderr_capture.getvalue()
-        combined_output = stdout_output + stderr_output
+        # stderr_output = stderr_capture.getvalue()
+        combined_output = stdout_output #+ stderr_output
         
         # Check for various error indicators (case-insensitive)
         error_keywords = ["Error", "error", "no such", "command available", "illegal", "bad", "unable", "failed"]
@@ -730,12 +731,13 @@ def pyspice_op_sim(circuit, node="vout1"):
         return {"success": True, "message": "Simulation OK"}
     except Exception as e:
         stdout_output = stdout_capture.getvalue()
-        stderr_output = stderr_capture.getvalue()
+        # stderr_output = stderr_capture.getvalue()
+        stderr_output = ""
         error_msg = (stdout_output + stderr_output).strip() if (stdout_output or stderr_output) else str(e)
         return {"success": False, "message": error_msg}
     finally:
         stdout_capture.close()
-        stderr_capture.close()
+        # stderr_capture.close()
 
 def run_ngspice_direct(netlist_content):
     # 1. Save netlist to a temporary file
