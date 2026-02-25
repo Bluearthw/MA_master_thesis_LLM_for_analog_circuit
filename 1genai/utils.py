@@ -2,6 +2,9 @@ import re
 import time
 import os
 import itertools
+import subprocess
+import io
+import contextlib
 DEFAULT_W = "0.5u"
 DEFAULT_L = "90n"
 DEFAULT_M = "1"
@@ -683,17 +686,89 @@ def get_vector_and_make_array(plot, name):
     array = np.array(plot[name]._data)
     # array = np.array(vec.array)
     return array
-
-
-def pyspice_op_sim(circuit, node="vout1"):
+def pyspice_op_sim_simple(circuit, node="vout1"):
     try:
         ngspice = NgSpiceShared.new_instance()
         ngspice.load_circuit(circuit)
         ngspice.run()
-        return {"success": True, "message": "Simulation OK"}
-    except Exception as e :
-        return {"success": False, "message": str(e) }
+        print("simple :: Simulation completed successfully.")
+    except Exception as e:
+        print(f'Exception: {e}')
 
+
+def pyspice_op_sim(circuit, node="vout1"):
+
+    
+    # Capture both stdout and stderr to detect ngspice errors
+    stdout_capture = io.StringIO()
+    # stderr_capture = io.StringIO()
+    try:
+        ngspice = NgSpiceShared.new_instance()
+        
+        # Redirect both stdout and stderr to capture any messages
+        with contextlib.redirect_stdout(stdout_capture):
+        # with contextlib.redirect_stdout(stdout_capture), contextlib.redirect_stderr(stderr_capture):
+            ngspice.load_circuit(circuit)
+            ngspice.run()
+        
+        # Check for errors in captured output
+        stdout_output = stdout_capture.getvalue()
+        # stderr_output = stderr_capture.getvalue()
+        combined_output = stdout_output #+ stderr_output
+        
+        # Check for various error indicators (case-insensitive)
+        error_keywords = ["Error", "error", "no such", "command available", "illegal", "bad", "unable", "failed"]
+        for keyword in error_keywords:
+            if keyword.lower() in combined_output.lower():
+                return {"success": False, "message": combined_output.strip()}
+        
+        # Also check stdout from ngspice object
+        ngspice_stdout = ngspice.stdout if hasattr(ngspice, 'stdout') else ""
+        for keyword in error_keywords:
+            if keyword.lower() in ngspice_stdout.lower():
+                return {"success": False, "message": ngspice_stdout.strip()}
+        
+        return {"success": True, "message": "Simulation OK"}
+    except Exception as e:
+        stdout_output = stdout_capture.getvalue()
+        # stderr_output = stderr_capture.getvalue()
+        stderr_output = ""
+        error_msg = (stdout_output + stderr_output).strip() if (stdout_output or stderr_output) else str(e)
+        return {"success": False, "message": error_msg}
+    finally:
+        stdout_capture.close()
+        # stderr_capture.close()
+
+def run_ngspice_direct(netlist_content):
+    # 1. Save netlist to a temporary file
+    path_sp = "./1genai/output/temp_circuit.sp"
+    path_ngspice = r'D:/1kulStudy/8MA_Thesis/tool/Spice64/bin/ngspice.exe'  # Update this path to your ngspice executable
+    with open(path_sp, "w") as f:
+        f.write(netlist_content)
+
+    # 2. Run ngspice command
+    # -b: Batch mode
+    # -r: Raw output file (optional)
+    try:
+        process = subprocess.run(
+            [path_ngspice, "-b", path_sp],
+            capture_output=True,
+            text=True,
+            timeout=30 # Prevent infinite loops
+        )
+        
+        # 3. Capture terminal output (Standard Out)
+        stdout = process.stdout
+        stderr = process.stderr
+        print("ngspice stdout:\n", stdout)
+        print("ngspice stderr:\n", stderr)
+        if "Error" in stdout or "Error" in stderr:
+            return {"success": False, "message": stdout + stderr}
+
+        return {"success": True, "message": stdout}
+
+    except subprocess.TimeoutExpired:
+        return {"success": False, "message": "Simulation timed out"}
 
 # endregion
 

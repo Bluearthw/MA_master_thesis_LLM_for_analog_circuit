@@ -5,7 +5,6 @@ import utils
 from pydantic import BaseModel, Field
 import local_config
 import time
-import root_agent_2026
 def test_clean():
     for i in range(2, 20):
         cir_path = f"../material/dataset/tb_dataset/{i}/{i}.cir"
@@ -253,41 +252,21 @@ def test_find_cir_without_vdd():
 def test_pyspice_sim(nl = local_config.nl_feb24):
     # nl = local_config.nl_feb23_wuhu
     
+    utils.pyspice_op_sim_simple(nl)
     success = utils.pyspice_op_sim(nl)
     if success["success"]:
         print("Simulation successful!")
     else:
         print("Simulation failed with message:", success["message"])
-import subprocess
-import os
 
-def run_ngspice_direct(netlist_content):
-    # 1. Save netlist to a temporary file
-    with open("temp_circuit.sp", "w") as f:
-        f.write(netlist_content)
+def test_run_ngspice_direct(nl = local_config.nl_feb24):
+    # Write the netlist to a temporary file
+    success = utils.run_ngspice_direct(nl)
+    if success["success"]:
+        print("Simulation successful!")
+    else:
+        print("Simulation failed with message:", success["message"])
 
-    # 2. Run ngspice command
-    # -b: Batch mode
-    # -r: Raw output file (optional)
-    try:
-        process = subprocess.run(
-            ["ngspice", "-b", "temp_circuit.sp"],
-            capture_output=True,
-            text=True,
-            timeout=30 # Prevent infinite loops
-        )
-        
-        # 3. Capture terminal output (Standard Out)
-        stdout = process.stdout
-        stderr = process.stderr
-        
-        if "Error" in stdout or "Error" in stderr:
-            return {"success": False, "message": stdout + stderr}
-
-        return {"success": True, "message": stdout}
-
-    except subprocess.TimeoutExpired:
-        return {"success": False, "message": "Simulation timed out"}
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -309,7 +288,7 @@ start_time = time.perf_counter()
 # test_modify_duplicate_component()
 # test_find_cir_without_vdd()
 test_pyspice_sim(local_config.nl_feb24)
-# run_ngspice_direct(local_config.nl_feb24)
+# test_run_ngspice_direct(local_config.nl_feb24)
 end_time = time.perf_counter()
 
 # endregion
