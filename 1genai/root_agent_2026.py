@@ -1,7 +1,7 @@
 from google import genai
 from google.genai import types
 
-# import os
+import os
 from pydantic import BaseModel, Field
 from typing import List # after python 3.9. before it is List
 
@@ -18,17 +18,21 @@ import tools
 class Struct_sim_task(BaseModel):
     name: str = Field(description="The name of the simulation. It contains simulation name and what specs it is for. e.g., 'ac_gain'.")
     reason: str = Field(description="The engineering justification for this sim.")
+class Struct_specs_sim(BaseModel):
+    spec: str = Field(description="The name of the specification e.g., 'gain', 'bandwidth'.")
+    sim: str = Field(description="corresponding simulation output file e.g., ac_gain.csv.")
 class Struct_flow(BaseModel):
     netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
-    sims : list[Struct_sim_task] = Field(description="simulations needed and why")
-    sim_name : list[str] =Field(description="list of names of simulations")
+    spec_sim : list[Struct_specs_sim] = Field(description="simulations needed and why")
+    # sim_name : list[str] =Field(description="list of names of simulations output files. Here are .csv files, e.g., ac_gain.csv and noise.csv")
     # category_requirement: str = Field(description="The description and requirement of this type of circuit")
-class Struct_netlist(BaseModel):
+class Struct_debug(BaseModel):
     netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
+    sim_name : list[str] =Field(description="list of names of simulations")
+    fix_info: str = Field(description="what is fixed in the netlist based on the error message and why")
 # initiation
 agent_model = "gemini-3-flash-preview" 
-# agent_model = "gemini-2.5-flash"
-# cir_num = input() 
+
 def test_make_cir_sim(cir_num):
     
     cir_path = local_config.dataset_path + f"/{cir_num}/{cir_num}.cir"
@@ -72,14 +76,28 @@ A fundamental gain block intended for signal conditioning, typically operating i
     * It is disqualified if it includes inductive source degeneration (indicates LNA).
     * It is disqualified if it relies on complementary switching devices for high-current output (indicates Push-Pull/Class AB).
 """
-    add_sim_agent(netlist, category)
+    str = add_sim_agent(netlist, category)
+    utils.pyspice_op_sim_simple(str.netlist)
+    # success = utils.pyspice_op_sim_final(str.netlist)
+   
     # # simulation
-    # sim_output = utils.pyspice_op_sim(netlist, "vout1")
-    # if sim_output["success"]:
-    #     # print(sim_output["data"])
-    #     a = 1
-    # else:
-        
+    sim_output = utils.pyspice_op_sim_final(netlist, "vout1")
+    if sim_output["success"]:
+        #check files
+        for spec_sim in str["spec_sim"]:
+            sim_name = spec_sim["sim"]
+            file_path = local_config.output_path + sim_name 
+            if os.path.exists(file_path):
+                print(f"File {file_path} exists.")
+            else:
+                print(f"File {file_path} does not exist.")
+                raise RuntimeError(f"Expected output file {file_path} not found.")
+    else:
+        print("==================bug found!!!!======================")
+        debug_agent(netlist, sim_output["message"])
+        raise RuntimeError(f"Simulation failed with message: {sim_output['message']}")
+    # measurement part
+    
     #     print(sim_output["message"])
     #     raise RuntimeError
 
@@ -101,30 +119,44 @@ wrdata ./1genai/output/ac_gain.csv v(VOUT1)
 
 In this example, the VOUT1 is the output node.
     """
-    response = client.models.generate_content(
-    model=agent_model,
-    contents=contents,
-    config={
-        "response_mime_type": "application/json",
-        "response_schema": Struct_flow,
-        # "response_json_schema": Struct_flow.model_json_schema(),
-    },
-    )
-    str = response.parsed
-    print(str.netlist)
-    print(str.sims)
-    print(str.sim_name)
+    max_retries = 5  # Optional: prevent infinite loops if the server is truly down
+    retry_count = 0
     
-# for i in local_config.num_class_1:
-#     if i <= 917:
-#         continue
-#     test_make_cir_sim(i)
-#     utils.test_delay(1)
-# test_make_cir_sim(local_config.num_class_1[1])
+    while True:
+        try:
+            response = client.models.generate_content(
+                model=agent_model,
+                contents=contents,
+                config={
+                    "response_mime_type": "application/json",
+                    "response_schema": Struct_flow,
+                },
+            )
+            # If successful, return the parsed data
+            return response.parsed
+
+        except Exception as e:
+            # Check if the error is a 503 (Service Unavailable)
+            # Note: Depending on your library version, 'e' might have a .code or .status_code
+            error_msg = str(e)
+            
+            if "503" in error_msg or "ResourceExhausted" in error_msg:
+                retry_count += 1
+                print(f"Model busy (503). Retry #{retry_count}. Waiting 10s...")
+                utils.test_delay(10)  # Wait before retrying
+            else:
+                # If it's a different error (like a syntax error in your code), 
+                # we want to see it immediately rather than looping.
+                print(f"An unexpected error occurred: {e}")
+                raise e
+        if retry_count >= max_retries:
+            raise RuntimeError("Max retries reached. The model may be unavailable.")
 
 def debug_agent(netlist, error_message):
+    print("==netlist\n", netlist)
+    print("==error_message\n", error_message)
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
-    contents = f"""You are an experienced amplifier designer. You are given a netlist : {netlist}, and an error message from simulation : {error_message}.
+    contents = f"""You are an experienced amplifier designer. You are given a bugged netlist : {netlist}, and an error message from simulation : {error_message}.
     Fix the netlist based on the error message so that it can be simulated well. 
 """
     response = client.models.generate_content(
@@ -132,10 +164,27 @@ def debug_agent(netlist, error_message):
     contents=contents,
     config={
         "response_mime_type": "application/json",
-        "response_schema": Struct_netlist,
+        "response_schema": Struct_debug,
         # "response_json_schema": Struct_flow.model_json_schema(),
     },
     )
     str = response.parsed
     print(str.netlist)
+    # print(str.sims)
+    print(str.sim_name)
+    print(str.fix_info)
     
+def test_debug_agent():
+    success = {"success": False, "message": "Error: no such vector onoise_spectrum"}
+    if success["success"]:
+        print("Simulation successful!")
+    else:
+       debug_agent(local_config.nl_feb24, success["message"])
+# test_debug_agent()
+
+# for i in local_config.num_class_1:
+#     if i <= 917:
+#         continue
+#     test_make_cir_sim(i)
+#     utils.test_delay(1)
+test_make_cir_sim(local_config.num_class_1[1])

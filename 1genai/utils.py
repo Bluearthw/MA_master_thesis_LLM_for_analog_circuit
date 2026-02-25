@@ -91,7 +91,38 @@ def is_port_exist(path, target_ports=["VIN1"]):
             return True
     return False
     
-        
+def delete_all_files(folder_path):
+    """
+    Deletes all files in the specified folder.
+    Does not remove subdirectories or the folder itself.
+    """
+    # Validate folder path
+    if not os.path.exists(folder_path):
+        print(f"Error: The folder '{folder_path}' does not exist.")
+        return
+    if not os.path.isdir(folder_path):
+        print(f"Error: '{folder_path}' is not a directory.")
+        return
+
+    deleted_count = 0
+    failed_count = 0
+
+    # Iterate over all items in the folder
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+
+        # Only delete files, skip directories
+        if os.path.isfile(file_path):
+            try:
+                os.remove(file_path)
+                deleted_count += 1
+            except Exception as e:
+                print(f"Failed to delete '{file_path}': {e}")
+                failed_count += 1
+
+    print(f"Deleted {deleted_count} file(s).")
+    if failed_count > 0:
+        print(f"Failed to delete {failed_count} file(s).")        
 
 # endregion for file IO
 
@@ -604,9 +635,6 @@ ac dec 10 1 1G
     lines.insert(0,"* title line\n")
     return "\n".join(lines)
 
-
-# endregion
-
 def add_control(netlist):
     # isUsed = re.search(r'\bVDD\b', circuit_string, re.IGNORECASE)
     # temp_line = "\n.param temperature=25.0"
@@ -627,6 +655,10 @@ set wr_vecnames
     lines.insert(0,"* title line\n")
     return "\n".join(lines)
         
+
+# endregion for adding
+
+
 # region for modifying
 def modify_duplicate_component(circuit_string):
     seen_names = set()
@@ -677,7 +709,7 @@ def modify_DC_bias(netlist, V_name, isVincrease):
     return netlist, new_V, old_V
 
 
-# endregion
+# endregion modify
 
 
 # region for pyspice
@@ -732,6 +764,7 @@ def pyspice_op_sim(circuit, node="vout1"):
         return {"success": False, "message": error_msg}
     finally:
         stdout_capture.close()
+
 def pyspice_op_sim_final(circuit, node="vout1"):
     # Use a single string buffer for all stdout/stderr
     log_capture = io.StringIO()
@@ -788,7 +821,7 @@ def run_ngspice_direct(netlist_content):
     except subprocess.TimeoutExpired:
         return {"success": False, "message": "Simulation timed out"}
 
-# endregion
+# endregion pyspice
 
 
 def test_delay(sec):

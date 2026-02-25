@@ -251,18 +251,19 @@ def test_find_cir_without_vdd():
     print(nums)
 def test_pyspice_sim(nl = local_config.nl_feb24):
     # nl = local_config.nl_feb23_wuhu
+    utils.delete_all_files("./1genai/output/") # delete all previous output to avoid confusion
     
     utils.pyspice_op_sim_simple(nl)
-    success = utils.pyspice_op_sim(nl)
-    success2 = utils.pyspice_op_sim_final(nl)
+    # success = utils.pyspice_op_sim(nl)
+    # if success["success"]:
+    #     print("Simulation successful!")
+    # else:
+    #     print("Simulation failed with message:", success["message"])
+    success = utils.pyspice_op_sim_final(nl)
     if success["success"]:
         print("Simulation successful!")
     else:
         print("Simulation failed with message:", success["message"])
-    if success2["success"]:
-        print("Simulation successful!")
-    else:
-        print("Simulation failed with message:", success2["message"])
 
 def test_run_ngspice_direct(nl = local_config.nl_feb24):
     # Write the netlist to a temporary file
@@ -271,7 +272,14 @@ def test_run_ngspice_direct(nl = local_config.nl_feb24):
         print("Simulation successful!")
     else:
         print("Simulation failed with message:", success["message"])
-
+def test_check_output_files():
+    output_files = ["ac_gain.csv", "noise.csv"]
+    for file in output_files:
+        file_path = "./1genai/output/" + file
+        if os.path.exists(file_path):
+            print(f"File {file_path} exists.")
+        else:
+            print(f"File {file_path} does not exist.")
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -292,8 +300,9 @@ start_time = time.perf_counter()
 # test_find_num_from_class()
 # test_modify_duplicate_component()
 # test_find_cir_without_vdd()
-test_pyspice_sim(local_config.nl_feb24)
+# test_pyspice_sim(local_config.nl_feb25)
 # test_run_ngspice_direct(local_config.nl_feb24)
+test_check_output_files()
 end_time = time.perf_counter()
 
 # endregion
