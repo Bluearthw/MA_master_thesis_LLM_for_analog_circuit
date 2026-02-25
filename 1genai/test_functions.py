@@ -254,10 +254,15 @@ def test_pyspice_sim(nl = local_config.nl_feb24):
     
     utils.pyspice_op_sim_simple(nl)
     success = utils.pyspice_op_sim(nl)
+    success2 = utils.pyspice_op_sim_final(nl)
     if success["success"]:
         print("Simulation successful!")
     else:
         print("Simulation failed with message:", success["message"])
+    if success2["success"]:
+        print("Simulation successful!")
+    else:
+        print("Simulation failed with message:", success2["message"])
 
 def test_run_ngspice_direct(nl = local_config.nl_feb24):
     # Write the netlist to a temporary file

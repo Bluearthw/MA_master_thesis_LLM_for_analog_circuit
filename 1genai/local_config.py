@@ -368,7 +368,7 @@ set wr_vecnames
 ac dec 10 1 10G
 wrdata ./1genai/output/ac_gain.csv v(VOUT1)
 noise v(VOUT1) vin1 dec 10 1 10G
- ./1genai/output/noise.csv onoise_spectrum inoise_spectrum
+wrdata ./1genai/output/noise.csv onoise_spectrum inoise_spectrum
 alter @vin1[acmag]=0
 alter @vdd[acmag]=1
 ac dec 10 1 10G

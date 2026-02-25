@@ -714,7 +714,7 @@ def pyspice_op_sim(circuit, node="vout1"):
         combined_output = stdout_output 
         
         # Check for various error indicators (case-insensitive)
-        error_keywords = ["Error", "error", "no such", "command available", "illegal", "bad", "unable", "failed"]
+        error_keywords = ["error", "no such", "command available", "illegal", "bad", "unable", "failed"]
         for keyword in error_keywords:
             if keyword.lower() in combined_output.lower():
                 return {"success": False, "message": combined_output.strip()}
@@ -732,7 +732,31 @@ def pyspice_op_sim(circuit, node="vout1"):
         return {"success": False, "message": error_msg}
     finally:
         stdout_capture.close()
+def pyspice_op_sim_final(circuit, node="vout1"):
+    # Use a single string buffer for all stdout/stderr
+    log_capture = io.StringIO()
+    
+    try:
+        ngspice = NgSpiceShared.new_instance()
+        
+        with contextlib.redirect_stdout(log_capture), contextlib.redirect_stderr(log_capture):
+            ngspice.load_circuit(circuit)
+            ngspice.run()
+        
+        # NgSpice often stores the last output in its own internal stdout
+        output_log = log_capture.getvalue().strip()
+    
+        # Logic: If the log contains common failure signatures 
+        # OR if the simulation didn't produce expected results
+        if any(err in output_log.lower() for err in ["error", "failed", "no such command"]):
+            return {"success": False, "message": output_log}
 
+        return {"success": True, "message": "Simulation OK\n" + output_log}
+
+    except Exception as e:
+        return {"success": False, "message": f"Python Exception: {str(e)}"}
+    finally:
+        log_capture.close()
 def run_ngspice_direct(netlist_content):
     # 1. Save netlist to a temporary file
     path_sp = "./1genai/output/temp_circuit.sp"
