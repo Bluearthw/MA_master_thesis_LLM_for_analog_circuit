@@ -251,7 +251,7 @@ def test_find_cir_without_vdd():
     print(nums)
 def test_pyspice_sim(nl = local_config.nl_feb24):
     # nl = local_config.nl_feb23_wuhu
-    utils.delete_all_files("./1genai/output/") # delete all previous output to avoid confusion
+    utils.delete_all_files(local_config.output_path) # delete all previous output to avoid confusion
     
     utils.pyspice_op_sim_simple(nl)
     # success = utils.pyspice_op_sim(nl)
@@ -300,9 +300,9 @@ start_time = time.perf_counter()
 # test_find_num_from_class()
 # test_modify_duplicate_component()
 # test_find_cir_without_vdd()
-# test_pyspice_sim(local_config.nl_feb25)
+test_pyspice_sim(local_config.testnetlist)
 # test_run_ngspice_direct(local_config.nl_feb24)
-test_check_output_files()
+# test_check_output_files()
 end_time = time.perf_counter()
 
 # endregion

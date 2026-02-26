@@ -31,7 +31,7 @@ class Struct_debug(BaseModel):
     sim_name : list[str] =Field(description="list of names of simulations")
     fix_info: str = Field(description="what is fixed in the netlist based on the error message and why")
 # initiation
-agent_model = "gemini-3-flash-preview" 
+agent_model = "gemini-2.5-flash" 
 
 def test_make_cir_sim(cir_num):
     
@@ -76,48 +76,54 @@ A fundamental gain block intended for signal conditioning, typically operating i
     * It is disqualified if it includes inductive source degeneration (indicates LNA).
     * It is disqualified if it relies on complementary switching devices for high-current output (indicates Push-Pull/Class AB).
 """
-    str = add_sim_agent(netlist, category)
-    utils.pyspice_op_sim_simple(str.netlist)
-    # success = utils.pyspice_op_sim_final(str.netlist)
-   
-    # # simulation
-    sim_output = utils.pyspice_op_sim_final(netlist, "vout1")
-    if sim_output["success"]:
-        #check files
-        for spec_sim in str["spec_sim"]:
-            sim_name = spec_sim["sim"]
-            file_path = local_config.output_path + sim_name 
-            if os.path.exists(file_path):
-                print(f"File {file_path} exists.")
-            else:
-                print(f"File {file_path} does not exist.")
-                raise RuntimeError(f"Expected output file {file_path} not found.")
-    else:
-        print("==================bug found!!!!======================")
-        debug_agent(netlist, sim_output["message"])
-        raise RuntimeError(f"Simulation failed with message: {sim_output['message']}")
-    # measurement part
-    
-    #     print(sim_output["message"])
-    #     raise RuntimeError
-
+    struc = add_sim_agent(netlist, category)
+    netlist = struc.netlist
+    print("======sim netlist = ",netlist)
+    counter = 0
+    while True:
+        sim_output = utils.pyspice_op_sim_final(netlist)
+        print("=====sim output",sim_output)
+        if sim_output["success"]: 
+            #check files
+            for spec_sim0 in struc.spec_sim:
+                file_path = local_config.output_path + spec_sim0.sim 
+                if os.path.exists(file_path):
+                    print(f"File {file_path} exists.")
+                    
+                else:
+                    print(f"File {file_path} does not exist.")
+                    raise RuntimeError(f"Expected output file {file_path} not found.")
+            print("Simulation successful and output files verified!")
+            break # this is for while True
+        else:
+            print("==================bug found!!!!======================")
+            utils.test_delay(10)  # Wait 10 seconds before retrying
+            struct_debug = debug_agent(netlist, sim_output["message"])
+            netlist = struct_debug.netlist
+        if counter > 5:
+            # raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
+            print("Too many iterations in debug-sim loop. Something might be wrong.")
+            break
 def add_sim_agent(netlist, category):
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
     contents = f"""You are an experienced amplifier designer. You are given an incomplete netlist : {netlist}, and a brief requirement about this type of circuit : {category}.
-You need to complete simulation of the netlist and make sure the result netlist can be simulated. 
+You need to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. 
 Here are some rules.
 0. If the circuit already has a load, do not add more loads. If the circuit does not have a load, add a capacitor load. Example: 
 .param Cload=10p 
 Cload VOUT1 VSS {{Cload}} 
-1. When it comes to the transistors parameters, patterns like w={{}} are not allowed. the curly brackets cause error. It should be w= a variable. The variable is assigned a value using .param. 
+1. When it comes to the transistors parameters, patterns like w={{}} are not allowed. the curly brackets cause error. It should be w= a variable. The variable is assigned a value using .param. So, when there is =, do not use {{}}
 2. When it comes to passive components like capacitor, it must have {{}} with a variable inside the brackets.
 3. You should read category requirement and add relevant simulations needed. But, calculation/measurement of specification will be done by following agent.
 4. The netlist file should also write the required data to a file. Example:
 * for gain
 ac dec 10 1 10G
 wrdata ./1genai/output/ac_gain.csv v(VOUT1)
-
 In this example, the VOUT1 is the output node.
+5. The output netlist must be line by line. e.g., 
+.param VDD=1.2
+.param w1=0.5u l1=90n m1=1
+It must not be like this: Simulation\n.param VDD=1.2\n.param w1=0.5u ......
     """
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
     retry_count = 0
@@ -153,12 +159,14 @@ In this example, the VOUT1 is the output node.
             raise RuntimeError("Max retries reached. The model may be unavailable.")
 
 def debug_agent(netlist, error_message):
-    print("==netlist\n", netlist)
+    print("==netlist in debug agent\n", netlist)
     print("==error_message\n", error_message)
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
     contents = f"""You are an experienced amplifier designer. You are given a bugged netlist : {netlist}, and an error message from simulation : {error_message}.
-    Fix the netlist based on the error message so that it can be simulated well. 
-"""
+Fix the netlist based on the error message so that it can be simulated well. 
+Possble errors:
+1, dc = {{variable}}. Normally, brackets are not needed if there is =.
+    """
     response = client.models.generate_content(
     model=agent_model,
     contents=contents,
@@ -168,11 +176,12 @@ def debug_agent(netlist, error_message):
         # "response_json_schema": Struct_flow.model_json_schema(),
     },
     )
-    str = response.parsed
-    print(str.netlist)
+    struc = response.parsed
+    print("netlist after debug",struc.netlist)
     # print(str.sims)
-    print(str.sim_name)
-    print(str.fix_info)
+    print(struc.sim_name)
+    print(struc.fix_info)
+    return struc
     
 def test_debug_agent():
     success = {"success": False, "message": "Error: no such vector onoise_spectrum"}

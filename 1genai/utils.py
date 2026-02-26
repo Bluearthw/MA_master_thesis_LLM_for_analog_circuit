@@ -765,7 +765,9 @@ def pyspice_op_sim(circuit, node="vout1"):
     finally:
         stdout_capture.close()
 
-def pyspice_op_sim_final(circuit, node="vout1"):
+def pyspice_op_sim_final(circuit):
+    pyspice_op_sim_simple(circuit)
+    delete_all_files(local_config.output_path)
     # Use a single string buffer for all stdout/stderr
     log_capture = io.StringIO()
     
@@ -778,7 +780,7 @@ def pyspice_op_sim_final(circuit, node="vout1"):
         
         # NgSpice often stores the last output in its own internal stdout
         output_log = log_capture.getvalue().strip()
-    
+        print("====NgSpice Output Log:\n", output_log)
         # Logic: If the log contains common failure signatures 
         # OR if the simulation didn't produce expected results
         if any(err in output_log.lower() for err in ["error", "failed", "no such command"]):
