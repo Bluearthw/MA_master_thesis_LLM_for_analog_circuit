@@ -5,6 +5,8 @@ import utils
 from pydantic import BaseModel, Field
 import local_config
 import time
+import numpy as np
+import pandas as pd
 def test_clean():
     for i in range(2, 20):
         cir_path = f"../material/dataset/tb_dataset/{i}/{i}.cir"
@@ -280,6 +282,18 @@ def test_check_output_files():
             print(f"File {file_path} exists.")
         else:
             print(f"File {file_path} does not exist.")
+def test_calculate_gain_bandwidth(path = "./1genai/output/ac_gain.csv"):
+    # Example data (replace with actual data from your simulation)
+    spice_result = utils.SpiceResult(path)
+    gain = spice_result.get_dc_gain()
+    bandwidth = spice_result.get_bandwidth()
+    print("==freq", spice_result.mag_db[0])
+    print("==freq", spice_result.mag_db[-1])
+    print(f"DC Gain: {gain} dB")
+    print(f"Bandwidth: {bandwidth} Hz")
+    
+    # results['dc_gain'] = df.iloc[0, 1]
+    # print(f"DC Gain: {results.dc_gain} dB")
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -300,9 +314,11 @@ start_time = time.perf_counter()
 # test_find_num_from_class()
 # test_modify_duplicate_component()
 # test_find_cir_without_vdd()
-test_pyspice_sim(local_config.testnetlist)
+# test_pyspice_sim(local_config.nl_feb26)
 # test_run_ngspice_direct(local_config.nl_feb24)
 # test_check_output_files()
+test_calculate_gain_bandwidth("./1genai/output/ac_gain.csv")
+
 end_time = time.perf_counter()
 
 # endregion

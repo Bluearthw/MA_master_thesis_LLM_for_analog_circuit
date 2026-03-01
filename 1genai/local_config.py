@@ -1,7 +1,8 @@
 GOOGLE_API_KEY="AIzaSyBCCHDhKIabEjdhfFI0vyXBM6Fc_AhhKQY"
 dataset_path = "../material/dataset/tb_dataset"
 classified_dataset_path = "../material/classified_dataset_from_mohsen/Dataset"
-model_used_25 = "gemini-2.5-flash"
+agent_model25 = "gemini-2.5-flash"
+agent_model3 = "gemini-3-flash-preview" 
 # netlist 9
 output_path = "./1genai/output/"
 str_nl_include = '\n.include "1genai/data/p045_TT.sp"\n'
@@ -434,6 +435,7 @@ vss VSS 0 dc=0
 vin VIN1 0 dc={vbias} ac=1 pulse(0.55 0.65 1n 1n 1n 100n 200n)
 
 .control
+run
 option numdgt=4
 set temp=25
 set units=degrees
@@ -457,6 +459,72 @@ alter vin ac=0
 alter vdd ac=1
 ac dec 10 1 10G
 wrdata ./1genai/output/psrr.csv v(VOUT1)
-
+quit 
 .endc
 .end"""
+
+nl_feb26 = """* fixed title line
+.param v_dd=1.2
+.param w1=0.5u l1=90n m1=1
+.param w0=0.5u l0=90n m0=1
+.param r0=1k
+.param Cload=100f
+.include "1genai/data/p045_TT.sp"
+M1 VOUT1 VIN1 net2 VSS nmos w=w1 l=l1 m=m1
+M0 VSS VSS net2 VDD pmos w=w0 l=l0 m=m0
+R0 VDD VOUT1 {r0}
+CLOAD VOUT1 0 {Cload}
+vdd VDD 0 dc=v_dd ac=0
+vss VSS 0 dc=0
+vin1 VIN1 0 dc=0.6 ac=1 pulse(0.6 0.7 1n 10p 10p 5n 10n)
+.control
+option numdgt=4
+set temp=25
+set units=degrees
+set wr_vecnames
+* Small-Signal Gain and Bandwidth
+ac dec 10 1 10G
+wrdata ./1genai/output/ac_gain.csv v(VOUT1)
+* Noise Analysis
+noise v(VOUT1,0) vin1 dec 10 1 10G
+wrdata ./1genai/output/noise.csv noise1.onoise_spectrum noise1.inoise_spectrum
+* PSRR Analysis
+alter vdd ac=1
+alter vin1 ac=0
+ac dec 10 1 10G
+wrdata ./1genai/output/ac_psrr.csv v(VOUT1)
+* Transient Analysis for Slew Rate
+alter vdd ac=0
+tran 0.01n 10n
+wrdata ./1genai/output/tran_slew.csv v(VOUT1)
+.endc
+.end
+"""
+# so inoise_spectrum is the input referred noise, and onoise_spectrum is the output noise spectrum. We can use these two to calculate the gain and compare with the ac gain.
+
+category_1_request = """### 1. Single-Ended Baseband Voltage Amplifiers (Linear Gain Stages)
+A fundamental gain block intended for signal conditioning, typically operating in the "small-signal" regime where linearity is assumed and crossover distortion is negligible. These circuits prioritize voltage gain accuracy, bandwidth, and feedback stability.
+
+* **Ports:**
+    * **Required:** **Exactly one** signal voltage input (High Impedance typical). *If a second signal input exists, it is Class 7 or 40.*
+    * **Required:** Single voltage output (Medium/Low Impedance).
+    * **Note:** Unlike RF amps, input impedance matching is rarely required; the focus is on voltage bridging ($Z_{in} \gg Z_{source}$).
+* **Stimuli/Measurements:**
+    * **Stimuli:** Small-signal AC voltage source; DC bias voltage.
+    * **Measurements:**
+        * **Voltage Gain ($A_v$) & Phase:** AC analysis to determine DC gain and the -3dB corner frequency.
+        * **Stability (PM/GM):** **Critical.** Analysis of Phase Margin and Gain Margin to ensure the amplifier does not oscillate when placed in a feedback loop.
+        * **PSRR:** AC analysis of supply rejection (often critical in baseband precision circuits). *(Note: CMRR is not applicable here as there is no accessible differential input pair).*
+        * **Input-Referred Noise:** Voltage noise density ($nV/\sqrt{Hz}$) integration over the bandwidth.
+        * **Slew Rate:** Transient analysis with a step response (strictly for settling time, not distortion).
+* **Topologies:**
+    * **Fundamental Stages:** Common-Source (CS), Common-Emitter (CE), Cascode, Telescopic Cascode, Folded Cascode.
+    * **Multi-Stage:** Operational Amplifiers (Op-Amps) in open loop or fixed feedback configurations, OTA (Operational Transconductance Amplifiers).
+    * **Internal Differential Structures:** 
+
+ Includes circuits that use a **differential input pair internally** (e.g., an Op-Amp with feedback resistors or a self-biased reference on the inverting node) but **do not expose the second input** as a top-level port.
+    * **Active Loads:** Current mirrors, active inductor loads (for bandwidth extension without RF tuning).
+* **Rule:** The circuit is a **linear gain block** with a **Single-Input/Single-Output (SISO)** interface.
+    * It is disqualified if it includes inductive source degeneration (indicates LNA).
+    * It is disqualified if it relies on complementary switching devices for high-current output (indicates Push-Pull/Class AB).
+"""

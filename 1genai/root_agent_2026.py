@@ -10,7 +10,7 @@ from typing import List # after python 3.9. before it is List
 import local_config
 import utils
 import tools
-
+import debug_agent
 
 ######################
 # structure output
@@ -19,19 +19,16 @@ class Struct_sim_task(BaseModel):
     name: str = Field(description="The name of the simulation. It contains simulation name and what specs it is for. e.g., 'ac_gain'.")
     reason: str = Field(description="The engineering justification for this sim.")
 class Struct_specs_sim(BaseModel):
-    spec: str = Field(description="The name of the specification e.g., 'gain', 'bandwidth'.")
-    sim: str = Field(description="corresponding simulation output file e.g., ac_gain.csv.")
+    spec: str = Field(description="The name of the specification e.g., 'gain', 'bandwidth'. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation.")
+    sim: str = Field(description="corresponding simulation output file e.g., ac_gain.csv. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation.")
+    spec_id: int = Field(description="Internal ID for calculation logic. Example: 0=DC Gain, 1=Bandwidth, 2=PSRR 3=noise. 4=slew rate.")
 class Struct_flow(BaseModel):
     netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
     spec_sim : list[Struct_specs_sim] = Field(description="simulations needed and why")
     # sim_name : list[str] =Field(description="list of names of simulations output files. Here are .csv files, e.g., ac_gain.csv and noise.csv")
     # category_requirement: str = Field(description="The description and requirement of this type of circuit")
-class Struct_debug(BaseModel):
-    netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
-    sim_name : list[str] =Field(description="list of names of simulations")
-    fix_info: str = Field(description="what is fixed in the netlist based on the error message and why")
 # initiation
-agent_model = "gemini-2.5-flash" 
+
 
 def test_make_cir_sim(cir_num):
     
@@ -50,33 +47,9 @@ def test_make_cir_sim(cir_num):
     # netlist = utils.add_OP_simulation(circuit_string)
     netlist = utils.add_control(circuit_string)
     print("==cir_str\n", netlist)
-    category = """### 1. Single-Ended Baseband Voltage Amplifiers (Linear Gain Stages)
-A fundamental gain block intended for signal conditioning, typically operating in the "small-signal" regime where linearity is assumed and crossover distortion is negligible. These circuits prioritize voltage gain accuracy, bandwidth, and feedback stability.
-
-* **Ports:**
-    * **Required:** **Exactly one** signal voltage input (High Impedance typical). *If a second signal input exists, it is Class 7 or 40.*
-    * **Required:** Single voltage output (Medium/Low Impedance).
-    * **Note:** Unlike RF amps, input impedance matching is rarely required; the focus is on voltage bridging ($Z_{in} \gg Z_{source}$).
-* **Stimuli/Measurements:**
-    * **Stimuli:** Small-signal AC voltage source; DC bias voltage.
-    * **Measurements:**
-        * **Voltage Gain ($A_v$) & Phase:** AC analysis to determine DC gain and the -3dB corner frequency.
-        * **Stability (PM/GM):** **Critical.** Analysis of Phase Margin and Gain Margin to ensure the amplifier does not oscillate when placed in a feedback loop.
-        * **PSRR:** AC analysis of supply rejection (often critical in baseband precision circuits). *(Note: CMRR is not applicable here as there is no accessible differential input pair).*
-        * **Input-Referred Noise:** Voltage noise density ($nV/\sqrt{Hz}$) integration over the bandwidth.
-        * **Slew Rate:** Transient analysis with a step response (strictly for settling time, not distortion).
-* **Topologies:**
-    * **Fundamental Stages:** Common-Source (CS), Common-Emitter (CE), Cascode, Telescopic Cascode, Folded Cascode.
-    * **Multi-Stage:** Operational Amplifiers (Op-Amps) in open loop or fixed feedback configurations, OTA (Operational Transconductance Amplifiers).
-    * **Internal Differential Structures:** 
-
- Includes circuits that use a **differential input pair internally** (e.g., an Op-Amp with feedback resistors or a self-biased reference on the inverting node) but **do not expose the second input** as a top-level port.
-    * **Active Loads:** Current mirrors, active inductor loads (for bandwidth extension without RF tuning).
-* **Rule:** The circuit is a **linear gain block** with a **Single-Input/Single-Output (SISO)** interface.
-    * It is disqualified if it includes inductive source degeneration (indicates LNA).
-    * It is disqualified if it relies on complementary switching devices for high-current output (indicates Push-Pull/Class AB).
-"""
+    category = local_config.category_1_request # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
     struc = add_sim_agent(netlist, category)
+    print("==spec_sims", struc.spec_sim)
     netlist = struc.netlist
     print("======sim netlist = ",netlist)
     counter = 0
@@ -85,8 +58,8 @@ A fundamental gain block intended for signal conditioning, typically operating i
         print("=====sim output",sim_output)
         if sim_output["success"]: 
             #check files
-            for spec_sim0 in struc.spec_sim:
-                file_path = local_config.output_path + spec_sim0.sim 
+            for spec_sim in struc.spec_sim:
+                file_path = local_config.output_path + spec_sim.sim 
                 if os.path.exists(file_path):
                     print(f"File {file_path} exists.")
                     
@@ -98,8 +71,9 @@ A fundamental gain block intended for signal conditioning, typically operating i
         else:
             print("==================bug found!!!!======================")
             utils.test_delay(10)  # Wait 10 seconds before retrying
-            struct_debug = debug_agent(netlist, sim_output["message"])
+            struct_debug = debug_agent.debug_agent(netlist, sim_output["message"])
             netlist = struct_debug.netlist
+        counter+=1
         if counter > 5:
             # raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
             print("Too many iterations in debug-sim loop. Something might be wrong.")
@@ -124,14 +98,15 @@ In this example, the VOUT1 is the output node.
 .param VDD=1.2
 .param w1=0.5u l1=90n m1=1
 It must not be like this: Simulation\n.param VDD=1.2\n.param w1=0.5u ......
-    """
+6, In NGSpice, the noise command produces two separate plots: 'noise1' for spectral density and 'noise2' for integrated noise. So, 'noise1.onoise_spectrum' (output refer noise) or 'noise1.inoise_spectrum' (input equivalent noise) can be tried.  """
+  
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
     retry_count = 0
     
     while True:
         try:
             response = client.models.generate_content(
-                model=agent_model,
+                model=local_config.agent_model3,
                 contents=contents,
                 config={
                     "response_mime_type": "application/json",
@@ -158,37 +133,15 @@ It must not be like this: Simulation\n.param VDD=1.2\n.param w1=0.5u ......
         if retry_count >= max_retries:
             raise RuntimeError("Max retries reached. The model may be unavailable.")
 
-def debug_agent(netlist, error_message):
-    print("==netlist in debug agent\n", netlist)
-    print("==error_message\n", error_message)
-    client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
-    contents = f"""You are an experienced amplifier designer. You are given a bugged netlist : {netlist}, and an error message from simulation : {error_message}.
-Fix the netlist based on the error message so that it can be simulated well. 
-Possble errors:
-1, dc = {{variable}}. Normally, brackets are not needed if there is =.
-    """
-    response = client.models.generate_content(
-    model=agent_model,
-    contents=contents,
-    config={
-        "response_mime_type": "application/json",
-        "response_schema": Struct_debug,
-        # "response_json_schema": Struct_flow.model_json_schema(),
-    },
-    )
-    struc = response.parsed
-    print("netlist after debug",struc.netlist)
-    # print(str.sims)
-    print(struc.sim_name)
-    print(struc.fix_info)
-    return struc
+    #out of while True and files exist.
+
     
 def test_debug_agent():
     success = {"success": False, "message": "Error: no such vector onoise_spectrum"}
     if success["success"]:
         print("Simulation successful!")
     else:
-       debug_agent(local_config.nl_feb24, success["message"])
+       debug_agent.debug_agent(local_config.nl_feb24, success["message"])
 # test_debug_agent()
 
 # for i in local_config.num_class_1:

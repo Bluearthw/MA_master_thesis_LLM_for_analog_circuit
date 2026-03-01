@@ -1,21 +1,24 @@
 import re
 import time
 import os
-import itertools
+import pandas as pd
 import subprocess
 import io
 import contextlib
+import numpy as np
+import scipy.interpolate as interp
+import scipy.optimize as sciopt
+from PySpice.Spice.NgSpice.Shared import NgSpiceShared
+import matplotlib.pyplot as plt
+from google import genai
+
+##### local
+import local_config
 DEFAULT_W = "0.5u"
 DEFAULT_L = "90n"
 DEFAULT_M = "1"
 DEFAULT_R = "1k"
 DEFAULT_C = "3p"
-##### for pyspice
-from PySpice.Spice.NgSpice.Shared import NgSpiceShared
-import matplotlib.pyplot as plt
-import numpy as np
-import local_config
-from google import genai
 
 def get_client():
     return genai.Client(api_key=local_config.GOOGLE_API_KEY)
@@ -825,6 +828,89 @@ def run_ngspice_direct(netlist_content):
 
 # endregion pyspice
 
+# region for measurement
+class SpiceResult:
+    def __init__(self, path):
+        self.path = path
+        # Load and convert once during initialization
+        data = np.genfromtxt(path, autostrip=True, skip_header=1)
+        
+        self.freq = data[:, 0]
+        # Store as complex numbers immediately
+        self.vout = data[:, 1] + 1j * data[:, 2]
+        self.mag =np.abs(self.vout)
+        self.mag_db = 20 * np.log10(self.mag)
+        self.phase = np.angle(self.vout, deg=True)
 
+    def get_dc_gain(self):
+        """Returns the magnitude at the lowest frequency."""
+        return self.mag[0]
+    
+    def get_max_gain(self):
+        """Returns the maximum gain in dB."""
+        return np.max(self.mag_db)
+    def get_bandwidth(self):
+        """Finds the -3dB cutoff frequency."""
+        
+        length = len(self.mag_db)
+        last_mag_db =  np.mean(self.mag_db[int(length*0.7) : -1])
+        first_mag_db = np.mean(self.mag_db[0 : int(length*0.3)])
+        if last_mag_db < first_mag_db: 
+        # LP
+            target = self.mag_db[0] - 3
+            bw, found = get_best_crossing(self.freq, self.mag_db, target)
+            return bw if found else 0
+        else:#HP
+            target = self.mag_db[-1] - 3
+            bw, found = get_best_crossing(self.freq, self.mag_db, target)
+            return self.freq[-1] - bw if found else 0
+    def get_unity_gain_bw(self):
+        """Finds the frequency where gain is 0dB."""
+        ugbw, found = get_best_crossing(self.freq, self.mag_db, 0)
+        return ugbw if found else None
+    def get_ugbw(self, freq, vout):
+        
+        ac_mag = self.mag_db
+        ac_cross, ac_found = get_best_crossing(self.freq,ac_mag,0)
+        if not ac_found:
+            return 0
+        # print(f"ugbw: {ac_cross}\n")
+        return ac_cross
+    def find_phm(self, freq, vout):
+
+        gain = self.get_dc_gain(vout) # or use self? idk, if bug fix here
+        ugbw = self.get_ugbw(self.freq,self.vout_complex)
+        if ugbw <= np.min(self.freq) or ugbw >= np.max(self.freq) or ugbw == 0:
+            print("Warning: UGBW out of interpolation range or not found")
+            return 0
+        phi_deg = np.unwrap(np.angle(self.vout_complex))*180/np.pi
+        phi_interpolate = interp.interp1d(self.freq,phi_deg)
+        phi_ugbw = phi_interpolate(ugbw)
+
+        phm = 180 + phi_ugbw
+        # print(f"phm: {phm}\n")
+        
+        return phm
+
+    
+def get_best_crossing(xvec, yvec, val):
+        interp_fun = interp.InterpolatedUnivariateSpline(xvec, yvec)
+
+        def fzero(x):
+            return interp_fun(x) - val
+
+        xstart, xstop = xvec[0], xvec[-1]
+        try:
+            return sciopt.brentq(fzero, xstart, xstop), True
+        except ValueError:
+            return xstop, False
+
+# endregion for measurement
+
+
+# region for class
+
+
+# endregion for class
 def test_delay(sec):
     time.sleep(sec)
