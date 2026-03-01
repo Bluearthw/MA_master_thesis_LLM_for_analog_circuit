@@ -282,9 +282,10 @@ def test_check_output_files():
             print(f"File {file_path} exists.")
         else:
             print(f"File {file_path} does not exist.")
-def test_calculate_gain_bandwidth(path = "./1genai/output/ac_gain.csv"):
+def test_calculate_gain_bandwidth(path_gain = "./1genai/output/ac_gain.csv"):
     # Example data (replace with actual data from your simulation)
-    spice_result = utils.SpiceResult(path)
+    path_psrr = "./1genai/output/ac_psrr.csv"
+    spice_result = utils.SpiceResult(path_gain, path_psrr)
     gain = spice_result.get_dc_gain()
     bandwidth = spice_result.get_bandwidth()
     print("==freq", spice_result.mag_db[0])

@@ -830,17 +830,20 @@ def run_ngspice_direct(netlist_content):
 
 # region for measurement
 class SpiceResult:
-    def __init__(self, path):
-        self.path = path
-        # Load and convert once during initialization
-        data = np.genfromtxt(path, autostrip=True, skip_header=1)
-        
-        self.freq = data[:, 0]
-        # Store as complex numbers immediately
-        self.vout = data[:, 1] + 1j * data[:, 2]
-        self.mag =np.abs(self.vout)
+    def __init__(self, path_gain, path_psrr):
+        # gain data
+        self.path = path_gain
+        data_gain = np.genfromtxt(path_gain, autostrip=True, skip_header=1)
+        self.freq = data_gain[:, 0]
+        # store gain as complex and compute magnitude/phase
+        self.vout_complex = data_gain[:, 1] + 1j * data_gain[:, 2]
+        self.mag = np.abs(self.vout_complex)
         self.mag_db = 20 * np.log10(self.mag)
-        self.phase = np.angle(self.vout, deg=True)
+        self.phase = np.angle(self.vout_complex, deg=True)
+
+        # psrr data (same format as gain files)
+        self.path_psrr = path_psrr
+        
 
     def get_dc_gain(self):
         """Returns the magnitude at the lowest frequency."""
@@ -868,7 +871,7 @@ class SpiceResult:
         """Finds the frequency where gain is 0dB."""
         ugbw, found = get_best_crossing(self.freq, self.mag_db, 0)
         return ugbw if found else None
-    def get_ugbw(self, freq, vout):
+    def get_ugbw(self):
         
         ac_mag = self.mag_db
         ac_cross, ac_found = get_best_crossing(self.freq,ac_mag,0)
@@ -876,10 +879,9 @@ class SpiceResult:
             return 0
         # print(f"ugbw: {ac_cross}\n")
         return ac_cross
-    def find_phm(self, freq, vout):
+    def get_phm(self):# assumed LP!!!
 
-        gain = self.get_dc_gain(vout) # or use self? idk, if bug fix here
-        ugbw = self.get_ugbw(self.freq,self.vout_complex)
+        ugbw = self.get_ugbw()
         if ugbw <= np.min(self.freq) or ugbw >= np.max(self.freq) or ugbw == 0:
             print("Warning: UGBW out of interpolation range or not found")
             return 0
@@ -891,6 +893,54 @@ class SpiceResult:
         # print(f"phm: {phm}\n")
         
         return phm
+    
+    def get_gain_margin(self):
+        """
+        Calculates the gain margin (in dB).
+        Gain margin is the gain at the phase crossover frequency (where phase = -180°).
+        """
+        phi_deg = np.unwrap(np.angle(self.vout_complex)) * 180 / np.pi
+        
+        # Find the frequency where phase crosses -180 degrees
+        target_phase = -180
+        
+        try:
+            phi_interpolate = interp.interp1d(self.freq, phi_deg)
+            mag_db_interpolate = interp.interp1d(self.freq, self.mag_db)
+            
+            def phase_error(f):
+                return phi_interpolate(f) - target_phase
+            
+            # Find the crossing frequency where phase = -180°
+            xstart, xstop = self.freq[0], self.freq[-1]
+            phase_crossover_freq = sciopt.brentq(phase_error, xstart, xstop)
+            
+            # Get the gain at the phase crossover frequency
+            gain_at_crossing = mag_db_interpolate(phase_crossover_freq)
+            
+            # Gain margin is -gain (in dB) at the phase crossover frequency
+            # Positive gain margin means stable system
+            gain_margin = -gain_at_crossing
+            
+            return gain_margin
+        except ValueError:
+            # Phase never crosses -180 degrees
+            print("Warning: Phase does not cross -180 degrees in the frequency range")
+            return 0
+
+    # ----- new PSRR helpers -----
+    def get_psrr(self): # maybe it can be interpolated to get more precise value
+        """Return arrays (frequency, psrr_db) from the parsed PSRR file."""
+        data_psrr = np.genfromtxt(self.path_psrr, autostrip=True, skip_header=1)
+        psrr_complex = data_psrr[:, 1] + 1j * data_psrr[:, 2]
+        psrr_mag = np.abs(psrr_complex)
+        max = np.max(psrr_mag)
+        min = np.min(psrr_mag)
+        # psrr in dB (positive numbers indicate better rejection)
+        self.psrr_db = 20 * np.log10(1/(max - min)) # avoid division by zero
+        return self.psrr_db
+
+
 
     
 def get_best_crossing(xvec, yvec, val):
