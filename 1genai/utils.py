@@ -11,6 +11,7 @@ import scipy.optimize as sciopt
 from PySpice.Spice.NgSpice.Shared import NgSpiceShared
 import matplotlib.pyplot as plt
 from google import genai
+from scipy.integrate import trapz
 
 ##### local
 import local_config
@@ -830,7 +831,7 @@ def run_ngspice_direct(netlist_content):
 
 # region for measurement
 class SpiceResult:
-    def __init__(self, path_gain, path_psrr):
+    def __init__(self, path_gain, path_psrr, path_noise, path_trans):
         # gain data
         self.path = path_gain
         data_gain = np.genfromtxt(path_gain, autostrip=True, skip_header=1)
@@ -843,6 +844,8 @@ class SpiceResult:
 
         # psrr data (same format as gain files)
         self.path_psrr = path_psrr
+        self.path_noise = path_noise
+        self.path_trans = path_trans
         
 
     def get_dc_gain(self):
@@ -939,8 +942,46 @@ class SpiceResult:
         # psrr in dB (positive numbers indicate better rejection)
         self.psrr_db = 20 * np.log10(1/(max - min)) # avoid division by zero
         return self.psrr_db
+    def get_in_equivalent_noise(self): # there is another vector that might calculate the integrated noise, 
+        data_noise = np.genfromtxt(self.path_noise, autostrip=True, skip_header=1)
+        #0,2 are f, 1 is onoise, 3 is inoise
+        inoise = data_noise[:, 3] 
+        # 2. Square the noise to get V^2/Hz (Power Density)
+        noise_power_density = inoise**2
+        
+        # 3. Integrate over frequency
+        f_range = data_noise[:, 2] # frequency range
+        total_variance = trapz(noise_power_density, f_range)
+        
+        # 4. Take the square root to get back to RMS Volts
+        return np.sqrt(total_variance)
+    def get_slew_rate(self, threshold_low=0.1, threshold_high=0.9): # there is another vector that might calculate the integrated noise, 
+        data_trans = np.genfromtxt(self.path_trans, autostrip=True, skip_header=1)
+        vout_tran = data_trans[:, 1] #  vout is the second column
+        time = data_trans[:, 0] #  time is the first column
 
+        vmin = np.min(vout_tran)
+        vmax = np.max(vout_tran)
 
+        vlo = vmin + threshold_low*(vmax-vmin)
+        vhi = vmin + threshold_high*(vmax-vmin)
+
+        slew_ary = []
+        for i in range(4,len(vout_tran)-4):
+            if vout_tran[i-1] < vlo <= vout_tran[i]:
+                for j in range(i, len(vout_tran)-4):   # cam i use pointers in python??? check later for higher search efficiency
+                    if vout_tran[j-1] < vhi <= vout_tran[j]:
+                        t_r1, found_r1 = get_best_crossing(time[i-4:j+4], vout_tran[i-4:j+4], vlo)
+                        t_r2, found_r2 = get_best_crossing(time[i-4:j+4], vout_tran[i-4:j+4], vhi)
+                        if found_r1 and found_r2: #
+                            slew_ary.append((vhi - vlo) / (t_r2 - t_r1))
+                            i=j
+                        break
+        if not slew_ary:
+            print("Warning: Not Slew Rate")
+            return 0
+        mean = np.mean(slew_ary)*1e-6
+        return mean
 
     
 def get_best_crossing(xvec, yvec, val):

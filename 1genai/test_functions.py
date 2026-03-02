@@ -285,7 +285,9 @@ def test_check_output_files():
 def test_calculate_gain_bandwidth(path_gain = "./1genai/output/ac_gain.csv"):
     # Example data (replace with actual data from your simulation)
     path_psrr = "./1genai/output/ac_psrr.csv"
-    spice_result = utils.SpiceResult(path_gain, path_psrr)
+    path_noise = "./1genai/output/noise.csv"
+    path_trans = "./1genai/output/tran_slew.csv"
+    spice_result = utils.SpiceResult(path_gain, path_psrr, path_noise, path_trans)
     gain = spice_result.get_dc_gain()
     bandwidth = spice_result.get_bandwidth()
     print("==freq", spice_result.mag_db[0])
