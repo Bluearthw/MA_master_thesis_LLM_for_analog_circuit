@@ -11,7 +11,7 @@ import scipy.optimize as sciopt
 from PySpice.Spice.NgSpice.Shared import NgSpiceShared
 import matplotlib.pyplot as plt
 from google import genai
-from scipy.integrate import trapz
+from scipy.integrate import trapezoid
 
 ##### local
 import local_config
@@ -945,13 +945,13 @@ class SpiceResult:
     def get_in_equivalent_noise(self): # there is another vector that might calculate the integrated noise, 
         data_noise = np.genfromtxt(self.path_noise, autostrip=True, skip_header=1)
         #0,2 are f, 1 is onoise, 3 is inoise
-        inoise = data_noise[:, 3] 
+        inoise = data_noise[:, 1] 
         # 2. Square the noise to get V^2/Hz (Power Density)
         noise_power_density = inoise**2
         
         # 3. Integrate over frequency
-        f_range = data_noise[:, 2] # frequency range
-        total_variance = trapz(noise_power_density, f_range)
+        f_range = data_noise[:, 0] # frequency range
+        total_variance = trapezoid(noise_power_density, f_range)
         
         # 4. Take the square root to get back to RMS Volts
         return np.sqrt(total_variance)
@@ -962,7 +962,7 @@ class SpiceResult:
 
         vmin = np.min(vout_tran)
         vmax = np.max(vout_tran)
-
+        print(f"vmin: {vmin}, vmax: {vmax}")
         vlo = vmin + threshold_low*(vmax-vmin)
         vhi = vmin + threshold_high*(vmax-vmin)
 
@@ -1005,3 +1005,4 @@ def get_best_crossing(xvec, yvec, val):
 # endregion for class
 def test_delay(sec):
     time.sleep(sec)
+    print(f"Waited for {sec} seconds")

@@ -15,18 +15,10 @@ import debug_agent
 ######################
 # structure output
 ######################
-class Struct_sim_task(BaseModel):
-    name: str = Field(description="The name of the simulation. It contains simulation name and what specs it is for. e.g., 'ac_gain'.")
-    reason: str = Field(description="The engineering justification for this sim.")
-class Struct_specs_sim(BaseModel):
-    spec: str = Field(description="The name of the specification e.g., 'gain', 'bandwidth'. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation.")
-    sim: str = Field(description="corresponding simulation output file e.g., ac_gain.csv. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation.")
-    spec_id: int = Field(description="Internal ID for calculation logic. Example: 0=DC Gain, 1=Bandwidth, 2=PSRR 3=noise. 4=slew rate.")
-class Struct_flow(BaseModel):
-    netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
-    spec_sim : list[Struct_specs_sim] = Field(description="simulations needed and why")
-    # sim_name : list[str] =Field(description="list of names of simulations output files. Here are .csv files, e.g., ac_gain.csv and noise.csv")
-    # category_requirement: str = Field(description="The description and requirement of this type of circuit")
+# class Struct_sim_task(BaseModel):
+#     name: str = Field(description="The name of the simulation. It contains simulation name and what specs it is for. e.g., 'ac_gain'.")
+#     reason: str = Field(description="The engineering justification for this sim.")
+   # category_requirement: str = Field(description="The description and requirement of this type of circuit")
 # initiation
 
 
@@ -49,17 +41,19 @@ def test_make_cir_sim(cir_num):
     print("==cir_str\n", netlist)
     category = local_config.category_1_request # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
     struc = add_sim_agent(netlist, category)
-    print("==spec_sims", struc.spec_sim)
+    print("==spec_sims", struc.spec_sims)
     netlist = struc.netlist
+    spec_sims = struc.spec_sims
     print("======sim netlist = ",netlist)
     counter = 0
+    # is_debug = False
     while True:
         sim_output = utils.pyspice_op_sim_final(netlist)
         print("=====sim output",sim_output)
         if sim_output["success"]: 
             #check files
-            for spec_sim in struc.spec_sim:
-                file_path = local_config.output_path + spec_sim.sim 
+            for spec_sim in spec_sims:
+                file_path = local_config.output_path + spec_sim.sim_file_name 
                 if os.path.exists(file_path):
                     print(f"File {file_path} exists.")
                     
@@ -67,17 +61,25 @@ def test_make_cir_sim(cir_num):
                     print(f"File {file_path} does not exist.")
                     raise RuntimeError(f"Expected output file {file_path} not found.")
             print("Simulation successful and output files verified!")
+            measurement_results = measuremnt(spec_sims)
+            # Run measurements using SpiceResult helpers
+            print("Measurement results:", measurement_results)
+            
+
             break # this is for while True
         else:
             print("==================bug found!!!!======================")
-            utils.test_delay(10)  # Wait 10 seconds before retrying
+            utils.test_delay(60)  # Wait 10 seconds before retrying
             struct_debug = debug_agent.debug_agent(netlist, sim_output["message"])
             netlist = struct_debug.netlist
+            spec_sims = struct_debug.spec_sims
+            # is_debug = True
         counter+=1
         if counter > 5:
-            # raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
-            print("Too many iterations in debug-sim loop. Something might be wrong.")
-            break
+            raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
+            # print("Too many iterations in debug-sim loop. Something might be wrong.")
+    
+    
 def add_sim_agent(netlist, category):
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
     contents = f"""You are an experienced amplifier designer. You are given an incomplete netlist : {netlist}, and a brief requirement about this type of circuit : {category}.
@@ -110,7 +112,7 @@ It must not be like this: Simulation\n.param VDD=1.2\n.param w1=0.5u ......
                 contents=contents,
                 config={
                     "response_mime_type": "application/json",
-                    "response_schema": Struct_flow,
+                    "response_schema": tools.Struct_flow,
                 },
             )
             # If successful, return the parsed data
@@ -123,8 +125,9 @@ It must not be like this: Simulation\n.param VDD=1.2\n.param w1=0.5u ......
             
             if "503" in error_msg or "ResourceExhausted" in error_msg:
                 retry_count += 1
-                print(f"Model busy (503). Retry #{retry_count}. Waiting 10s...")
-                utils.test_delay(10)  # Wait before retrying
+                wait_sec = 60*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
+                print(f"Model busy (503). Retry #{retry_count}. ")
+                utils.test_delay(wait_sec)  # Wait before retrying
             else:
                 # If it's a different error (like a syntax error in your code), 
                 # we want to see it immediately rather than looping.
@@ -134,8 +137,72 @@ It must not be like this: Simulation\n.param VDD=1.2\n.param w1=0.5u ......
             raise RuntimeError("Max retries reached. The model may be unavailable.")
 
     #out of while True and files exist.
+# def measuremnt(spice_result, path, files):
+def measuremnt(spec_sims):
+    """Run measurements based on produced simulation files.
+
+    Args:
+        spec_sims: list of Struct_specs_sim objects describing sims produced.
+        output_path: folder where sim CSV files are written (ends with / or \\).
+
+    Returns:
+        dict of computed metrics.
+    """
+    # try:
+                
+    #     measurement_results = measuremnt(spec_sims)
+    # except Exception as e:
+    #     print("Measurement failed:", e)
+
+    # collect sim filenames
+    results = {}
+    output_path = local_config.output_path
+    # If we have both gain and psrr files, use SpiceResult to compute common metrics
+    paths = {
+        "ac_path": None,
+        "inoise_path": None,
+        "sr_path": None,
+        "ac_psrr_path": None
+    }
+    for spec_sim in spec_sims:
+        if spec_sim.spec_id == 0:
+            paths["ac_path"] = os.path.join(output_path, spec_sim.sim_file_name)
+        elif spec_sim.spec_id == 1 and paths["ac_path"]:
+            continue
+        elif spec_sim.spec_id == 1 and not paths["ac_path"]:
+            paths["ac_path"] = os.path.join(output_path, spec_sim.sim_file_name)
+        elif spec_sim.spec_id == 2:
+            paths["ac_psrr_path"] = os.path.join(output_path, spec_sim.sim_file_name)
+        elif spec_sim.spec_id == 3:
+            paths["inoise_path"] = os.path.join(output_path, spec_sim.sim_file_name)
+        elif spec_sim.spec_id == 4:
+            paths["sr_path"] = os.path.join(output_path, spec_sim.sim_file_name)
+        elif spec_sim.spec_id == 5 and paths["ac_path"]:
+            continue
+        elif spec_sim.spec_id == 5 and not paths["ac_path"]:
+            paths["ac_path"] = os.path.join(output_path, spec_sim.sim_file_name)
+        elif spec_sim.spec_id == 6 and paths["ac_path"]:
+            continue
+        elif spec_sim.spec_id == 6 and not paths["ac_path"]:
+            paths["ac_path"] = os.path.join(output_path, spec_sim.sim_file_name)
+        else:
+            raise ValueError(f"Unknown spec_id {spec_sim.spec_id} in spec_sims.")
+
 
     
+    spice_res = utils.SpiceResult(paths["ac_path"], paths["ac_psrr_path"], paths["inoise_path"], paths["sr_path"])
+
+    results['dc_gain'] = float(spice_res.get_dc_gain())
+    # results['max_gain_db'] = float(spice_res.get_max_gain())
+    results['bandwidth'] = float(spice_res.get_bandwidth())
+    results['input_ref_total_noise'] = float(spice_res.get_in_equivalent_noise())
+    results['phase_margin'] = float(spice_res.get_phm())
+    results['gain_margin'] = float(spice_res.get_gain_margin())
+    results['slew_rate'] = float(spice_res.get_slew_rate())
+    results["psrr"] = float(spice_res.get_psrr())
+    return results
+    
+
 def test_debug_agent():
     success = {"success": False, "message": "Error: no such vector onoise_spectrum"}
     if success["success"]:

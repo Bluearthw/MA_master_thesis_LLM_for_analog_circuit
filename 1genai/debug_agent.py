@@ -2,12 +2,8 @@ from google import genai
 from google.genai import types
 
 import local_config
-from pydantic import BaseModel, Field
-class Struct_debug(BaseModel):
-    netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
-    sim_name : list[str] =Field(description="list of names of simulations")
-    fix_info: str = Field(description="what is fixed in the netlist based on the error message and why")
 
+import tools
 def debug_agent(netlist, error_message):
     print("==netlist in debug agent\n", netlist)
     print("==error_message\n", error_message)
@@ -27,13 +23,13 @@ But it should be:
     contents=contents,
     config={
         "response_mime_type": "application/json",
-        "response_schema": Struct_debug,
+        "response_schema": tools.Struct_debug,
         # "response_json_schema": Struct_flow.model_json_schema(),
     },
     )
     struc = response.parsed
-    print("netlist after debug",struc.netlist)
+    print("==netlist after debug",struc.netlist)
     # print(str.sims)
-    print(struc.sim_name)
-    print(struc.fix_info)
+    print("==debug agent spec sims", struc.spec_sims)
+    print("==debug agent fix info", struc.fix_info)
     return struc

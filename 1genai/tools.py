@@ -1,3 +1,21 @@
+from pydantic import BaseModel, Field
+class Struct_specs_sim(BaseModel):
+    spec: str = Field(description="The name of the specification e.g., 'gain', 'bandwidth'. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation.")
+    # sim_name: str = Field(description="corresponding simulation name. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation.")
+    sim_file_name : str =Field(description="corresponding name of simulations output files. Here are .csv files, e.g., ac_gain.csv and noise.csv")
+    spec_id: int = Field(description="Internal ID for calculation logic. Example: 0=DC Gain, 1=Bandwidth, 2=PSRR 3=input noise. 4=slew rate. 5=gain margin. 6=phase margin. ")
+
+class Struct_flow(BaseModel):
+    netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
+    spec_sims : list[Struct_specs_sim] = Field(description="simulations needed and why")
+ 
+class Struct_debug(BaseModel):
+    netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
+    spec_sims : list[Struct_specs_sim] = Field(description="simulations needed and why")
+    
+    # sim_file_names : list[str] =Field(description="list of names of simulations output files. Here are .csv files, e.g., ac_gain.csv and noise.csv")
+    fix_info: str = Field(description="what is fixed in the netlist based on the error message and why")
+
 clean_netlist_declaration = { 
     "name": "clean_netlist",# it is a mistery, how does it find the utils.clean_netlist
     "description": "Standardizes and cleans an analog SPICE netlist string by removing parentheses, renaming 'nmos4/pmos4' models, and removing descriptive words like 'resistor/capacitor'.",

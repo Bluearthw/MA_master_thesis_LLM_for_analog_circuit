@@ -290,10 +290,21 @@ def test_calculate_gain_bandwidth(path_gain = "./1genai/output/ac_gain.csv"):
     spice_result = utils.SpiceResult(path_gain, path_psrr, path_noise, path_trans)
     gain = spice_result.get_dc_gain()
     bandwidth = spice_result.get_bandwidth()
-    print("==freq", spice_result.mag_db[0])
-    print("==freq", spice_result.mag_db[-1])
+    pm = spice_result.get_gain_margin()
+    gm = spice_result.get_phm()
+    psrr = spice_result.get_psrr()
+    inoise = spice_result.get_in_equivalent_noise()
+    slew_rate = spice_result.get_slew_rate()
+    # print("==freq", spice_result.mag_db[0])
+    # print("==freq", spice_result.mag_db[-1])
     print(f"DC Gain: {gain} dB")
     print(f"Bandwidth: {bandwidth} Hz")
+    print(f"Phase Margin: {pm} degrees")
+    print(f"Gain Margin: {gm} dB")
+    print(f"PSRR: {psrr} dB")
+    print(f"Input Equivalent total Noise: {inoise} V")
+    print(f"Slew Rate: {slew_rate} V/s")
+
     
     # results['dc_gain'] = df.iloc[0, 1]
     # print(f"DC Gain: {results.dc_gain} dB")
