@@ -29,7 +29,7 @@ class NetlistFlow(BaseModel):
     netlist: str = Field(description="The circuit netlist.")
 
 
-client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
+client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
 
 contents = [circuit_string]
 

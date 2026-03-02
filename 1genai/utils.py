@@ -22,7 +22,7 @@ DEFAULT_R = "1k"
 DEFAULT_C = "3p"
 
 def get_client():
-    return genai.Client(api_key=local_config.GOOGLE_API_KEY)
+    return genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
 # region for file IO
 def get_file_to_str(path, str=""):
     if os.path.isfile(path):
@@ -95,7 +95,7 @@ def is_port_exist(path, target_ports=["VIN1"]):
             return True
     return False
     
-def delete_all_files(folder_path):
+def delete_all_files_skip_dir(folder_path):
     """
     Deletes all files in the specified folder.
     Does not remove subdirectories or the folder itself.
@@ -115,7 +115,7 @@ def delete_all_files(folder_path):
     for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
 
-        # Only delete files, skip directories
+        # Only delete files, skip directories!!!!!
         if os.path.isfile(file_path):
             try:
                 os.remove(file_path)
@@ -771,7 +771,7 @@ def pyspice_op_sim(circuit, node="vout1"):
 
 def pyspice_op_sim_final(circuit):
     pyspice_op_sim_simple(circuit)
-    delete_all_files(local_config.output_path)
+    delete_all_files_skip_dir(local_config.output_path)
     # Use a single string buffer for all stdout/stderr
     log_capture = io.StringIO()
     
@@ -942,7 +942,12 @@ class SpiceResult:
         # psrr in dB (positive numbers indicate better rejection)
         self.psrr_db = 20 * np.log10(1/(max - min)) # avoid division by zero
         return self.psrr_db
-    def get_in_equivalent_noise(self): # there is another vector that might calculate the integrated noise, 
+    def get_in_equivalent_noise_total(self): # there is another vector that might calculate the integrated noise, 
+        data_noise = np.genfromtxt(self.path_noise, autostrip=True, skip_header=1)
+        # this is total so just skip output, and head is skipped.
+        return data_noise[1] 
+        
+    def get_in_equivalent_noise_spectrum(self): # there is another vector that might calculate the integrated noise, 
         data_noise = np.genfromtxt(self.path_noise, autostrip=True, skip_header=1)
         #0,2 are f, 1 is onoise, 3 is inoise
         inoise = data_noise[:, 1] 

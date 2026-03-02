@@ -38,7 +38,7 @@ class NetlistFlow(BaseModel):
     )
 
 
-client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
+client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
 vdd = 1.2  # this is retrieved from LLM
 circuit_string = utils.clean_netlist(circuit_string)
 circuit_string = utils.add_params(circuit_string)

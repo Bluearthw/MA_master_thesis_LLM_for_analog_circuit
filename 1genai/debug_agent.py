@@ -4,10 +4,10 @@ from google.genai import types
 import local_config
 
 import tools
-def debug_agent(netlist, error_message):
+def debug_agent(netlist, error_message, cir_num):
     print("==netlist in debug agent\n", netlist)
     print("==error_message\n", error_message)
-    client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
+    client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
     contents = f"""You are an experienced amplifier designer. You are given a bugged netlist : {netlist}, and an error message from simulation : {error_message}.
 Fix the netlist based on the error message so that it can be simulated well. 
 Besides general check, there are some typical mistakes:
@@ -17,7 +17,10 @@ But it should be:
 .param VDD=1.2
 .param w1=0.5u l1=90n m1=1
 1, dc = {{variable}}. Normally, brackets are not needed if there is =.
-2, in noise simulation, vectors are not found. In NGSpice, the noise command produces two separate plots: 'noise1' for spectral density and 'noise2' for integrated noise. So, 'noise1.onoise_spectrum' or 'noise1.inoise_spectrum' (input equivalent noise)   can be tried.  """
+2, in noise simulation, vectors are not found. In NGSpice, the noise command produces two separate plots: 'noise1' for spectral density and 'noise2' for integrated noise. So, 'noise1.onoise_spectrum' or 'noise1.inoise_spectrum' (input equivalent noise)   can be tried. 
+e.g., noise v(VOUT1) vin dec 10 1 10G
+wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
+"""
     response = client.models.generate_content(
     model=local_config.agent_model3,
     contents=contents,

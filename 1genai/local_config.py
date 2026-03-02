@@ -1,4 +1,5 @@
-GOOGLE_API_KEY="AIzaSyBCCHDhKIabEjdhfFI0vyXBM6Fc_AhhKQY"
+GOOGLE_API_KEY_yong="AIzaSyAjfde8WMNQ7keQvhI1uheBW_mMczV1uYA"
+GOOGLE_API_KEY_zhiyong="AIzaSyBCCHDhKIabEjdhfFI0vyXBM6Fc_AhhKQY"
 dataset_path = "../material/dataset/tb_dataset"
 classified_dataset_path = "../material/classified_dataset_from_mohsen/Dataset"
 agent_model25 = "gemini-2.5-flash"
@@ -527,4 +528,39 @@ A fundamental gain block intended for signal conditioning, typically operating i
 * **Rule:** The circuit is a **linear gain block** with a **Single-Input/Single-Output (SISO)** interface.
     * It is disqualified if it includes inductive source degeneration (indicates LNA).
     * It is disqualified if it relies on complementary switching devices for high-current output (indicates Push-Pull/Class AB).
+"""
+
+nl_mar02_total = """
+* fixed netlist
+.param VDD=1.2
+.param w1=0.5u l1=90n m1=1
+.param w0=0.5u l0=90n m0=1
+.param r0=1k
+.param Cload=1p
+.include "1genai/data/p045_TT.sp"
+M1 VOUT1 VIN1 net2 VSS nmos w=w1 l=l1 m=m1
+M0 VSS VSS net2 VDD pmos w=w0 l=l0 m=m0
+R0 VDD VOUT1 {r0}
+Cload VOUT1 VSS {Cload}
+vdd VDD 0 dc=VDD ac=0
+vss VSS 0 dc=0
+vin VIN1 0 dc=0.7 ac=1 pulse(0.7 0.7 1n 1n 1n 50n 100n)
+.control
+option numdgt=4
+set temp=25
+set units=degrees
+set wr_vecnames
+ac dec 10 1 100G
+wrdata ./1genai/output/ac_gain.csv v(VOUT1)
+noise v(VOUT1) vin dec 10 1 10G
+wrdata ./1genai/output/noise.csv inoise_total
+alter vdd ac=1
+alter vin ac=0
+ac dec 10 1 100G
+wrdata ./1genai/output/psrr.csv v(VOUT1)
+alter @vin[pulse] = [ 0.6 0.8 1n 1n 1n 50n 100n ]
+tran 0.1n 200n
+wrdata ./1genai/output/tran_sr.csv v(VOUT1)
+.endc
+.end
 """

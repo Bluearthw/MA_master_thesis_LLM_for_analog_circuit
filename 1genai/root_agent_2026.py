@@ -4,6 +4,7 @@ from google.genai import types
 import os
 from pydantic import BaseModel, Field
 from typing import List # after python 3.9. before it is List
+from pathlib import Path
 
 ######################
 # local import
@@ -26,7 +27,7 @@ def test_make_cir_sim(cir_num):
     
     cir_path = local_config.dataset_path + f"/{cir_num}/{cir_num}.cir"
     print("==cir_path\n", cir_path)
-
+    output_path = local_config.output_path + f"{cir_num}/"
     circuit_string = utils.get_file_to_str(cir_path)  
     # print("==circuit_string\n",circuit_string)
     circuit_string = utils.modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167
@@ -40,7 +41,7 @@ def test_make_cir_sim(cir_num):
     netlist = utils.add_control(circuit_string)
     print("==cir_str\n", netlist)
     category = local_config.category_1_request # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
-    struc = add_sim_agent(netlist, category)
+    struc = add_sim_agent(netlist, category, cir_num)
     print("==spec_sims", struc.spec_sims)
     netlist = struc.netlist
     spec_sims = struc.spec_sims
@@ -53,7 +54,7 @@ def test_make_cir_sim(cir_num):
         if sim_output["success"]: 
             #check files
             for spec_sim in spec_sims:
-                file_path = local_config.output_path + spec_sim.sim_file_name 
+                file_path =  output_path + spec_sim.sim_file_name 
                 if os.path.exists(file_path):
                     print(f"File {file_path} exists.")
                     
@@ -61,16 +62,20 @@ def test_make_cir_sim(cir_num):
                     print(f"File {file_path} does not exist.")
                     raise RuntimeError(f"Expected output file {file_path} not found.")
             print("Simulation successful and output files verified!")
-            measurement_results = measuremnt(spec_sims)
+            netlist_path = output_path + "final_netlist.cir"
+            with open(netlist_path, "w") as f:
+                f.write(netlist)
+            measurement_results = measuremnt(spec_sims, output_path)
             # Run measurements using SpiceResult helpers
+            
             print("Measurement results:", measurement_results)
             
 
             break # this is for while True
         else:
-            print("==================bug found!!!!======================")
+            print(f"==================bug found!!!!======={counter}===============")
             utils.test_delay(60)  # Wait 10 seconds before retrying
-            struct_debug = debug_agent.debug_agent(netlist, sim_output["message"])
+            struct_debug = debug_agent.debug_agent(netlist, sim_output["message"],cir_num)
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims
             # is_debug = True
@@ -80,9 +85,9 @@ def test_make_cir_sim(cir_num):
             # print("Too many iterations in debug-sim loop. Something might be wrong.")
     
     
-def add_sim_agent(netlist, category):
-    client = genai.Client(api_key=local_config.GOOGLE_API_KEY)
-    contents = f"""You are an experienced amplifier designer. You are given an incomplete netlist : {netlist}, and a brief requirement about this type of circuit : {category}.
+def add_sim_agent(netlist, category,cir_num=4):
+    client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
+    contents = f"""You are an experienced amplifier designer. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, and a brief requirement about this type of circuit : {category}.
 You need to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. 
 Here are some rules.
 0. If the circuit already has a load, do not add more loads. If the circuit does not have a load, add a capacitor load. Example: 
@@ -91,17 +96,28 @@ Cload VOUT1 VSS {{Cload}}
 1. When it comes to the transistors parameters, patterns like w={{}} are not allowed. the curly brackets cause error. It should be w= a variable. The variable is assigned a value using .param. So, when there is =, do not use {{}}
 2. When it comes to passive components like capacitor, it must have {{}} with a variable inside the brackets.
 3. You should read category requirement and add relevant simulations needed. But, calculation/measurement of specification will be done by following agent.
-4. The netlist file should also write the required data to a file. Example:
+4. The netlist file should also write the required data to a file. The path should include the circuit number! Also, for ac_gain, use v() instead of vdb() or vp() since the following measurement agent will use this format.
+Example:
 * for gain
 ac dec 10 1 10G
-wrdata ./1genai/output/ac_gain.csv v(VOUT1)
+wrdata ./1genai/output/{cir_num}/ac_gain.csv v(VOUT1)
 In this example, the VOUT1 is the output node.
 5. The output netlist must be line by line. e.g., 
 .param VDD=1.2
 .param w1=0.5u l1=90n m1=1
 It must not be like this: Simulation\n.param VDD=1.2\n.param w1=0.5u ......
-6, In NGSpice, the noise command produces two separate plots: 'noise1' for spectral density and 'noise2' for integrated noise. So, 'noise1.onoise_spectrum' (output refer noise) or 'noise1.inoise_spectrum' (input equivalent noise) can be tried.  """
-  
+6, In NGSpice, you can use inoise_total if the integration noise is required.
+Example for input refer total noise integrated:
+noise v(VOUT1) vin dec 10 1 10G
+wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
+7, """
+    
+    """
+    Example2, for input refer noise spectrum:
+    noise v(VOUT1) vin dec 10 1 10G
+    setplot noise1
+    wrdata ./1genai/output/{cir_num}/noise.csv noise1.inoise_spectrum
+    """  
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
     retry_count = 0
     
@@ -138,7 +154,7 @@ It must not be like this: Simulation\n.param VDD=1.2\n.param w1=0.5u ......
 
     #out of while True and files exist.
 # def measuremnt(spice_result, path, files):
-def measuremnt(spec_sims):
+def measuremnt(spec_sims, output_path):
     """Run measurements based on produced simulation files.
 
     Args:
@@ -156,7 +172,7 @@ def measuremnt(spec_sims):
 
     # collect sim filenames
     results = {}
-    output_path = local_config.output_path
+    
     # If we have both gain and psrr files, use SpiceResult to compute common metrics
     paths = {
         "ac_path": None,
@@ -195,7 +211,7 @@ def measuremnt(spec_sims):
     results['dc_gain'] = float(spice_res.get_dc_gain())
     # results['max_gain_db'] = float(spice_res.get_max_gain())
     results['bandwidth'] = float(spice_res.get_bandwidth())
-    results['input_ref_total_noise'] = float(spice_res.get_in_equivalent_noise())
+    results['input_ref_total_noise'] = float(spice_res.get_in_equivalent_noise_total())
     results['phase_margin'] = float(spice_res.get_phm())
     results['gain_margin'] = float(spice_res.get_gain_margin())
     results['slew_rate'] = float(spice_res.get_slew_rate())
@@ -203,12 +219,12 @@ def measuremnt(spec_sims):
     return results
     
 
-def test_debug_agent():
+def test_debug_agent(cir_num=4):
     success = {"success": False, "message": "Error: no such vector onoise_spectrum"}
     if success["success"]:
         print("Simulation successful!")
     else:
-       debug_agent.debug_agent(local_config.nl_feb24, success["message"])
+       debug_agent.debug_agent(local_config.nl_feb24, success["message"], cir_num=4)
 # test_debug_agent()
 
 # for i in local_config.num_class_1:
@@ -216,4 +232,20 @@ def test_debug_agent():
 #         continue
 #     test_make_cir_sim(i)
 #     utils.test_delay(1)
-test_make_cir_sim(local_config.num_class_1[1])
+
+# test_make_cir_sim(local_config.num_class_1[1])
+done = [9,14,17, 22, 24, 27, 31, 35, 37, 38]
+test = [ 41, 46]
+for i in test:
+    print("===========",i)
+
+    # Define the directory path
+    
+    output_dir = Path(f"./1genai/output/{i}")
+
+    # Create the directory
+    # parents=True: creates ./1genai/output/ if they don't exist
+    # exist_ok=True: doesn't crash if the folder "9" already exists
+    output_dir.mkdir(parents=True, exist_ok=True)
+    test_make_cir_sim(i)
+    utils.test_delay(60)

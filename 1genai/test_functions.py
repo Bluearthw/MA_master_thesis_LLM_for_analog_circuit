@@ -253,7 +253,7 @@ def test_find_cir_without_vdd():
     print(nums)
 def test_pyspice_sim(nl = local_config.nl_feb24):
     # nl = local_config.nl_feb23_wuhu
-    utils.delete_all_files(local_config.output_path) # delete all previous output to avoid confusion
+    utils.delete_all_files_skip_dir(local_config.output_path) # delete all previous output to avoid confusion
     
     utils.pyspice_op_sim_simple(nl)
     # success = utils.pyspice_op_sim(nl)
@@ -284,16 +284,16 @@ def test_check_output_files():
             print(f"File {file_path} does not exist.")
 def test_calculate_gain_bandwidth(path_gain = "./1genai/output/ac_gain.csv"):
     # Example data (replace with actual data from your simulation)
-    path_psrr = "./1genai/output/ac_psrr.csv"
+    path_psrr = "./1genai/output/psrr.csv"
     path_noise = "./1genai/output/noise.csv"
-    path_trans = "./1genai/output/tran_slew.csv"
+    path_trans = "./1genai/output/tran_sr.csv"
     spice_result = utils.SpiceResult(path_gain, path_psrr, path_noise, path_trans)
     gain = spice_result.get_dc_gain()
     bandwidth = spice_result.get_bandwidth()
     pm = spice_result.get_gain_margin()
     gm = spice_result.get_phm()
     psrr = spice_result.get_psrr()
-    inoise = spice_result.get_in_equivalent_noise()
+    inoise = spice_result.get_in_equivalent_noise_total()
     slew_rate = spice_result.get_slew_rate()
     # print("==freq", spice_result.mag_db[0])
     # print("==freq", spice_result.mag_db[-1])
@@ -328,8 +328,8 @@ start_time = time.perf_counter()
 # test_find_num_from_class()
 # test_modify_duplicate_component()
 # test_find_cir_without_vdd()
-# test_pyspice_sim(local_config.nl_feb26)
-# test_run_ngspice_direct(local_config.nl_feb24)
+# test_pyspice_sim(local_config.nl_mar02_total)
+# test_run_ngspice_direct(local_config.nl_mar02_total)
 # test_check_output_files()
 test_calculate_gain_bandwidth("./1genai/output/ac_gain.csv")
 
