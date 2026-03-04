@@ -228,8 +228,8 @@ def test_find_cir_without_vout():
     print("# ", len(nums))
     print(nums)
 
-def test_find_num_from_class():
-    nums =utils.find_num_from_class(1)
+def test_find_num_from_class(id):
+    nums =utils.find_num_from_class(id)
     print("# ", len(nums))
     print(nums)
 def test_modify_duplicate_component():
@@ -271,11 +271,10 @@ def test_pyspice_sim(nl = local_config.nl_feb24):
 
 def test_run_ngspice_direct(nl = local_config.nl_feb24):
     # Write the netlist to a temporary file
+    utils.pyspice_op_sim_simple(nl)
+    print("===direct::")
     success = utils.run_ngspice_direct(nl)
-    if success["success"]:
-        print("Simulation successful!")
-    else:
-        print("Simulation failed with message:", success["message"])
+    
 def test_check_output_files():
     output_files = ["ac_gain.csv", "noise.csv"]
     for file in output_files:
@@ -313,7 +312,10 @@ def test_debug_agent(cir_num=4):
         print("Simulation successful!")
     else:
        debug_agent.debug_agent(local_config.nl_feb24, success["message"], cir_num=4)
-
+def test_find_category_str(id):
+    path_category = f"./1genai/data/categories/category{id}.md"
+    str = utils.get_file_to_str(path_category)
+    print(str)
     # results['dc_gain'] = df.iloc[0, 1]
     # print(f"DC Gain: {results.dc_gain} dB")
 # region test
@@ -333,17 +335,23 @@ start_time = time.perf_counter()
 # test_find_RF_from_cir_pattern()
 # test_find_all()
 # test_find_cir_without_mos()
-# test_find_num_from_class()
+
 # test_modify_duplicate_component()
 # test_find_cir_without_vdd()
 # test_pyspice_sim(local_config.nl_mar02_total)
-# test_run_ngspice_direct(local_config.nl_mar02_total)
+test_run_ngspice_direct(local_config.testnetlist)
 # test_check_output_files()
-test_measurement_spice_result("./1genai/output/ac_gain.csv")
+# test_measurement_spice_result("./1genai/output/ac_gain.csv")
 # test_debug_agent()
 end_time = time.perf_counter()
 
 # endregion
+
+#region find type nums
+# test_find_num_from_class(1)
+# test_find_num_from_class(4)
+# test_find_category_str(4)
+#endregion find type nums
 
 # utils.difference_of_nums(local_config.num_amplifier_without_mixer_comparator_ports, local_config.num_amplifier_included_with_VCLK_and_so_on)
 # utils.difference_of_nums( local_config.num_amplifier_included_with_in_out,local_config.num_amplifier_without_mixer_comparator_ports)

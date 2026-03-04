@@ -23,6 +23,7 @@ DEFAULT_C = "3p"
 
 def get_client():
     return genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
+
 # region for file IO
 def get_file_to_str(path, str=""):
     if os.path.isfile(path):
@@ -801,9 +802,9 @@ def pyspice_op_sim_final(circuit):
         log_capture.close()
 def run_ngspice_direct(netlist_content):
     # 1. Save netlist to a temporary file
-    path_sp = "./1genai/output/temp_circuit.sp"
-    path_ngspice = r'D:/1kulStudy/8MA_Thesis/tool/Spice64/bin/ngspice.exe'  # Update this path to your ngspice executable
-    with open(path_sp, "w") as f:
+    path_nl = "./1genai/output/temp_circuit.cir"
+    path_ngspice = r'D:/1kulStudy/8MA_Thesis/tool/Spice64/bin/ngspice_con.exe'  # Update this path to your ngspice executable
+    with open(path_nl, "w") as f:
         f.write(netlist_content)
 
     # 2. Run ngspice command
@@ -811,21 +812,22 @@ def run_ngspice_direct(netlist_content):
     # -r: Raw output file (optional)
     try:
         process = subprocess.run(
-            [path_ngspice, "-b", path_sp],
+            [path_ngspice, "-b", "-n", path_nl],
             capture_output=True,
             text=True,
-            timeout=30 # Prevent infinite loops
+            shell=False,
         )
         
         # 3. Capture terminal output (Standard Out)
-        stdout = process.stdout
-        stderr = process.stderr
-        print("ngspice stdout:\n", stdout)
-        print("ngspice stderr:\n", stderr)
-        if "Error" in stdout or "Error" in stderr:
-            return {"success": False, "message": stdout + stderr}
-
-        return {"success": True, "message": stdout}
+        if process.returncode != 0:
+            print(f"--- CRASH DETECTED (Exit Code: {process.returncode}) ---")
+            # If stderr is empty, it was likely a SegFault/Hard Crash
+            error_msg = process.stderr if process.stderr.strip() else "Segmentation Violation (Hard Crash)"
+            print(f"Error Details: {error_msg}")
+        
+        # Always print stdout to see where it stopped
+        print("--- Simulation Log ---")
+        print(process.stdout)
 
     except subprocess.TimeoutExpired:
         return {"success": False, "message": "Simulation timed out"}
