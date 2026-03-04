@@ -71,7 +71,7 @@ def test_make_cir_sim(cir_num):
             print("Measurement results:", measurement_results)
             
 
-            break # this is for while True
+#o . ytem, input     break # this is for while True
         else:
             print(f"==================bug found!!!!======={counter}===============")
             utils.test_delay(60)  # Wait 10 seconds before retrying
@@ -87,37 +87,38 @@ def test_make_cir_sim(cir_num):
     
 def add_sim_agent(netlist, category,cir_num=4):
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
-    contents = f"""You are an experienced amplifier designer. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, and a brief requirement about this type of circuit : {category}.
-You need to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. 
-Here are some rules.
+    contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, and a brief requirement about this type of circuit : {category}.
+Your goal is to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. 
+### Here are some rules.
 0. If the circuit already has a load, do not add more loads. If the circuit does not have a load, add a capacitor load. Example: 
 .param Cload=10p 
 Cload VOUT1 VSS {{Cload}} 
 1. When it comes to the transistors parameters, patterns like w={{}} are not allowed. the curly brackets cause error. It should be w= a variable. The variable is assigned a value using .param. So, when there is =, do not use {{}}
 2. When it comes to passive components like capacitor, it must have {{}} with a variable inside the brackets.
 3. You should read category requirement and add relevant simulations needed. But, calculation/measurement of specification will be done by following agent.
-4. The netlist file should also write the required data to a file. The path should include the circuit number! Also, for ac_gain, use v() instead of vdb() or vp() since the following measurement agent will use this format.
+4. The netlist file should also write the required data to a file. The path should include the circuit number! Also, for ac_gain, use v(VOUT1) since the following measurement agent will use this format.. Using vdb(VOUT1) or vp(VOUT1) is bad 
 Example:
 * for gain
-ac dec 10 1 10G
+ac dec 10 1 100G
 wrdata ./1genai/output/{cir_num}/ac_gain.csv v(VOUT1)
 In this example, the VOUT1 is the output node.
-5. The output netlist must be line by line. e.g., 
-.param VDD=1.2
-.param w1=0.5u l1=90n m1=1
-It must not be like this: Simulation\n.param VDD=1.2\n.param w1=0.5u ......
-6, In NGSpice, you can use inoise_total if the integration noise is required.
-Example for input refer total noise integrated:
-noise v(VOUT1) vin dec 10 1 10G
+5. ONE COMMAND PER LINE: Every '.param', '.model', or component must start on a NEW line. 
+   - BAD: .param VDD=1.2 .param W=1u
+   - GOOD: 
+     .param VDD=1.2
+     .param W=1u
+6. In NGSpice, you can use inoise_total if the integration noise is required.
+Example for input refer total noise int egrated:
+noise v(VOUT1) vin dec 10 1 100G
 wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
-7, """
+7. Also, there is an example about transient analysis. 
+vin VIN1 VSS dc=vcm ac=1.0 PULSE({{-VDD*0.5}} {{VDD*0.5}} trf trf trf {{0.5*period-trf}} period)
+tran 50n 30u
+wrdata ./1genai/output/{cir_num}/tran_SR.csv v(VOUT1)
+
+ """
     
-    """
-    Example2, for input refer noise spectrum:
-    noise v(VOUT1) vin dec 10 1 10G
-    setplot noise1
-    wrdata ./1genai/output/{cir_num}/noise.csv noise1.inoise_spectrum
-    """  
+
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
     retry_count = 0
     
@@ -143,6 +144,11 @@ wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
                 retry_count += 1
                 wait_sec = 60*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
                 print(f"Model busy (503). Retry #{retry_count}. ")
+                utils.test_delay(wait_sec)  # Wait before retrying
+            elif "429" in error_msg or "TooManyRequests" in error_msg:
+                retry_count += 1
+                wait_sec = 120*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
+                print(f"Rate limit exceeded (429). Retry #{retry_count}. ")
                 utils.test_delay(wait_sec)  # Wait before retrying
             else:
                 # If it's a different error (like a syntax error in your code), 
@@ -219,13 +225,7 @@ def measuremnt(spec_sims, output_path):
     return results
     
 
-def test_debug_agent(cir_num=4):
-    success = {"success": False, "message": "Error: no such vector onoise_spectrum"}
-    if success["success"]:
-        print("Simulation successful!")
-    else:
-       debug_agent.debug_agent(local_config.nl_feb24, success["message"], cir_num=4)
-# test_debug_agent()
+
 
 # for i in local_config.num_class_1:
 #     if i <= 917:
@@ -234,18 +234,27 @@ def test_debug_agent(cir_num=4):
 #     utils.test_delay(1)
 
 # test_make_cir_sim(local_config.num_class_1[1])
-done = [9,14,17, 22, 24, 27, 31, 35, 37, 38]
-test = [ 41, 46]
-for i in test:
-    print("===========",i)
+done = [9,14,17, 22, 24, 27, 31, 35, 37, 38,41, 46]
+test_all = [48, 52, 54, 57, 59, 61, 63, 65, 67, 120, 123, 125, 127, 129, 138, 140, 161, 162, 166, 167, 168, 170, 174, 177, 178, 179, 180, 188, 195, 198, 199, 200, 201, 202, 205, 206, 217, 218, 219, 222, 223, 226, 229, 230, 232, 235, 242, 248, 251, 254, 260, 263, 264, 265, 266, 271, 274, 275, 276, 277, 278, 284, 287, 289, 290, 302, 303, 319, 321, 322, 324, 332, 337, 341, 342, 343, 344, 346, 348, 441, 446, 447, 448, 449, 452, 479, 486, 621, 661, 662, 663, 668, 670, 674, 678, 679, 682, 683, 684, 689, 690, 691, 692, 694, 695, 696, 706, 707, 708, 779, 807, 822, 823, 825, 826, 829, 830, 831, 842, 843, 878, 881, 906, 917, 955, 959, 960, 961, 962, 966, 967, 968, 969, 977, 979, 995, 996, 997, 1002, 1003]
+test1 = test_all[:20]
+test2 = test_all[21:50]
+test3 = test_all[51:100]
+test4 = test_all[101:-1]
+# test = test1[test1.index(63):-1]
+test = test2[0:1]
+print("test circuits", test)
+loop = True
+if loop:
+    for i in test:
+        print("===========",i)
 
-    # Define the directory path
-    
-    output_dir = Path(f"./1genai/output/{i}")
+        # Define the directory path
+        
+        output_dir = Path(f"./1genai/output/{i}")
 
-    # Create the directory
-    # parents=True: creates ./1genai/output/ if they don't exist
-    # exist_ok=True: doesn't crash if the folder "9" already exists
-    output_dir.mkdir(parents=True, exist_ok=True)
-    test_make_cir_sim(i)
-    utils.test_delay(60)
+        # Create the directory
+        # parents=True: creates ./1genai/output/ if they don't exist
+        # exist_ok=True: doesn't crash if the folder "9" already exists
+        output_dir.mkdir(parents=True, exist_ok=True)
+        test_make_cir_sim(i)
+        utils.test_delay(60)

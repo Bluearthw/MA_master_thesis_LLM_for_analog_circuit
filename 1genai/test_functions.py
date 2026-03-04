@@ -3,10 +3,12 @@ from google.genai import types
 import os
 import utils
 from pydantic import BaseModel, Field
-import local_config
 import time
 import numpy as np
 import pandas as pd
+## local imports
+import local_config
+import debug_agent
 def test_clean():
     for i in range(2, 20):
         cir_path = f"../material/dataset/tb_dataset/{i}/{i}.cir"
@@ -282,11 +284,11 @@ def test_check_output_files():
             print(f"File {file_path} exists.")
         else:
             print(f"File {file_path} does not exist.")
-def test_calculate_gain_bandwidth(path_gain = "./1genai/output/ac_gain.csv"):
+def test_measurement_spice_result(path_gain = "./1genai/output/ac_gain.csv"):
     # Example data (replace with actual data from your simulation)
     path_psrr = "./1genai/output/psrr.csv"
     path_noise = "./1genai/output/noise.csv"
-    path_trans = "./1genai/output/tran_sr.csv"
+    path_trans = "./1genai/output/tran_SR.csv" #63
     spice_result = utils.SpiceResult(path_gain, path_psrr, path_noise, path_trans)
     gain = spice_result.get_dc_gain()
     bandwidth = spice_result.get_bandwidth()
@@ -305,7 +307,13 @@ def test_calculate_gain_bandwidth(path_gain = "./1genai/output/ac_gain.csv"):
     print(f"Input Equivalent total Noise: {inoise} V")
     print(f"Slew Rate: {slew_rate} V/s")
 
-    
+def test_debug_agent(cir_num=4):
+    success = {"success": False, "message": "Error: no such vector onoise_spectrum"}
+    if success["success"]:
+        print("Simulation successful!")
+    else:
+       debug_agent.debug_agent(local_config.nl_feb24, success["message"], cir_num=4)
+
     # results['dc_gain'] = df.iloc[0, 1]
     # print(f"DC Gain: {results.dc_gain} dB")
 # region test
@@ -331,8 +339,8 @@ start_time = time.perf_counter()
 # test_pyspice_sim(local_config.nl_mar02_total)
 # test_run_ngspice_direct(local_config.nl_mar02_total)
 # test_check_output_files()
-test_calculate_gain_bandwidth("./1genai/output/ac_gain.csv")
-
+test_measurement_spice_result("./1genai/output/ac_gain.csv")
+# test_debug_agent()
 end_time = time.perf_counter()
 
 # endregion

@@ -476,9 +476,12 @@ def add_params(netlist):  # input should be lines here
             if is_unique:
                 param_statements.append(param_line)
         modified_lines.append(line)
+    # add tran param
+    param_tran_line = [".param trf=0.5u ; for slew-rate calculation",".param period=10u "]
     output = []
     output.append("*params ")
     output.extend(param_statements)
+    output.extend(param_tran_line)
     output.extend(modified_lines)
 
     return "\n".join(output)
@@ -645,7 +648,7 @@ def add_control(netlist):
     control_block = """
 .control
 
-option numdgt=4
+option numdgt=7
 set temp=25
 set units=degrees
 set wr_vecnames 
@@ -976,6 +979,7 @@ class SpiceResult:
             if vout_tran[i-1] < vlo <= vout_tran[i]:
                 for j in range(i, len(vout_tran)-4):   # cam i use pointers in python??? check later for higher search efficiency
                     if vout_tran[j-1] < vhi <= vout_tran[j]:
+                        # print("time range",time[i-4:j+4])
                         t_r1, found_r1 = get_best_crossing(time[i-4:j+4], vout_tran[i-4:j+4], vlo)
                         t_r2, found_r2 = get_best_crossing(time[i-4:j+4], vout_tran[i-4:j+4], vhi)
                         if found_r1 and found_r2: #
