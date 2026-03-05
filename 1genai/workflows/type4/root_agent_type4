@@ -2,12 +2,15 @@ from google import genai
 from google.genai import types
 
 import os
+import sys
+
 from pydantic import BaseModel, Field
 from typing import List # after python 3.9. before it is List
 from pathlib import Path
 
 ######################
 # local import
+sys.path.append("./1genai")
 import local_config
 import utils
 import tools
@@ -31,15 +34,16 @@ def test_make_cir_sim(cir_num):
     # netlist = utils.add_OP_simulation(circuit_string)
     netlist = utils.add_control(circuit_string)
     print("==cir_str\n", netlist)
-    category = local_config.category_1_request # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
-    struc = add_sim_agent(netlist, category, cir_num)
+    path_category = local_config.path_category + f"4.md"
+    category = utils.get_file_to_str() # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
+    # struc = add_sim_agent(netlist, category, cir_num)
     print("==spec_sims", struc.spec_sims)
     netlist = struc.netlist
     spec_sims = struc.spec_sims
     print("======sim netlist = ",netlist)
     counter = 0
     # is_debug = False
-    while True:
+    while False:
         sim_output = utils.pyspice_op_sim_final(netlist)
         print("=====sim output",sim_output)
         if sim_output["success"]: 

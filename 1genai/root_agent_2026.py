@@ -25,9 +25,9 @@ import debug_agent
 
 def test_make_cir_sim(cir_num):
     
-    cir_path = local_config.dataset_path + f"/{cir_num}/{cir_num}.cir"
+    cir_path = local_config.path_dataset + f"/{cir_num}/{cir_num}.cir"
     print("==cir_path\n", cir_path)
-    output_path = local_config.output_path + f"{cir_num}/"
+    output_path = local_config.path_output + f"{cir_num}/"
     circuit_string = utils.get_file_to_str(cir_path)  
     # print("==circuit_string\n",circuit_string)
     circuit_string = utils.modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167

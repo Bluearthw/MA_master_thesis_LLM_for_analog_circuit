@@ -217,7 +217,7 @@ def difference_of_nums(nums_big, nums2):
     print("# ", len(difference))
     print(sorted(difference))
 
-def find_cir_without_pattern(dataset_path,name_to_check,nums = local_config.num_all):
+def find_cir_num_without_pattern(dataset_path,name_to_check,nums = local_config.num_all):
     exist_nums = []
     for i in nums:
 
@@ -230,7 +230,7 @@ def find_cir_without_pattern(dataset_path,name_to_check,nums = local_config.num_
             # counter part
     return exist_nums
 
-def find_cir_with_pattern(dataset_path,name_to_check,nums = local_config.num_all):
+def find_cir_num_with_pattern(dataset_path,name_to_check,nums = local_config.num_all):
     exist_nums = []
     for i in nums:
 
@@ -300,7 +300,7 @@ def find_num_from_class(class_id):
     exist_nums = []
     for i in local_config.num_all:
 
-        path = local_config.classified_dataset_path + f"/{i}/detected_class.txt"
+        path = local_config.path_classified_dataset + f"/{i}/detected_class.txt"
         if int(get_file_to_str(path)) == class_id:
             exist_nums.append(i)
             # counter part
@@ -765,7 +765,7 @@ def pyspice_op_sim(circuit, node="vout1"):
 
 def pyspice_op_sim_final(circuit):
     pyspice_op_sim_simple(circuit)
-    delete_all_files_skip_dir(local_config.output_path)
+    delete_all_files_skip_dir(local_config.path_output)
     # Use a single string buffer for all stdout/stderr
     log_capture = io.StringIO()
     

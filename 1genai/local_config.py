@@ -1,11 +1,11 @@
 GOOGLE_API_KEY_yong="AIzaSyAjfde8WMNQ7keQvhI1uheBW_mMczV1uYA"
 GOOGLE_API_KEY_zhiyong="AIzaSyBCCHDhKIabEjdhfFI0vyXBM6Fc_AhhKQY"
-dataset_path = "../material/dataset/tb_dataset"
-classified_dataset_path = "../material/classified_dataset_from_mohsen/Dataset"
+path_dataset = "../material/dataset/tb_dataset"
+path_classified_dataset = "../material/classified_dataset_from_mohsen/Dataset"
 agent_model25 = "gemini-2.5-flash"
 agent_model3 = "gemini-3-flash-preview" 
 # netlist 9
-output_path = "./1genai/output/"
+path_output = "./1genai/output/"
 str_nl_include = '\n.include "1genai/data/p045_TT.sp"\n'
 netlist_with_load ="""*params
 
@@ -23,7 +23,7 @@ Vdd VDD 0 dc=VDD
 
 Vss VSS 0 dc=0
 """
-
+path_category = "./1genai/data/categories/category"
 # netlist 6
 netlist_without_load ="""*params
 

@@ -16,7 +16,7 @@ model_used = "gemini-2.0-flash"
 model_used_25 = "gemini-2.5-flash"
 # cir_num = input()
 cir_num = local_config.num_SISOs[1]
-cir_path = local_config.dataset_path + f"/{cir_num}/{cir_num}.cir"
+cir_path = local_config.path_dataset + f"/{cir_num}/{cir_num}.cir"
 print("==cir_path\n", cir_path)
 
 circuit_string = utils.get_file_to_str(cir_path)  # here adding .include also?

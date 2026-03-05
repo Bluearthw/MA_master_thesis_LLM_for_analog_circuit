@@ -193,7 +193,7 @@ def test_find_ports_from_nums(nums):
 def test_find_RF_from_cir_pattern():
     dataset_path = "../material/dataset/tb_dataset"
     # port = ["VOUT1"]
-    nums1 = utils.find_cir_with_pattern(dataset_path,["L0"])
+    nums1 = utils.find_cir_num_with_pattern(dataset_path,["L0"])
     
     print("# ", len(nums1))
     print(nums1)
@@ -210,7 +210,7 @@ def test_find_all():
 def test_find_cir_without_mos():
     dataset_path = "../material/dataset/tb_dataset"
     # port = ["VOUT1"]
-    nums = utils.find_cir_without_pattern(dataset_path,["nmos4", "pmos4", "npn"])
+    nums = utils.find_cir_num_without_pattern(dataset_path,["nmos4", "pmos4", "npn"])
     print("# ", len(nums))
     print(nums)
 
@@ -219,7 +219,7 @@ def test_find_cir_without_vout():
     # port = ["VOUT1"]
     port = ["VOUT1"]
     num_test = local_config.nums_with_transistors
-    nums = utils.find_cir_without_pattern(dataset_path,port,num_test)
+    nums = utils.find_cir_num_without_pattern(dataset_path,port,num_test)
     print("# ", len(nums))
     print(nums)
 
@@ -245,12 +245,12 @@ def test_find_cir_without_vdd():
     port = ["VSS"]
     num_test = local_config.num_class_1 # only 621
     num_test = local_config.num_all#
-    nums = utils.find_cir_without_pattern(dataset_path,port,num_test)
+    nums = utils.find_cir_num_without_pattern(dataset_path,port,num_test)
     print("# ", len(nums))
     print(nums)
 def test_pyspice_sim(nl = local_config.nl_feb24):
     # nl = local_config.nl_feb23_wuhu
-    utils.delete_all_files_skip_dir(local_config.output_path) # delete all previous output to avoid confusion
+    utils.delete_all_files_skip_dir(local_config.path_output) # delete all previous output to avoid confusion
     
     utils.pyspice_op_sim_simple(nl)
     # success = utils.pyspice_op_sim(nl)
@@ -318,7 +318,7 @@ def test_find_category_str(id):
 def test_check_cat4_requirements():
     nums = local_config.num_class_4
     dataset_path = "../material/dataset/tb_dataset"
-    new_nums = utils.find_cir_with_pattern(dataset_path,["IIN1"],nums)
+    new_nums = utils.find_cir_num_with_pattern(dataset_path,["IIN1"],nums)
     print("==new_nums\n",new_nums)
 # region test
 start_time = time.perf_counter()
