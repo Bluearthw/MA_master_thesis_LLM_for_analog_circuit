@@ -807,9 +807,7 @@ def run_ngspice_direct(netlist_content):
     with open(path_nl, "w") as f:
         f.write(netlist_content)
 
-    # 2. Run ngspice command
-    # -b: Batch mode
-    # -r: Raw output file (optional)
+    #output log stdout is not useful
     try:
         process = subprocess.run(
             [path_ngspice, "-b", "-n", path_nl],
@@ -818,17 +816,54 @@ def run_ngspice_direct(netlist_content):
             shell=False,
         )
         
-        # 3. Capture terminal output (Standard Out)
+        # Combine stdout and stderr for analysis
+        error_log = process.stderr if process.stderr and process.stderr.strip() else ""
+        
+
+        if error_log:
+            print("--- Simulation Log (stderr) ---")
+            print(error_log)
+        error_log_lower = error_log.lower()
+        
+        # Determine if this is a real error or just a warning
+        # Check for fatal errors
+        has_fatal_error = "fatal error" in   error_log_lower
+        has_error = "no such" in error_log_lower or "error" in error_log_lower 
+        # Exclude the "dc value used for op" warning - it's not a real error
+        is_dc_value_warning = "note" in error_log_lower
+
+        filtered_lines = [
+            line for line in error_log_lower.splitlines() 
+            if not line.strip().lower().startswith("note:")
+        ]
+        clean_log = "\n".join(filtered_lines)
+
+        # If there's a fatal error, check error details even if exit code is 0
+        if has_fatal_error:
+            # print(f"--- FATAL ERROR DETECTED ---")
+            print(f"Error Details: {error_log}")
+            return {"success": False, "message": f"Simulation failed\n{error_log}"}
+        
+        print(f"=== Simulation Analysis ---{is_dc_value_warning}, fatal {has_fatal_error}")
+        # If only a dc value warning (no fatal error), treat as success
+        if has_error:
+            # print("--- Simulation completed with warnings (non-fatal) ---")
+            return {"success": False, "message": clean_log}
+        if is_dc_value_warning:
+            # print("--- Simulation completed with warnings (non-fatal) ---")
+            return {"success": True, "message": f"Simulation OK\n{error_log}"}
+        
+        # Check exit code for crash
+        #????? never see 0
         if process.returncode != 0:
             print(f"--- CRASH DETECTED (Exit Code: {process.returncode}) ---")
-            # If stderr is empty, it was likely a SegFault/Hard Crash
-            error_msg = process.stderr if process.stderr.strip() else "Segmentation Violation (Hard Crash)"
+            error_msg = error_log if error_log else "Segmentation Violation (Hard Crash)"
             print(f"Error Details: {error_msg}")
+            return {"success": False, "message": f"Simulation failed (Exit Code: {process.returncode})\n{error_msg}"}
         
-        # Always print stdout to see where it stopped
-        print("--- Simulation Log ---")
-        print(process.stdout)
-
+        # Normal success case
+        return {"success": True, "message": f"Simulation OK\n{error_log}"}
+        
     except subprocess.TimeoutExpired:
         return {"success": False, "message": "Simulation timed out"}
 

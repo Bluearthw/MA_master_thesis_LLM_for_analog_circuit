@@ -274,6 +274,8 @@ def test_run_ngspice_direct(nl = local_config.nl_feb24):
     utils.pyspice_op_sim_simple(nl)
     print("===direct::")
     success = utils.run_ngspice_direct(nl)
+    print("===success::", success["success"])
+    print("===success::", success["message"])
     
 def test_check_output_files():
     output_files = ["ac_gain.csv", "noise.csv"]
@@ -339,7 +341,9 @@ start_time = time.perf_counter()
 # test_modify_duplicate_component()
 # test_find_cir_without_vdd()
 # test_pyspice_sim(local_config.nl_mar02_total)
-test_run_ngspice_direct(local_config.testnetlist)
+# test_run_ngspice_direct(local_config.testnetlist)
+# test_run_ngspice_direct(local_config.nl_2_stage_opamp)
+test_run_ngspice_direct(local_config.nl_mar02_total)
 # test_check_output_files()
 # test_measurement_spice_result("./1genai/output/ac_gain.csv")
 # test_debug_agent()

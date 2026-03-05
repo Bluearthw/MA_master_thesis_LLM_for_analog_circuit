@@ -581,3 +581,92 @@ num_class_2 =[354, 405, 406, 413, 417, 418, 420, 422, 425, 426, 427, 428, 436, 4
 #  29
 num_class_4 = [43, 132, 186, 187, 207, 208, 211, 227, 231, 236, 238, 245, 252, 257, 259, 262, 295, 345, 349, 351, 450, 455, 489, 702, 703, 704, 832, 973, 976]
 #endregion class4
+
+nl_2_stage_opamp = """TwoStage_opamp_netlist
+
+.include "1genai/data/p045_TT.sp"
+
+.param wp1=0.5u lp1=90n mp1=10
+.param wn1=0.5u ln1=90n mn1=38
+.param wn3=0.5u ln3=90n mn3=9
+.param wp3=0.5u lp3=90n mp3=4
+.param wn4=0.5u ln4=90n mn4=20
+.param wn5=0.5u ln5=90n mn5=60
+.param cap=3p
+.param res=1k
+
+.param ibias=30u
+.param cload=10p
+.param vcm=0.6
+
+.param VDD=1.2
+.param trf=0.5u ; for slew-rate calculation
+.param period=10u ; for slew-rate calculation
+.param vhigh=VDD ; for slew-rate calculation
+
+*    D    G    S   B
+mp1 net4 net4 VDD VDD pmos w=wp1 l=lp1 m=mp1
+mp2 net5 net4 VDD VDD pmos w=wp1 l=lp1 m=mp1
+mn1 net4 net2 net3 net3 nmos w=wn1 l=ln1 m=mn1
+mn2 net5 net1 net3 net3 nmos w=wn1 l=ln1 m=mn1
+mn3 net7 net7 VSS VSS nmos w=wn3 l=ln3 m=mn3
+mn4 net3 net7 VSS VSS nmos w=wn4 l=ln4 m=mn4
+mp3 net6 net5 VDD VDD pmos w=wp3 l=lp3 m=mp3
+mn5 net6 net7 VSS VSS nmos w=wn5 l=ln5 m=mn5
+cc net5 net8 {cap}
+rc net8 net6 {res}
+
+
+ibias VDD net7 ibias
+
+Vicm VCM VSS dc=vcm
+Vinput aid VSS dc=0.0 ac=1.0 PULSE({-VHIGH*0.5} {VHIGH*0.5} trf trf trf {0.5*period-trf} period)
+ein1 net1 VCM aid 0 0.5
+ein2 net2 VCM aid 0 -0.5
+
+vdd VDD 0 dc=VDD
+vss VSS 0 dc=0
+CL net6 0 {cload}
+
+.control
+run
+set units=degrees
+*whether name would be written into the file.
+set wr_vecnames 
+option numdgt=7
+* set temperature
+set temp=25
+
+* transient analysis
+tran 50n 30u
+* save Vout data in a file named 'tran_TwoStage.csv'
+* --- ??? ---
+wrdata ./no_backup/output_files/tran_TwoStage.csv v(net6) 
+
+* ac analysis
+ac dec 10 1 1T
+* save Vout data in a file named 'ac_TwoStage.csv'
+* --- ??? ---
+wrdata ./no_backup/output_files/ac_TwoStage.csv v(net6)
+
+* noise analysis
+* calculate the output noise and save it in a file named 'noise_TwoStage.csv'
+* --- ??? ---
+* --- ??? ---
+noise v(net6) Vinput dec 50 1 1e9
+wrdata ./no_backup/output_files/noise_TwoStage.csv onoise_total
+* dc analysis
+save all
+op
+* save the total current consumption in a file named 'dc_TwoStage.csv'
+* --- ??? ---
+* dc Vinput 0 0 0.1
+wrdata ./no_backup/output_files/dc_TwoStage.csv i(vdd) v(net1) v(net2) v(net3) v(net4) v(net5) v(net6) v(net7) v(net8)
+
+*auto quit
+quit 
+.endc
+
+.end
+
+"""
