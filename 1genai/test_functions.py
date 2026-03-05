@@ -189,16 +189,11 @@ def test_find_ports_from_nums(nums):
     ports2 = utils.find_ports_from_all(dataset_path,nums)  
     print("ports2\n",ports2)
 
-def test_find_num_by_port_name(port = ["VB1"],nums = [4]):
-    dataset_path = "../material/dataset/tb_dataset"
-    result_nums = utils.find_num_by_port_name(dataset_path,port,nums)# for only SISO    
-    print(port[0]," = ",result_nums, "# ",len(result_nums))
-
 
 def test_find_RF_from_cir_pattern():
     dataset_path = "../material/dataset/tb_dataset"
     # port = ["VOUT1"]
-    nums1 = utils.find_cir_with_pattern_from_1044cir(dataset_path,["L0"])
+    nums1 = utils.find_cir_with_pattern(dataset_path,["L0"])
     
     print("# ", len(nums1))
     print(nums1)
@@ -215,7 +210,7 @@ def test_find_all():
 def test_find_cir_without_mos():
     dataset_path = "../material/dataset/tb_dataset"
     # port = ["VOUT1"]
-    nums = utils.find_cir_without_pattern_from_1044cir(dataset_path,["nmos4", "pmos4", "npn"])
+    nums = utils.find_cir_without_pattern(dataset_path,["nmos4", "pmos4", "npn"])
     print("# ", len(nums))
     print(nums)
 
@@ -224,7 +219,7 @@ def test_find_cir_without_vout():
     # port = ["VOUT1"]
     port = ["VOUT1"]
     num_test = local_config.nums_with_transistors
-    nums = utils.find_cir_without_pattern_from_1044cir(dataset_path,port,num_test)
+    nums = utils.find_cir_without_pattern(dataset_path,port,num_test)
     print("# ", len(nums))
     print(nums)
 
@@ -250,7 +245,7 @@ def test_find_cir_without_vdd():
     port = ["VSS"]
     num_test = local_config.num_class_1 # only 621
     num_test = local_config.num_all#
-    nums = utils.find_cir_without_pattern_from_1044cir(dataset_path,port,num_test)
+    nums = utils.find_cir_without_pattern(dataset_path,port,num_test)
     print("# ", len(nums))
     print(nums)
 def test_pyspice_sim(nl = local_config.nl_feb24):
@@ -320,6 +315,11 @@ def test_find_category_str(id):
     print(str)
     # results['dc_gain'] = df.iloc[0, 1]
     # print(f"DC Gain: {results.dc_gain} dB")
+def test_check_cat4_requirements():
+    nums = local_config.num_class_4
+    dataset_path = "../material/dataset/tb_dataset"
+    new_nums = utils.find_cir_with_pattern(dataset_path,["IIN1"],nums)
+    print("==new_nums\n",new_nums)
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -332,7 +332,6 @@ start_time = time.perf_counter()
 # test_find_OPAMPs_without_clk()
 # test_find_SISOs_from_OPAMPs()
 # test_find_ports_from_nums(local_config.num_SISOs)
-# test_find_num_by_port_name(["VCLK1"],local_config.num_amplifier_included_with_VCLK_and_so_on)
 # test_find_cir_without_out()
 # test_find_RF_from_cir_pattern()
 # test_find_all()
@@ -343,7 +342,7 @@ start_time = time.perf_counter()
 # test_pyspice_sim(local_config.nl_mar02_total)
 # test_run_ngspice_direct(local_config.testnetlist)
 # test_run_ngspice_direct(local_config.nl_2_stage_opamp)
-test_run_ngspice_direct(local_config.nl_mar02_total)
+# test_run_ngspice_direct(local_config.nl_mar02_total)
 # test_check_output_files()
 # test_measurement_spice_result("./1genai/output/ac_gain.csv")
 # test_debug_agent()
@@ -357,7 +356,7 @@ end_time = time.perf_counter()
 # test_find_category_str(4)
 #endregion find type nums
 
-# utils.difference_of_nums(local_config.num_amplifier_without_mixer_comparator_ports, local_config.num_amplifier_included_with_VCLK_and_so_on)
+# utils.difference_of_nums(local_config.num_class_4, [43])
 # utils.difference_of_nums( local_config.num_amplifier_included_with_in_out,local_config.num_amplifier_without_mixer_comparator_ports)
 # utils.difference_of_nums( local_config.num_all, local_config.num_no_mos)
 
@@ -365,11 +364,8 @@ end_time = time.perf_counter()
 
 print(f"Execution time: {end_time - start_time:.6f} seconds")
 # test_pycpice_op()
-"""
-VDD
-R
-VDD/2
-M1 B:0
-VINCM/2
-VSS B:VDD
-"""
+
+# region category4
+test_check_cat4_requirements()
+#endregion category4
+

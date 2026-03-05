@@ -89,6 +89,7 @@ def are_ports_all_exist(path, target_ports=["VIN1"]):
 def is_port_exist(path, target_ports=["VIN1"]):
     with open(path, 'r') as f:
         content = f.read()
+    print("content\n",content)
     for target_port in target_ports:
         pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
         
@@ -149,16 +150,7 @@ def find_all(dataset_path):
 
     return exist_nums
 
-def find_num_by_port_name(dataset_path,port_name=["VB1"],num_range = list(range(4,1045))):
-    exist_nums = []
-    for i in num_range: #4 to 1144
-        if os.path.isfile(dataset_path):
-            path_nl = dataset_path + f"/{i}/{i}.cir"
-            if is_port_exist(path_nl,port_name):
-
-                    exist_nums.append(i)
-    return exist_nums
-        
+       
 def find_OPAMP_num_from_file(dataset_path):
     # 4 to 1044
     i = 4
@@ -220,12 +212,12 @@ def find_SISOs_from_OPAMPs(dataset_path, nums):
     return exist_nums
 
 def difference_of_nums(nums_big, nums2):
+    #the first list is the bigger one.
     difference = list(set(nums_big).difference(set(nums2)))
     print("# ", len(difference))
     print(sorted(difference))
 
-def find_cir_without_pattern_from_1044cir(dataset_path,name_to_check,nums = list(range(4,1045))):
-    i = 4
+def find_cir_without_pattern(dataset_path,name_to_check,nums = local_config.num_all):
     exist_nums = []
     for i in nums:
 
@@ -238,10 +230,10 @@ def find_cir_without_pattern_from_1044cir(dataset_path,name_to_check,nums = list
             # counter part
     return exist_nums
 
-def find_cir_with_pattern_from_1044cir(dataset_path,name_to_check):
-    i = 4
+def find_cir_with_pattern(dataset_path,name_to_check,nums = local_config.num_all):
     exist_nums = []
-    while True:
+    for i in nums:
+
 
         path_nl = dataset_path + f"/{i}/{i}.cir"
         if os.path.isfile(path_nl):
@@ -250,9 +242,7 @@ def find_cir_with_pattern_from_1044cir(dataset_path,name_to_check):
             if is_port_exist(path_nl,name_to_check):
                 exist_nums.append(i)
             # counter part
-        i+=1
-        if i > 1044:
-            break
+    
     return exist_nums
 
 def find_RF_from_cir_str(path_exaplain, cir_string):
@@ -853,8 +843,7 @@ def run_ngspice_direct(netlist_content):
             # print("--- Simulation completed with warnings (non-fatal) ---")
             return {"success": True, "message": f"Simulation OK\n{error_log}"}
         
-        # Check exit code for crash
-        #????? never see 0
+        # Check exit code for crash #????? never see 0
         if process.returncode != 0:
             print(f"--- CRASH DETECTED (Exit Code: {process.returncode}) ---")
             error_msg = error_log if error_log else "Segmentation Violation (Hard Crash)"

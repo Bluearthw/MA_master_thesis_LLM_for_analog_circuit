@@ -13,15 +13,6 @@ import utils
 import tools
 import debug_agent
 
-######################
-# structure output
-######################
-# class Struct_sim_task(BaseModel):
-#     name: str = Field(description="The name of the simulation. It contains simulation name and what specs it is for. e.g., 'ac_gain'.")
-#     reason: str = Field(description="The engineering justification for this sim.")
-   # category_requirement: str = Field(description="The description and requirement of this type of circuit")
-# initiation
-
 
 def test_make_cir_sim(cir_num):
     
@@ -225,20 +216,9 @@ def measuremnt(spec_sims, output_path):
     return results
     
 
+test = local_config.num_class_4_new
 
-
-# for i in local_config.num_class_1:
-#     if i <= 917:
-#         continue
-#     test_make_cir_sim(i)
-#     utils.test_delay(1)
-
-
-
-# test = test1[test1.index(63):-1]
-test = [43,132]
-
-num = 43
+num = 236
 loop = False
 
 if loop:
