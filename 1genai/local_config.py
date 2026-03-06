@@ -1,11 +1,14 @@
 GOOGLE_API_KEY_yong="AIzaSyAjfde8WMNQ7keQvhI1uheBW_mMczV1uYA"
 GOOGLE_API_KEY_zhiyong="AIzaSyBCCHDhKIabEjdhfFI0vyXBM6Fc_AhhKQY"
+
 path_dataset = "../material/dataset/tb_dataset"
 path_classified_dataset = "../material/classified_dataset_from_mohsen/Dataset"
+path_category = "./1genai/data/categories/category"
+path_output = "./1genai/output/"
+
 agent_model25 = "gemini-2.5-flash"
 agent_model3 = "gemini-3-flash-preview" 
 # netlist 9
-path_output = "./1genai/output/"
 str_nl_include = '\n.include "1genai/data/p045_TT.sp"\n'
 netlist_with_load ="""*params
 
@@ -23,7 +26,6 @@ Vdd VDD 0 dc=VDD
 
 Vss VSS 0 dc=0
 """
-path_category = "./1genai/data/categories/category"
 # netlist 6
 netlist_without_load ="""*params
 
@@ -582,6 +584,46 @@ num_class_2 =[354, 405, 406, 413, 417, 418, 420, 422, 425, 426, 427, 428, 436, 4
 num_class_4 = [43, 132, 186, 187, 207, 208, 211, 227, 231, 236, 238, 245, 252, 257, 259, 262, 295, 345, 349, 351, 450, 455, 489, 702, 703, 704, 832, 973, 976]
 # 13, these are with IIN1
 num_class_4_new =  [236, 238, 245, 252, 257, 259, 262, 345, 349, 351, 702, 703, 973]
+
+nl_mar05 = """* title line
+.param VB1=0.7
+.param VDD=1.2
+.param w1=0.5u
+.param l1=90n
+.param m1=1
+.param r0=1k
+.param trf=0.5u
+.param period=10u
+.param Cload=100f
+.param idc=10u
+.param iamp=20u
+.include "1genai/data/p045_TT.sp"
+M1 VOUT1 VB1 IIN1 VSS nmos w=w1 l=l1 m=m1
+R0 VOUT1 VDD {r0}
+Cload VOUT1 VSS {Cload}
+vdd VDD 0 dc=VDD
+vb1 VB1 0 dc=VB1
+vss VSS 0 dc=0
+Iin IIN1 0 dc={idc} ac=1.0 PULSE({idc} {iamp} 1n {trf} {trf} 4.5u 10u)
+* vin IIN1 0 dc=idc ac=1.0 PULSE({idc-0.1} {idc+0.1} {trf} {trf} {trf} {0.5*period-trf} {period})
+
+.control
+option numdgt=7
+set temp=25
+set units=degrees
+set wr_vecnames
+ac dec 10 1 100G
+wrdata ./1genai/output/236/ac_gain.csv v(VOUT1)
+dc Iin 0 100u 1u
+*dc vin 0 100u 1u
+wrdata ./1genai/output/236/dc_swing.csv v(VOUT1)
+tran 10n 20u
+wrdata ./1genai/output/236/tran_SR.csv v(VOUT1)
+noise v(VOUT1) Iin dec 10 1 100G
+*noise v(VOUT1) vin dec 10 1 100G
+wrdata ./1genai/output/236/noise.csv inoise_total
+.endc
+.end"""
 #endregion class4
 
 nl_2_stage_opamp = """TwoStage_opamp_netlist

@@ -130,6 +130,9 @@ def delete_all_files_skip_dir(folder_path):
     if failed_count > 0:
         print(f"Failed to delete {failed_count} file(s).")        
 
+def save_str_to_file(str, path = local_config.path_output + "final_netlist.cir"):
+    with open(path, "w") as f:
+        f.write(str)
 # endregion for file IO
 
 
@@ -263,8 +266,6 @@ def find_RF_from_cir_str(path_exaplain, cir_string):
 
     return False
 
-
-
 def find_ports_from_all(dataset_path,nums = list(range(4,1045))):
     
     exist_ports = []
@@ -295,7 +296,6 @@ def find_ports_from_all(dataset_path,nums = list(range(4,1045))):
     # exist_ports.remove('')
     return exist_ports
 
-
 def find_num_from_class(class_id):
     exist_nums = []
     for i in local_config.num_all:
@@ -306,7 +306,10 @@ def find_num_from_class(class_id):
             # counter part
         
     return exist_nums
-    
+
+def find_cat_from_num(num):
+    path = local_config.path_classified_dataset+ f"/{num}/detected_class.txt"
+    return int(get_file_to_str(path))
 # endregion for classification
 
 
@@ -716,6 +719,7 @@ def get_vector_and_make_array(plot, name):
     array = np.array(plot[name]._data)
     # array = np.array(vec.array)
     return array
+
 def pyspice_op_sim_simple(circuit, node="vout1"):
     try:
         ngspice = NgSpiceShared.new_instance()
@@ -790,6 +794,7 @@ def pyspice_op_sim_final(circuit):
         return {"success": False, "message": f"Python Exception: {str(e)}"}
     finally:
         log_capture.close()
+
 def run_ngspice_direct(netlist_content):
     # 1. Save netlist to a temporary file
     path_nl = "./1genai/output/temp_circuit.cir"

@@ -320,6 +320,10 @@ def test_check_cat4_requirements():
     dataset_path = "../material/dataset/tb_dataset"
     new_nums = utils.find_cir_num_with_pattern(dataset_path,["IIN1"],nums)
     print("==new_nums\n",new_nums)
+def test_find_cat_from_num(num = 4):
+    
+    cat = utils.find_cat_from_num(num)
+    print("==cat\n",cat)
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -340,12 +344,15 @@ start_time = time.perf_counter()
 # test_modify_duplicate_component()
 # test_find_cir_without_vdd()
 # test_pyspice_sim(local_config.nl_mar02_total)
+# test_pycpice_op()
 # test_run_ngspice_direct(local_config.testnetlist)
 # test_run_ngspice_direct(local_config.nl_2_stage_opamp)
-# test_run_ngspice_direct(local_config.nl_mar02_total)
+test_run_ngspice_direct(local_config.nl_mar05)
 # test_check_output_files()
 # test_measurement_spice_result("./1genai/output/ac_gain.csv")
 # test_debug_agent()
+
+# test_find_cat_from_num(186)
 end_time = time.perf_counter()
 
 # endregion
@@ -360,12 +367,12 @@ end_time = time.perf_counter()
 # utils.difference_of_nums( local_config.num_amplifier_included_with_in_out,local_config.num_amplifier_without_mixer_comparator_ports)
 # utils.difference_of_nums( local_config.num_all, local_config.num_no_mos)
 
-  
+# region category4
+# test_check_cat4_requirements()
+#endregion category4
 
 print(f"Execution time: {end_time - start_time:.6f} seconds")
-# test_pycpice_op()
 
-# region category4
-test_check_cat4_requirements()
-#endregion category4
+
+
 

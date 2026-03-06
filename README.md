@@ -1,5 +1,5 @@
 git add .
-git commit -m ""
+git commit -m "modify some names, relative import by adding dir"
 git push
 
 venv\Scripts\Activate.ps1

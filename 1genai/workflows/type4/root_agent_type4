@@ -19,10 +19,10 @@ import debug_agent
 
 def test_make_cir_sim(cir_num):
     
-    cir_path = local_config.dataset_path + f"/{cir_num}/{cir_num}.cir"
-    print("==cir_path\n", cir_path)
-    output_path = local_config.output_path + f"{cir_num}/"
-    circuit_string = utils.get_file_to_str(cir_path)  
+    path_cir = local_config.path_dataset + f"/{cir_num}/{cir_num}.cir"
+    print("==cir_path\n", path_cir)
+    path_output = local_config.path_output + f"{cir_num}/"
+    circuit_string = utils.get_file_to_str(path_cir)  
     # print("==circuit_string\n",circuit_string)
     circuit_string = utils.modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167
     circuit_string = utils.clean_netlist(circuit_string)# ADD .include here. remove (). nmos4' to 'nmos' and 'pmos4' to 'pmos'. REMOVE 'resistor' and 'capacitor'
@@ -34,13 +34,18 @@ def test_make_cir_sim(cir_num):
     # netlist = utils.add_OP_simulation(circuit_string)
     netlist = utils.add_control(circuit_string)
     print("==cir_str\n", netlist)
-    path_category = local_config.path_category + f"4.md"
-    category = utils.get_file_to_str() # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
-    # struc = add_sim_agent(netlist, category, cir_num)
+
+    category_num = utils.find_cat_from_num(cir_num) # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
+    path_category = local_config.path_category + f"{category_num}.md"
+    # or the cat_num is already known, so just +"4.md"
+    category_str = utils.get_file_to_str(path_category)
+    struc = add_sim_agent(netlist, category_str, cir_num)
     print("==spec_sims", struc.spec_sims)
     netlist = struc.netlist
     spec_sims = struc.spec_sims
     print("======sim netlist = ",netlist)
+    utils.save_str_to_file(netlist, path_output + "final_netlist.cir")
+    
     counter = 0
     # is_debug = False
     while False:
@@ -49,7 +54,7 @@ def test_make_cir_sim(cir_num):
         if sim_output["success"]: 
             #check files
             for spec_sim in spec_sims:
-                file_path =  output_path + spec_sim.sim_file_name 
+                file_path =  path_output + spec_sim.sim_file_name 
                 if os.path.exists(file_path):
                     print(f"File {file_path} exists.")
                     
@@ -57,10 +62,10 @@ def test_make_cir_sim(cir_num):
                     print(f"File {file_path} does not exist.")
                     raise RuntimeError(f"Expected output file {file_path} not found.")
             print("Simulation successful and output files verified!")
-            netlist_path = output_path + "final_netlist.cir"
+            netlist_path = path_output + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
-            measurement_results = measuremnt(spec_sims, output_path)
+            measurement_results = measuremnt(spec_sims, path_output)
             # Run measurements using SpiceResult helpers
             
             print("Measurement results:", measurement_results)
