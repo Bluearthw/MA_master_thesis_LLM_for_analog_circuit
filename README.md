@@ -1,5 +1,5 @@
 git add .
-git commit -m "modify some names, relative import by adding dir"
+git commit -m "If you want a certain id(SIM) to have certain path to get the data, you already have it in the structure output!!! You do not need to make it again!!!"
 git push
 
 venv\Scripts\Activate.ps1

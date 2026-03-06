@@ -976,12 +976,12 @@ class SpiceResult:
         # psrr in dB (positive numbers indicate better rejection)
         self.psrr_db = 20 * np.log10(1/(max - min)) # avoid division by zero
         return self.psrr_db
-    def get_in_equivalent_noise_total(self): # there is another vector that might calculate the integrated noise, 
+    def get_in_equivalent_noise_from_total(self): # there is another vector that might calculate the integrated noise, 
         data_noise = np.genfromtxt(self.path_noise, autostrip=True, skip_header=1)
         # this is total so just skip output, and head is skipped.
         return data_noise[1] 
         
-    def get_in_equivalent_noise_spectrum(self): # there is another vector that might calculate the integrated noise, 
+    def get_in_equivalent_noise_from_spectrum(self): # there is another vector that might calculate the integrated noise, 
         data_noise = np.genfromtxt(self.path_noise, autostrip=True, skip_header=1)
         #0,2 are f, 1 is onoise, 3 is inoise
         inoise = data_noise[:, 1] 

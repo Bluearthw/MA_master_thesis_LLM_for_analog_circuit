@@ -217,7 +217,7 @@ def measuremnt(spec_sims, output_path):
     results['dc_gain'] = float(spice_res.get_dc_gain())
     # results['max_gain_db'] = float(spice_res.get_max_gain())
     results['bandwidth'] = float(spice_res.get_bandwidth())
-    results['input_ref_total_noise'] = float(spice_res.get_in_equivalent_noise_total())
+    results['input_ref_total_noise'] = float(spice_res.get_in_equivalent_noise_from_total())
     results['phase_margin'] = float(spice_res.get_phm())
     results['gain_margin'] = float(spice_res.get_gain_margin())
     results['slew_rate'] = float(spice_res.get_slew_rate())

@@ -10,6 +10,23 @@ agent_model25 = "gemini-2.5-flash"
 agent_model3 = "gemini-3-flash-preview" 
 # netlist 9
 str_nl_include = '\n.include "1genai/data/p045_TT.sp"\n'
+
+table_specs_id = {0:    "DC Gain", 
+                  1:    "Bandwidth", 
+                  2:    "PSRR", 
+                  3:    "input total noise", 
+                  4:    "slew rate", 
+                  5:    "gain margin", 
+                  6:    "phase margin",
+                  7:    "input equivalent noise spectrum",
+                  8:    "input impedance",
+                  9:    "output impedance",
+                  10:   "Input swing",
+                  11:   "Output swing",
+                  12:   "settle time",
+}
+
+
 netlist_with_load ="""*params
 
 .param VDD=1.2
@@ -614,7 +631,7 @@ set units=degrees
 set wr_vecnames
 ac dec 10 1 100G
 wrdata ./1genai/output/236/ac_gain.csv v(VOUT1)
-dc Iin 0 100u 1u
+dc in 0 100u 1u
 *dc vin 0 100u 1u
 wrdata ./1genai/output/236/dc_swing.csv v(VOUT1)
 tran 10n 20u
@@ -714,3 +731,48 @@ quit
 .end
 
 """
+
+nl_test_noise_spectrum = """* circuit number 170
+.param IB1=0.01
+.param w1=0.5u
+.param l1=90n
+.param m1=1
+.param w0=0.5u
+.param l0=90n
+.param m0=1
+.param r1=1k
+.param r0=1k
+.param trf=0.5u
+.param period=10u
+.param VDD_val=1.2
+.param vcm=0.6
+.param Cload=1p
+.include "1genai/data/p045_TT.sp"
+M1 VDD VOUT1 IB1 VSS nmos w=w1 l=l1 m=m1
+M0 VOUT1 IB1 VSS VSS nmos w=w0 l=l0 m=m0
+R1 VDD VOUT1 {r1}
+R0 VIN1 IB1 {r0}
+CL VOUT1 0 {Cload}
+ib1 IB1 0 dc=IB1
+vss VSS 0 dc=0
+vdd VDD 0 dc=VDD_val
+vin VIN1 0 dc=vcm ac=1.0 PULSE({vcm-0.1} {vcm+0.1} {trf} {trf} {trf} {0.5*period-trf} {period})
+.control
+option numdgt=7
+set temp=25
+set units=degrees
+set wr_vecnames
+ac dec 10 1 100G
+wrdata ./1genai/output/170/ac_gain.csv v(VOUT1)
+noise v(VOUT1) vin dec 10 1 100G
+wrdata ./1genai/output/170/noise.csv noise1.inoise_spectrum 
+alter vdd ac=1
+alter vin ac=0
+ac dec 10 1 100G
+wrdata ./1genai/output/170/psrr.csv v(VOUT1)
+alter vdd ac=0
+alter vin ac=0
+tran 10n 30u
+wrdata ./1genai/output/170/tran_SR.csv v(VOUT1)
+.endc
+.end"""

@@ -54,27 +54,27 @@ def test_make_cir_sim(cir_num):
         if sim_output["success"]: 
             #check files
             # gather all generated file paths; use a set to ensure uniqueness
-            seen_paths = set()
+            struct_path_id ={}
             for spec_sim in spec_sims:
-                file_path = path_output + spec_sim.sim_file_name
-                if os.path.exists(file_path):
-                    print(f"File {file_path} exists.")
-                    if file_path not in seen_paths:
-                        seen_paths.add(file_path)
+                path_file = path_output + spec_sim.sim_file_name
+                if os.path.exists(path_file):
+                    print(f"File {path_file} exists.")
+                    struct_path_id[spec_sim.spec_id] = path_file
+                    
                 else:
-                    print(f"File {file_path} does not exist.")
-                    raise RuntimeError(f"Expected output file {file_path} not found.")
+                    print(f"File {path_file} does not exist.")
+                    raise RuntimeError(f"Expected output file {path_file} not found.")
+            print("=== struct path id",struct_path_id)
             print("Simulation successful and output files verified!")
             # now `paths` contains only unique file paths, in the order they were encountered
             netlist_path = path_output + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
-            measurement_results = measuremnt(spec_sims, path_output, seen_paths)
+            measurement_results = measuremnt(spec_sims, struct_path_id)
             # Run measurements using SpiceResult helpers
             
             print("Measurement results:", measurement_results)
             # return the unique paths for callers that care
-            return seen_paths
             
 
         # else:
@@ -112,10 +112,14 @@ In this example, the VOUT1 is the output node.
    - GOOD: 
      .param VDD=1.2
      .param W=1u
-6. In NGSpice, you can use inoise_total if the integration noise is required.
+6. In NGSpice, you can use inoise_total if the input integration noise is required.
 Example for input refer total noise int egrated:
 noise v(VOUT1) vin dec 10 1 100G
 wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
+Or you can use inoise_spectrum if the noise spectrum is required. Example:
+noise v(VOUT1) vin dec 10 1 100G
+wrdata ./1genai/output/{cir_num}/noise.csv noise1.inoise_spectrum 
+
 7. Also, there is an example about transient analysis. 
 vin VIN1 VSS dc=vcm ac=1.0 PULSE({{-VDD*0.5}} {{VDD*0.5}} trf trf trf {{0.5*period-trf}} period)
 tran 50n 30u
@@ -165,7 +169,7 @@ wrdata ./1genai/output/{cir_num}/tran_SR.csv v(VOUT1)
 
     #out of while True and files exist.
 # def measuremnt(spice_result, path, files):
-def measuremnt(spec_sims, path_output, path_results):
+def measuremnt(spec_sims, struct_path_id):
     """Run measurements based on produced simulation files.
 
     Args:
@@ -185,41 +189,23 @@ def measuremnt(spec_sims, path_output, path_results):
     results = {}
     
     # If we have both gain and psrr files, use SpiceResult to compute common metrics
-    paths = {
-        "ac_path": None,
-        "inoise_path": None,
-        "sr_path": None,
-        "ac_psrr_path": None
-    }
-    for spec_sim in spec_sims:
-        if spec_sim.spec_id == 0:
-            paths["ac_path"] = os.path.join(path_output, spec_sim.sim_file_name)
-        elif spec_sim.spec_id == 1 and paths["ac_path"]:
-            continue
-        elif spec_sim.spec_id == 1 and not paths["ac_path"]:
-            paths["ac_path"] = os.path.join(path_output, spec_sim.sim_file_name)
-        elif spec_sim.spec_id == 2:
-            paths["ac_psrr_path"] = os.path.join(path_output, spec_sim.sim_file_name)
-        elif spec_sim.spec_id == 3:
-            paths["inoise_path"] = os.path.join(path_output, spec_sim.sim_file_name)
-        elif spec_sim.spec_id == 4:
-            paths["sr_path"] = os.path.join(path_output, spec_sim.sim_file_name)
-        elif spec_sim.spec_id == 5 and paths["ac_path"]:
-            continue
-        elif spec_sim.spec_id == 5 and not paths["ac_path"]:
-            paths["ac_path"] = os.path.join(path_output, spec_sim.sim_file_name)
-        elif spec_sim.spec_id == 6 and paths["ac_path"]:
-            continue
-        elif spec_sim.spec_id == 6 and not paths["ac_path"]:
-            paths["ac_path"] = os.path.join(path_output, spec_sim.sim_file_name)
-        else:
-            raise ValueError(f"Unknown spec_id {spec_sim.spec_id} in spec_sims.")
+
+    # populate paths dict using the struct_path_id dict
+    for spec_id, path in struct_path_id.items():
+        if spec_id == 0:  # assuming 0,1,5,6 are gain-related
+            results['dc_gain'] = float(spice_res.get_dc_gain())
+        elif spec_id == 2:
+            paths["ac_psrr_path"] = path
+        elif spec_id == 3:
+            paths["inoise_path"] = path
+        elif spec_id == 4:
+            paths["sr_path"] = path
 
 
     
     spice_res = utils.SpiceResult(paths["ac_path"], paths["ac_psrr_path"], paths["inoise_path"], paths["sr_path"])
 
-    results['dc_gain'] = float(spice_res.get_dc_gain())
+    
     # results['max_gain_db'] = float(spice_res.get_max_gain())
     results['bandwidth'] = float(spice_res.get_bandwidth())
     results['input_ref_total_noise'] = float(spice_res.get_in_equivalent_noise_total())
