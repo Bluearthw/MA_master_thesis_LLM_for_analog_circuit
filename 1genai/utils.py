@@ -1022,6 +1022,195 @@ class SpiceResult:
             return 0
         mean = np.mean(slew_ary)*1e-6
         return mean
+class SpiceResultNew:
+    def __init__(self):
+        # paths
+        self.path_gain = ""
+        self.path_psrr = ""
+        self.path_noise = ""
+        self.path_trans = ""
+
+        self.freq = 0
+        # store gain as complex and compute magnitude/phase
+        self.vout_complex = []
+        self.mag = []
+        self.mag_db = []
+        self.phase = []
+
+        self.psrr_db = 0
+
+        self.data_trans = []
+
+        
+        
+    def load_ac_gain_data(self, path_gain):
+        self.path_gain = path_gain
+        data_gain = np.genfromtxt(path_gain, autostrip=True, skip_header=1)
+        self.freq = data_gain[:, 0]
+        # store gain as complex and compute magnitude/phase
+        self.vout_complex = data_gain[:, 1] + 1j * data_gain[:, 2]
+        self.mag = np.abs(self.vout_complex)
+        self.mag_db = 20 * np.log10(self.mag)
+        self.phase = np.angle(self.vout_complex, deg=True)
+
+    def get_dc_gain(self, path_gain):
+        """Returns the magnitude at the lowest frequency."""
+        if self.path_gain == "":
+            self.load_ac_gain_data(path_gain)
+
+        return self.mag[0]
+    
+    def get_psrr(self,path_psrr): # maybe it can be interpolated to get more precise value
+        """Return arrays (frequency, psrr_db) from the parsed PSRR file."""
+        if self.path_psrr == "":
+            self.path_psrr = path_psrr
+            data_psrr = np.genfromtxt(path_psrr, autostrip=True, skip_header=1)
+            psrr_complex = data_psrr[:, 1] + 1j * data_psrr[:, 2]
+            psrr_mag = np.abs(psrr_complex)
+            max = np.max(psrr_mag)
+            min = np.min(psrr_mag)
+            # psrr in dB (positive numbers indicate better rejection)
+            self.psrr_db = 20 * np.log10(1/(max - min)) # avoid division by zero
+        return self.psrr_db
+    
+    def get_max_gain(self, path_gain):
+        """Returns the maximum gain in dB."""
+        if self.path_gain == "":
+            self.load_ac_gain_data(path_gain)
+        return np.max(self.mag_db)
+    def get_bandwidth(self):
+        """Finds the -3dB cutoff frequency."""
+        
+        length = len(self.mag_db)
+        last_mag_db =  np.mean(self.mag_db[int(length*0.7) : -1])
+        first_mag_db = np.mean(self.mag_db[0 : int(length*0.3)])
+        if last_mag_db < first_mag_db: 
+        # LP
+            target = self.mag_db[0] - 3
+            bw, found = get_best_crossing(self.freq, self.mag_db, target)
+            return bw if found else 0
+        else:#HP
+            target = self.mag_db[-1] - 3
+            bw, found = get_best_crossing(self.freq, self.mag_db, target)
+            return self.freq[-1] - bw if found else 0
+    def get_unity_gain_bw(self):
+        """Finds the frequency where gain is 0dB."""
+        ugbw, found = get_best_crossing(self.freq, self.mag_db, 0)
+        return ugbw if found else None
+    def get_ugbw(self):
+        
+        ac_mag = self.mag_db
+        ac_cross, ac_found = get_best_crossing(self.freq,ac_mag,0)
+        if not ac_found:
+            return 0
+        # print(f"ugbw: {ac_cross}\n")
+        return ac_cross
+    def get_phm(self):# assumed LP!!!
+
+        ugbw = self.get_ugbw()
+        if ugbw <= np.min(self.freq) or ugbw >= np.max(self.freq) or ugbw == 0:
+            print("Warning: UGBW out of interpolation range or not found")
+            return 0
+        phi_deg = np.unwrap(np.angle(self.vout_complex))*180/np.pi
+        phi_interpolate = interp.interp1d(self.freq,phi_deg)
+        phi_ugbw = phi_interpolate(ugbw)
+
+        phm = 180 + phi_ugbw
+        # print(f"phm: {phm}\n")
+        
+        return phm
+    
+    def get_gain_margin(self,path_gain):
+        """
+        Calculates the gain margin (in dB).
+        Gain margin is the gain at the phase crossover frequency (where phase = -180°).
+        """
+        if self.path_gain == "":
+            self.load_ac_gain_data(path_gain)
+            
+            
+        phi_deg = np.unwrap(np.angle(self.vout_complex)) * 180 / np.pi
+        
+        # Find the frequency where phase crosses -180 degrees
+        target_phase = -180
+        
+        try:
+            phi_interpolate = interp.interp1d(self.freq, phi_deg)
+            mag_db_interpolate = interp.interp1d(self.freq, self.mag_db)
+            
+            def phase_error(f):
+                return phi_interpolate(f) - target_phase
+            
+            # Find the crossing frequency where phase = -180°
+            xstart, xstop = self.freq[0], self.freq[-1]
+            phase_crossover_freq = sciopt.brentq(phase_error, xstart, xstop)
+            
+            # Get the gain at the phase crossover frequency
+            gain_at_crossing = mag_db_interpolate(phase_crossover_freq)
+            
+            # Gain margin is -gain (in dB) at the phase crossover frequency
+            # Positive gain margin means stable system
+            gain_margin = -gain_at_crossing
+            
+            return gain_margin
+        except ValueError:
+            # Phase never crosses -180 degrees
+            print("Warning: Phase does not cross -180 degrees in the frequency range")
+            return 0
+
+    # ----- new PSRR helpers -----
+    
+    def get_in_equivalent_noise_from_total(self,path): # there is another vector that might calculate the integrated noise, 
+        
+        data_noise = np.genfromtxt(path, autostrip=True, skip_header=1)
+        # this is total so just skip output, and head is skipped.
+        return data_noise[1] 
+        
+    def get_in_equivalent_noise_from_spectrum(self,path): # there is another vector that might calculate the integrated noise, 
+        data_noise = np.genfromtxt(path, autostrip=True, skip_header=1)
+        #0,2 are f, 1 is onoise, 3 is inoise
+        inoise = data_noise[:, 1] 
+        # 2. Square the noise to get V^2/Hz (Power Density)
+        noise_power_density = inoise**2
+        
+        # 3. Integrate over frequency
+        f_range = data_noise[:, 0] # frequency range
+        total_variance = trapezoid(noise_power_density, f_range)
+        
+        # 4. Take the square root to get back to RMS Volts
+        return np.sqrt(total_variance)
+    
+    def get_slew_rate(self, path, threshold_low=0.1, threshold_high=0.9): # there is another vector that might calculate the integrated noise, 
+        if self.path_trans == "":
+            self.path_trans = path
+            data_trans = np.genfromtxt(path, autostrip=True, skip_header=1)
+            self.data_trans = data_trans
+        vout_tran = self.data_trans[:, 1] #  vout is the second column
+        time = self.data_trans[:, 0] #  time is the first column
+
+        vmin = np.min(vout_tran)
+        vmax = np.max(vout_tran)
+        print(f"vmin: {vmin}, vmax: {vmax}")
+        vlo = vmin + threshold_low*(vmax-vmin)
+        vhi = vmin + threshold_high*(vmax-vmin)
+
+        slew_ary = []
+        for i in range(4,len(vout_tran)-4):
+            if vout_tran[i-1] < vlo <= vout_tran[i]:
+                for j in range(i, len(vout_tran)-4):   # cam i use pointers in python??? check later for higher search efficiency
+                    if vout_tran[j-1] < vhi <= vout_tran[j]:
+                        # print("time range",time[i-4:j+4])
+                        t_r1, found_r1 = get_best_crossing(time[i-4:j+4], vout_tran[i-4:j+4], vlo)
+                        t_r2, found_r2 = get_best_crossing(time[i-4:j+4], vout_tran[i-4:j+4], vhi)
+                        if found_r1 and found_r2: #
+                            slew_ary.append((vhi - vlo) / (t_r2 - t_r1))
+                            i=j
+                        break
+        if not slew_ary:
+            print("Warning: Not Slew Rate")
+            return 0
+        mean = np.mean(slew_ary)*1e-6
+        return mean
 
     
 def get_best_crossing(xvec, yvec, val):

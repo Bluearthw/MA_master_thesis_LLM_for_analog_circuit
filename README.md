@@ -1,5 +1,5 @@
 git add .
-git commit -m "If you want a certain id(SIM) to have certain path to get the data, you already have it in the structure output!!! You do not need to make it again!!!"
+git commit -m "test noise spectrum and total noise result, they are different, changing measurement(), now the spec_id table is created in local_config"
 git push
 
 venv\Scripts\Activate.ps1

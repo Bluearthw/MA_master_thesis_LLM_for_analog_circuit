@@ -179,40 +179,32 @@ def measuremnt(spec_sims, struct_path_id):
     Returns:
         dict of computed metrics.
     """
-    # try:
-                
-    #     measurement_results = measuremnt(spec_sims)
-    # except Exception as e:
-    #     print("Measurement failed:", e)
-
-    # collect sim filenames
+    
     results = {}
-    
-    # If we have both gain and psrr files, use SpiceResult to compute common metrics
+    spice_res = utils.SpiceResultNew()
 
-    # populate paths dict using the struct_path_id dict
+    # spec_id mapping: 0=DC Gain, 1=Bandwidth, 2=PSRR, 3=input noise, 4=slew rate, 5=gain margin, 6=phase margin
     for spec_id, path in struct_path_id.items():
-        if spec_id == 0:  # assuming 0,1,5,6 are gain-related
-            results['dc_gain'] = float(spice_res.get_dc_gain())
-        elif spec_id == 2:
-            paths["ac_psrr_path"] = path
-        elif spec_id == 3:
-            paths["inoise_path"] = path
-        elif spec_id == 4:
-            paths["sr_path"] = path
-
-
+        if spec_id == 0:  # AC gain analysis (contains frequency response)
+            results['dc_gain'] = float(spice_res.get_dc_gain(path))
+            results['phase_margin'] = float(spice_res.get_phm())
+        elif spec_id == 1:  # Bandwidth (if separate from gain) or other AC sim
+            results['bandwidth'] = float(spice_res.get_bandwidth(path))
+        
+        elif spec_id == 2:  # PSRR
+            results["psrr"] = float(spice_res.get_psrr(path))
+        
+        elif spec_id == 3:  # input noise
+            results['input_ref_total_noise'] = float(spice_res.get_in_equivalent_noise_from_total(path))
+        
+        elif spec_id == 7:  # input equivalent noise spectrum
+            results['input_ref_noise_spectrum'] = spice_res.get_in_equivalent_noise_from_spectrum(path)
+        
+        elif spec_id == 4:  # slew rate
+            results['slew_rate'] = float(spice_res.get_slew_rate(path))
+        elif spec_id == 5:  # gain margin
+            results['gain_margin'] = float(spice_res.get_gain_margin(path))
     
-    spice_res = utils.SpiceResult(paths["ac_path"], paths["ac_psrr_path"], paths["inoise_path"], paths["sr_path"])
-
-    
-    # results['max_gain_db'] = float(spice_res.get_max_gain())
-    results['bandwidth'] = float(spice_res.get_bandwidth())
-    results['input_ref_total_noise'] = float(spice_res.get_in_equivalent_noise_total())
-    results['phase_margin'] = float(spice_res.get_phm())
-    results['gain_margin'] = float(spice_res.get_gain_margin())
-    results['slew_rate'] = float(spice_res.get_slew_rate())
-    results["psrr"] = float(spice_res.get_psrr())
     return results
     
 
