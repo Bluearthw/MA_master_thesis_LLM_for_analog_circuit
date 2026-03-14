@@ -1,5 +1,5 @@
 git add .
-git commit -m "test noise spectrum and total noise result, they are different, changing measurement(), now the spec_id table is created in local_config"
+git commit -m "start type 7, give up type 4 first"
 git push
 
 venv\Scripts\Activate.ps1

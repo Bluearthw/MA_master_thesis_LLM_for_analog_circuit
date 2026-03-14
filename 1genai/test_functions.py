@@ -325,6 +325,17 @@ def test_find_cat_from_num(num = 4):
     
     cat = utils.find_cat_from_num(num)
     print("==cat\n",cat)
+def test_run_ngspice_direct_from_final_netlist(num = 4):
+    netlist = utils.get_file_to_str(local_config.path_output +  f"{num}/final_netlist.cir")
+    path_nl = local_config.path_output +  f"{num}/final_netlist.cir"
+    # utils.delete_all_files_skip_dir(local_config.path_output) # delete all previous output to avoid confusion
+    
+    success = utils.run_ngspice_direct(netlist, False,path_nl)
+    print("==netlist",netlist)
+    if success["success"]:
+        print("Simulation successful!")
+    else:
+        print("Simulation failed with message:", success["message"])
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -346,13 +357,13 @@ start_time = time.perf_counter()
 # test_find_cir_without_vdd()
 # test_pyspice_sim(local_config.nl_mar02_total)
 # test_pycpice_op()
-# test_run_ngspice_direct(local_config.testnetlist)
+test_run_ngspice_direct(local_config.nl_one_line)
 # test_run_ngspice_direct(local_config.nl_2_stage_opamp)
 # test_run_ngspice_direct(local_config.nl_test_noise_spectrum)
 # test_check_output_files()
-test_measurement_spice_result("./1genai/output/ac_gain.csv")
+# test_measurement_spice_result("./1genai/output/ac_gain.csv")
 # test_debug_agent()
-
+# test_run_ngspice_direct_from_final_netlist(155)
 # test_find_cat_from_num(186)
 end_time = time.perf_counter()
 
@@ -361,6 +372,7 @@ end_time = time.perf_counter()
 #region find type nums
 # test_find_num_from_class(1)
 # test_find_num_from_class(4)
+# test_find_num_from_class(7)
 # test_find_category_str(4)
 #endregion find type nums
 
@@ -372,6 +384,8 @@ end_time = time.perf_counter()
 # test_check_cat4_requirements()
 #endregion category4
 
+# region category7
+#endregion category7
 print(f"Execution time: {end_time - start_time:.6f} seconds")
 
 

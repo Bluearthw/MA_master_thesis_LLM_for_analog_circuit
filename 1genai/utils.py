@@ -795,12 +795,14 @@ def pyspice_op_sim_final(circuit):
     finally:
         log_capture.close()
 
-def run_ngspice_direct(netlist_content):
+def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.path_output +  "4/final_netlist.cir"):
     # 1. Save netlist to a temporary file
-    path_nl = "./1genai/output/temp_circuit.cir"
+    if is_save:
+        path_nl = "./1genai/output/temp_circuit.cir"
+        with open(path_nl, "w") as f:
+            f.write(netlist_content)
+        
     path_ngspice = r'D:/1kulStudy/8MA_Thesis/tool/Spice64/bin/ngspice_con.exe'  # Update this path to your ngspice executable
-    with open(path_nl, "w") as f:
-        f.write(netlist_content)
 
     #output log stdout is not useful
     try:
