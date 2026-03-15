@@ -876,7 +876,7 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
 
 # endregion pyspice
 
-# region for measurement
+# region measurement
 class SpiceResult:
     def __init__(self, path_gain, path_psrr, path_noise, path_trans):
         # gain data
@@ -1038,7 +1038,7 @@ class SpiceResult:
 class SpiceResultNew:
     def __init__(self):
         # paths
-        self.path_gain = ""
+        self.path_ac_gain = ""
         self.path_psrr = ""
         self.path_noise = ""
         self.path_trans = ""
@@ -1057,7 +1057,7 @@ class SpiceResultNew:
         
         
     def load_ac_gain_data(self, path_gain):
-        self.path_gain = path_gain
+        self.path_ac_gain = path_gain
         data_gain = np.genfromtxt(path_gain, autostrip=True, skip_header=1)
         self.freq = data_gain[:, 0]
         # store gain as complex and compute magnitude/phase
@@ -1068,29 +1068,11 @@ class SpiceResultNew:
 
     def get_dc_gain(self, path_gain):
         """Returns the magnitude at the lowest frequency."""
-        if self.path_gain == "":
+        if self.path_ac_gain == "":
             self.load_ac_gain_data(path_gain)
 
         return self.mag[0]
     
-    def get_psrr(self,path_psrr): # maybe it can be interpolated to get more precise value
-        """Return arrays (frequency, psrr_db) from the parsed PSRR file."""
-        if self.path_psrr == "":
-            self.path_psrr = path_psrr
-            data_psrr = np.genfromtxt(path_psrr, autostrip=True, skip_header=1)
-            psrr_complex = data_psrr[:, 1] + 1j * data_psrr[:, 2]
-            psrr_mag = np.abs(psrr_complex)
-            max = np.max(psrr_mag)
-            min = np.min(psrr_mag)
-            # psrr in dB (positive numbers indicate better rejection)
-            self.psrr_db = 20 * np.log10(1/(max - min)) # avoid division by zero
-        return self.psrr_db
-    
-    def get_max_gain(self, path_gain):
-        """Returns the maximum gain in dB."""
-        if self.path_gain == "":
-            self.load_ac_gain_data(path_gain)
-        return np.max(self.mag_db)
     def get_bandwidth(self):
         """Finds the -3dB cutoff frequency."""
         
@@ -1106,6 +1088,22 @@ class SpiceResultNew:
             target = self.mag_db[-1] - 3
             bw, found = get_best_crossing(self.freq, self.mag_db, target)
             return self.freq[-1] - bw if found else 0
+    
+    def get_psrr(self,path_psrr): # maybe it can be interpolated to get more precise value
+        """Return arrays (frequency, psrr_db) from the parsed PSRR file."""
+        if self.path_psrr == "":
+            self.path_psrr = path_psrr
+            data_psrr = np.genfromtxt(path_psrr, autostrip=True, skip_header=1)
+            psrr_gain_complex = data_psrr[:, 1] + 1j * data_psrr[:, 2]
+            psrr_gain_mag = np.abs(psrr_gain_complex)
+            psrr = self.mag / psrr_gain_mag            
+        return psrr
+    
+    def get_max_gain(self, path_gain):
+        """Returns the maximum gain in dB."""
+        if self.path_ac_gain == "":
+            self.load_ac_gain_data(path_gain)
+        return np.max(self.mag_db)
     def get_unity_gain_bw(self):
         """Finds the frequency where gain is 0dB."""
         ugbw, found = get_best_crossing(self.freq, self.mag_db, 0)
@@ -1138,7 +1136,7 @@ class SpiceResultNew:
         Calculates the gain margin (in dB).
         Gain margin is the gain at the phase crossover frequency (where phase = -180°).
         """
-        if self.path_gain == "":
+        if self.path_ac_gain == "":
             self.load_ac_gain_data(path_gain)
             
             

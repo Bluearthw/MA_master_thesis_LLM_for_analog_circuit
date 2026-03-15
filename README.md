@@ -1,5 +1,5 @@
 git add .
-git commit -m "start type 7, give up type 4 first"
+git commit -m "use SpiceResultNew, fix PSRR"
 git push
 
 venv\Scripts\Activate.ps1

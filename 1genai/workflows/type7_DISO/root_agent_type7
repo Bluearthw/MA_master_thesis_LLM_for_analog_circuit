@@ -57,7 +57,7 @@ def test_make_cir_sim(cir_num):
         if sim_output["success"]: 
             #check files
             # gather all generated file paths; use a set to ensure uniqueness
-            struct_path_id ={}
+            struct_path_id ={}# id: path
             for spec_sim in spec_sims:
                 path_file = path_output_num + spec_sim.sim_file_name
                 if os.path.exists(path_file):
@@ -73,8 +73,7 @@ def test_make_cir_sim(cir_num):
             netlist_path = path_output_num + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
-            return
-            measurement_results = measuremnt(spec_sims, struct_path_id)
+            measurement_results = measuremnt(struct_path_id)
             # Run measurements using SpiceResult helpers
             
             print("Measurement results:", measurement_results)
@@ -182,7 +181,7 @@ ein2 net2 VCM aid 0 -0.5
 
     #out of while True and files exist.
 # def measuremnt(spice_result, path, files):
-def measuremnt(spec_sims, struct_path_id):
+def measuremnt(struct_path_id):
     """Run measurements based on produced simulation files.
 
     Args:
@@ -196,11 +195,9 @@ def measuremnt(spec_sims, struct_path_id):
     results = {}
     spice_res = utils.SpiceResultNew()
 
-    # spec_id mapping: 0=DC Gain, 1=Bandwidth, 2=PSRR, 3=input noise, 4=slew rate, 5=gain margin, 6=phase margin
     for spec_id, path in struct_path_id.items():
-        if spec_id == 0:  # AC gain analysis (contains frequency response)
+        if spec_id == 0:  # DC gain 
             results['dc_gain'] = float(spice_res.get_dc_gain(path))
-            results['phase_margin'] = float(spice_res.get_phm())
         elif spec_id == 1:  # Bandwidth (if separate from gain) or other AC sim
             results['bandwidth'] = float(spice_res.get_bandwidth(path))
         
