@@ -1,3 +1,4 @@
+import saved_netlist
 from google import genai
 from google.genai import types
 import os
@@ -357,7 +358,7 @@ start_time = time.perf_counter()
 # test_find_cir_without_vdd()
 # test_pyspice_sim(local_config.nl_mar02_total)
 # test_pycpice_op()
-test_run_ngspice_direct(local_config.nl_one_line)
+test_run_ngspice_direct(saved_netlist.nl_mar_15)
 # test_run_ngspice_direct(local_config.nl_2_stage_opamp)
 # test_run_ngspice_direct(local_config.nl_test_noise_spectrum)
 # test_check_output_files()

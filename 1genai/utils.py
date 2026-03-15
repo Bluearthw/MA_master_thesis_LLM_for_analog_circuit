@@ -782,10 +782,21 @@ def pyspice_op_sim_final(circuit):
         
         # NgSpice often stores the last output in its own internal stdout
         output_log = log_capture.getvalue().strip()
+        # Filter out known benign gmin-stepping chatter (reduces spam in output)
+        filtered_lines = []
+        for line in output_log.splitlines():
+            low = line.lower()
+            if "trying" in low:
+                continue
+
+            # Keep other notes; only remove gmin-stepping noise
+            filtered_lines.append(line)
+        output_log = "\n".join(filtered_lines).strip()
+
         print("====NgSpice Output Log:\n", output_log)
         # Logic: If the log contains common failure signatures 
         # OR if the simulation didn't produce expected results
-        if any(err in output_log.lower() for err in ["error", "failed", "no such command"]):
+        if any(err in output_log.lower() for err in ["error", "failed", "no such command", "warning"]):
             return {"success": False, "message": output_log}
 
         return {"success": True, "message": "Simulation OK\n" + output_log}
@@ -814,18 +825,18 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
         )
         
         # Combine stdout and stderr for analysis
-        error_log = process.stderr if process.stderr and process.stderr.strip() else ""
+        logs = process.stderr if process.stderr and process.stderr.strip() else ""
         
 
-        if error_log:
+        if logs:
             print("--- Simulation Log (stderr) ---")
-            print(error_log)
-        error_log_lower = error_log.lower()
+            print(logs)
+        error_log_lower = logs.lower()
         
         # Determine if this is a real error or just a warning
         # Check for fatal errors
         has_fatal_error = "fatal error" in   error_log_lower
-        has_error = "no such" in error_log_lower or "error" in error_log_lower 
+        has_error = "no such" in error_log_lower or "error" in error_log_lower or "warning" in error_log_lower 
         # Exclude the "dc value used for op" warning - it's not a real error
         is_dc_value_warning = "note" in error_log_lower
 
@@ -838,8 +849,8 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
         # If there's a fatal error, check error details even if exit code is 0
         if has_fatal_error:
             # print(f"--- FATAL ERROR DETECTED ---")
-            print(f"Error Details: {error_log}")
-            return {"success": False, "message": f"Simulation failed\n{error_log}"}
+            print(f"Error Details: {logs}")
+            return {"success": False, "message": f"Simulation failed\n{logs}"}
         
         print(f"=== Simulation Analysis ---{is_dc_value_warning}, fatal {has_fatal_error}")
         # If only a dc value warning (no fatal error), treat as success
@@ -848,17 +859,17 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
             return {"success": False, "message": clean_log}
         if is_dc_value_warning:
             # print("--- Simulation completed with warnings (non-fatal) ---")
-            return {"success": True, "message": f"Simulation OK\n{error_log}"}
+            return {"success": True, "message": f"Simulation OK\n{logs}"}
         
         # Check exit code for crash #????? never see 0
         if process.returncode != 0:
             print(f"--- CRASH DETECTED (Exit Code: {process.returncode}) ---")
-            error_msg = error_log if error_log else "Segmentation Violation (Hard Crash)"
+            error_msg = logs if logs else "Segmentation Violation (Hard Crash)"
             print(f"Error Details: {error_msg}")
             return {"success": False, "message": f"Simulation failed (Exit Code: {process.returncode})\n{error_msg}"}
         
         # Normal success case
-        return {"success": True, "message": f"Simulation OK\n{error_log}"}
+        return {"success": True, "message": f"Simulation OK\n{logs}"}
         
     except subprocess.TimeoutExpired:
         return {"success": False, "message": "Simulation timed out"}

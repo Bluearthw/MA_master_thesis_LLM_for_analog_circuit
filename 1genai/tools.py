@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 class Struct_specs_sim(BaseModel):
     spec: str = Field(description="The name of the specification e.g., 'gain', 'bandwidth'. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation.")
     # sim_name: str = Field(description="corresponding simulation name. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation.")
-    sim_file_name : str =Field(description="corresponding name of simulations output files. Here are .csv files, e.g., ac_gain.csv and noise.csv")
+    sim_file_name : str =Field(description="corresponding name of simulations output files. Here are .csv files in the wrdata lines from the generated SPICE netlist. Example: ac_gain.csv")
     spec_id: int = Field(description="Specification ID. There is a table about it. Example: 0=DC Gain. ")
 
 class Struct_flow(BaseModel):

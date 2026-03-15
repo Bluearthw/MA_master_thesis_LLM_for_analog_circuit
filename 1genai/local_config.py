@@ -1,3 +1,4 @@
+
 GOOGLE_API_KEY_yong="AIzaSyAjfde8WMNQ7keQvhI1uheBW_mMczV1uYA"
 GOOGLE_API_KEY_zhiyong="AIzaSyBCCHDhKIabEjdhfFI0vyXBM6Fc_AhhKQY"
 
@@ -13,21 +14,26 @@ str_nl_include = '\n.include "1genai/data/p045_TT.sp"\n'
 
 table_specs_id = {0:    "DC Gain", 
                   1:    "Bandwidth", 
-                  2:    "Power Supply Rejection Ratio (PSRR)", 
-                  3:    "input total noise", 
-                  4:    "slew rate", 
-                  5:    "gain margin", 
-                  6:    "phase margin",
-                  7:    "input equivalent noise spectrum",
-                  8:    "input impedance",
-                  9:    "output impedance",
-                  10:   "Input swing",
-                  11:   "Output swing",
-                  12:   "settle time",
-                  13:   "Input Common-Mode Range (ICMR)",
-                  14:   "Common-Mode Rejection Ratio (CMRR)",
                   15:   "AC gain",
                   16:   "phase response",
+                  5:    "gain margin", 
+                  6:    "phase margin",
+
+                  3:    "input equivalent integrated total noise", 
+                  7:    "input equivalent noise spectrum",
+                  
+                  8:    "input impedance",
+                  9:    "output impedance",
+                  
+                  4:    "slew rate", 
+                  12:   "settle time",
+
+                  10:   "Input swing",
+                  11:   "Output swing",
+                  
+                  2:    "Power Supply Rejection Ratio (PSRR)", 
+                  13:   "Input Common-Mode Range (ICMR)",
+                  14:   "Common-Mode Rejection Ratio (CMRR)",
 }
 
 

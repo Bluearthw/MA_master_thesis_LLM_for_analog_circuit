@@ -12,16 +12,24 @@ def debug_agent(netlist, error_message, cir_num):
 Your goal is to fix a bugged netlist: {netlist} 
 based on this error message: "{error_message}".
 ### STRICT FORMATTING RULES:
-0. ONE COMMAND PER LINE: Every '.param', '.model', or component must start on a NEW line. 
+0, ONE COMMAND PER LINE: Every '.param', '.model', or component must start on a NEW line. 
    - BAD: .param VDD=1.2 .param W=1u
    - GOOD: 
      .param VDD=1.2
-     .param W=1u
-1. PARAMETER SYNTAX: Use '.param name=value'. Do not use curly brackets {{}} if an '=' is present (e.g., 'dc=VDD' is good, 'dc={{VDD}}' is bad).
-2, In NGSpice, you can use inoise_total if the integration noise is required.
-Example for input refer total noise integrated:
+     .param W=1u l=1u m=1
+1, PARAMETER SYNTAX: Use '.param name=value'. Do not use curly brackets {{}} if an '=' is present (e.g., 'dc=VDD' is good, 'dc={{VDD}}' is bad).
+2, In NGSpice, you can use inoise_total if the integration noise is required. 
+Example1 for input refer total noise integrated:
 noise v(VOUT1) vin dec 10 1 10G
 wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
+Example2 :
+noise v(VOUT1) vin dec 10 1 10G
+wrdata ./1genai/output/{cir_num}/noise.csv inoise_spectrum
+3, There is only 1 wrdata line after 1 simulation.
+ -BAD:
+    noise v(VOUT1) Vdm dec 10 1 100G
+    wrdata ./1genai/output/155/noise_total.csv inoise_total
+    wrdata ./1genai/output/155/noise_spectrum.csv inoise_spectrum
 """
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
     retry_count = 0

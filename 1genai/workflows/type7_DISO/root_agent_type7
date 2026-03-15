@@ -52,7 +52,7 @@ def test_make_cir_sim(cir_num):
     counter = 0
     # is_debug = False
     while True:
-        sim_output = utils.pyspice_op_sim_final(netlist)
+        sim_output = utils.run_ngspice_direct(netlist)
         print("=====sim output",sim_output)
         if sim_output["success"]: 
             #check files
@@ -103,31 +103,41 @@ Your goal is to complete simulation of the netlist and make sure the result netl
 .param Cload=10p 
 Cload VOUT1 VSS {{Cload}} 
 1. When it comes to the transistors parameters, patterns like w={{}} are not allowed. the curly brackets cause error. It should be w= a variable. The variable is assigned a value using .param. So, when there is =, do not use {{}}
+
 2. When it comes to passive components like capacitor, it must have {{}} with a variable inside the brackets.
+
 3. You should read category requirement and add relevant simulations needed. But, calculation/measurement of specification will be done by following agent.
+
 4. The netlist file should also write the required data to a file. The path should include the circuit number! Also, for ac_gain, use v(VOUT1) since the following measurement agent will use this format.. Using vdb(VOUT1) or vp(VOUT1) is bad 
 Example:
 * for gain
 ac dec 10 1 100G
 wrdata ./1genai/output/{cir_num}/ac_gain.csv v(VOUT1)
 In this example, the VOUT1 is the output node.
+
 5. ONE COMMAND PER LINE: Every '.param', '.model', or component must start on a NEW line. 
    - BAD: .param VDD=1.2 .param W=1u
    - GOOD: 
      .param VDD=1.2
      .param W=1u
-6. Equivalent Input Integrated Total Noise: To get the single value of total noise, use:
-noise v(VOUT1) vin dec 10 1 100G
-wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
-7. Equivalent Input Noise Spectrum: To get the noise vs. frequency curve, use:
-noise v(VOUT1) vin dec 10 1 100G
-wrdata ./1genai/output/{cir_num}/noise_spectrum.csv inoise_spectrum 
+6. You must provide exactly one noise reporting method. Do not combine them. NEVER write two wrdata lines for noise in the same netlist.
+    6a. If equivalent input totoal integrated noise is needed: To get the single value of total noise, use:
+    noise v(VOUT1) vin dec 10 1 100G
+    wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
 
-8. Also, there is an example about transient analysis. 
+    6b. If equivalent input noise spectrum is needed: To get the noise vs. frequency curve, use:
+    noise v(VOUT1) vin dec 10 1 100G
+    wrdata ./1genai/output/{cir_num}/noise.csv inoise_spectrum 
+
+8. If transient analysis is needed, there is an example:  
 vin VIN1 VSS dc=vcm ac=1.0 PULSE({{-VDD*0.5}} {{VDD*0.5}} trf trf trf {{0.5*period-trf}} period)
 tran 50n 30u
 wrdata ./1genai/output/{cir_num}/tran_SR.csv v(VOUT1)
 
+9. For differential input, the input can be like this:
+Vinput aid VSS dc=0.0 ac=1.0 PULSE({{-VHIGH*0.5}} {{VHIGH*0.5}} trf trf trf {{0.5*period-trf}} period)
+ein1 net1 VCM aid 0 0.5
+ein2 net2 VCM aid 0 -0.5
  """
     
 
