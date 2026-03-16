@@ -205,15 +205,19 @@ def measuremnt(struct_path_id):
             results["psrr"] = float(spice_res.get_psrr(path))
         
         elif spec_id == 3:  # input noise
-            results['input_ref_total_noise'] = float(spice_res.get_in_equivalent_noise_from_total(path))
+            results['input_ref_total_noise'] = float(spice_res.get_in_equivalent_total_noise(path))
         
-        elif spec_id == 7:  # input equivalent noise spectrum
-            results['input_ref_noise_spectrum'] = spice_res.get_in_equivalent_noise_from_spectrum(path)
+        elif spec_id == 7:  # input equivalent total noise from spectrum
+            results['input_ref_noise_spectrum'] = spice_res.get_in_equivalent_total_noise_from_spectrum(path)
         
         elif spec_id == 4:  # slew rate
             results['slew_rate'] = float(spice_res.get_slew_rate(path))
         elif spec_id == 5:  # gain margin
             results['gain_margin'] = float(spice_res.get_gain_margin(path))
+        
+        elif spec_id == 13:  # icmr
+            results['gain_margin'] = float(spice_res.get_icmr(path))
+        
     
     return results
     

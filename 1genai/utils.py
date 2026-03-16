@@ -1064,7 +1064,7 @@ class SpiceResultNew:
         self.vout_complex = data_gain[:, 1] + 1j * data_gain[:, 2]
         self.mag = np.abs(self.vout_complex)
         self.mag_db = 20 * np.log10(self.mag)
-        self.phase = np.angle(self.vout_complex, deg=True)
+        self.phase = np.unwrap(np.angle(self.vout_complex, deg=True))
 
     def get_dc_gain(self, path_gain):
         """Returns the magnitude at the lowest frequency."""
@@ -1098,7 +1098,25 @@ class SpiceResultNew:
             psrr_gain_mag = np.abs(psrr_gain_complex)
             psrr = self.mag / psrr_gain_mag            
         return psrr
+    def get_icmr(self,path_icmr, input_amplitude = 0.01): # Input Common-Mode Range
+        data = np.genfromtxt(path_icmr, autostrip=True, skip_header=1)
+        v_sweep = data[:,0]
+        vout = data[:,1]
+        gain = np.gradient(vout, v_sweep)
     
+        # Find the maximum gain (the "sweet spot")
+        max_gain = np.max(gain)
+        
+        # Find indices where gain is at least 99% of max_gain
+        # (This is your 1% error margin)
+        logic_test = (gain >= 0.99 * max_gain)
+        valid_indices = np.where(logic_test)[0]
+        
+        if len(valid_indices) > 0:
+            v_min = v_sweep[valid_indices[0]]
+            v_max = v_sweep[valid_indices[-1]]
+            return v_min, v_max
+        return None, None
     def get_max_gain(self, path_gain):
         """Returns the maximum gain in dB."""
         if self.path_ac_gain == "":
@@ -1171,13 +1189,13 @@ class SpiceResultNew:
 
     # ----- new PSRR helpers -----
     
-    def get_in_equivalent_noise_from_total(self,path): # there is another vector that might calculate the integrated noise, 
+    def get_in_equivalent_total_noise(self,path): # there is another vector that might calculate the integrated noise, 
         
         data_noise = np.genfromtxt(path, autostrip=True, skip_header=1)
         # this is total so just skip output, and head is skipped.
         return data_noise[1] 
         
-    def get_in_equivalent_noise_from_spectrum(self,path): # there is another vector that might calculate the integrated noise, 
+    def get_in_equivalent_total_noise_from_spectrum(self,path): # there is another vector that might calculate the integrated noise, 
         data_noise = np.genfromtxt(path, autostrip=True, skip_header=1)
         #0,2 are f, 1 is onoise, 3 is inoise
         inoise = data_noise[:, 1] 

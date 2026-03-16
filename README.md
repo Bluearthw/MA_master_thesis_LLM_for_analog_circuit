@@ -1,5 +1,5 @@
 git add .
-git commit -m "use SpiceResultNew, fix PSRR"
+git commit -m "in the book, the input common mode range is the DC range where the input pair is linear. Like vin,min >= Vgs+VIsource. Vin,max <= VDD-|VGS,p|+vth>"
 git push
 
 venv\Scripts\Activate.ps1
