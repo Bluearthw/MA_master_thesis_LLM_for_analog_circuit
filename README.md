@@ -1,5 +1,7 @@
 git add .
-git commit -m "finish output swing, category 7"
+git commit -m "put spec table to debug agent.
+use total if spectrum is not working
+accumulate error msg"
 git push
 
 venv\Scripts\Activate.ps1

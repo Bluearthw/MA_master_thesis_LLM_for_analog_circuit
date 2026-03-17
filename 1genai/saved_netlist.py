@@ -141,3 +141,60 @@ wrdata ./1genai/output/155/cmrr.csv v(VOUT1)
 
 .endc
 .end"""
+
+nl_mar_17="""* title line
+.param IB1=0.01
+.param w1=0.5u l1=90n m1=1
+.param w0=0.5u l0=90n m0=1
+.param w3=0.5u l3=90n m3=1
+.param w2=0.5u l2=90n m2=1
+.param r0=1k
+.param trf=0.5u
+.param period=10u
+.param VDD=1.2
+.param Cload=1p
+.param VCM=0.6
+.include "1genai/data/p045_TT.sp"
+M1 VOUT1 net10 VDD VDD pmos w=w1 l=l1 m=m1
+M0 net10 net10 VDD VDD pmos w=w0 l=l0 m=m0
+M3 VOUT1 VIN2 TAIL VSS nmos w=w3 l=l3 m=m3
+M2 net10 VIN1 TAIL VSS nmos w=w2 l=l2 m=m2
+R0 net10 TAIL {r0}
+ib1 TAIL 0 dc=IB1
+vss VSS 0 dc=0
+v_vdd VDD 0 dc=VDD
+cload VOUT1 VSS {Cload}
+v_in_diff aid 0 dc=0 ac=1.0
+v_vcm vicm 0 dc=0.6
+e_p VIN1 vicm aid 0 0.5
+e_n VIN2 vicm aid 0 -0.5
+.control
+option numdgt=7
+set temp=25
+set units=degrees
+set wr_vecnames
+ac dec 10 1 100G
+wrdata ./1genai/output/155/ac_gain.csv v(VOUT1)
+dc v_vcm 0 1.2 0.01
+wrdata ./1genai/output/155/dc_icmr.csv v(VOUT1)
+dc v_in_diff -0.6 0.6 0.01
+wrdata ./1genai/output/155/dc_swing.csv v(VOUT1)
+alter v_in_diff ac=0
+alter v_vcm ac=1
+ac dec 10 1 100G
+wrdata ./1genai/output/155/ac_cmrr.csv v(VOUT1)
+alter v_vcm ac=0
+alter v_vdd ac=1
+ac dec 10 1 100G
+wrdata ./1genai/output/155/ac_psrr.csv v(VOUT1)
+
+
+noise v(VOUT1) v_in_diff dec 10 1 100G
+wrdata ./1genai/output/155/noise.csv inoise_spectrum
+
+alter v_in_diff ac=0 dc=0
+alter @v_in_diff[pulse] = [ -0.5 0.5 1n 0.5u 0.5u 4.5u 10u ]
+tran 10n 20u
+wrdata ./1genai/output/155/tran_sr.csv v(VOUT1)
+.endc
+.end"""

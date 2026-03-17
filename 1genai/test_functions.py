@@ -2,6 +2,7 @@ import saved_netlist
 from google import genai
 from google.genai import types
 import os
+import sys
 import utils
 from pydantic import BaseModel, Field
 import time
@@ -281,29 +282,6 @@ def test_check_output_files():
             print(f"File {file_path} exists.")
         else:
             print(f"File {file_path} does not exist.")
-def test_measurement_spice_result(path_gain = "./1genai/output/ac_gain.csv"):
-    # Example data (replace with actual data from your simulation)
-    path_psrr = "./1genai/output/psrr.csv"
-    path_noise = "./1genai/output/noise.csv"
-    path_trans = "./1genai/output/tran_SR.csv" #63
-    spice_result = utils.SpiceResult(path_gain, path_psrr, path_noise, path_trans)
-    gain = spice_result.get_dc_gain()
-    bandwidth = spice_result.get_bandwidth()
-    pm = spice_result.get_gain_margin()
-    gm = spice_result.get_phm()
-    psrr = spice_result.get_psrr()
-    # inoise = spice_result.get_in_equivalent_noise_from_total()
-    inoise = spice_result.get_in_equivalent_noise_from_spectrum()
-    slew_rate = spice_result.get_slew_rate()
-    # print("==freq", spice_result.mag_db[0])
-    # print("==freq", spice_result.mag_db[-1])
-    print(f"DC Gain: {gain} dB")
-    print(f"Bandwidth: {bandwidth} Hz")
-    print(f"Phase Margin: {pm} degrees")
-    print(f"Gain Margin: {gm} dB")
-    print(f"PSRR: {psrr} dB")
-    print(f"Input Equivalent total Noise: {inoise} V")
-    print(f"Slew Rate: {slew_rate} V/s")
 
 def test_debug_agent(cir_num=4):
     success = {"success": False, "message": "Error: no such vector onoise_spectrum"}
@@ -358,7 +336,7 @@ start_time = time.perf_counter()
 # test_find_cir_without_vdd()
 # test_pyspice_sim(local_config.nl_mar02_total)
 # test_pycpice_op()
-test_run_ngspice_direct(saved_netlist.nl_mar_15)
+test_run_ngspice_direct(saved_netlist.nl_mar_17)
 # test_run_ngspice_direct(local_config.nl_2_stage_opamp)
 # test_run_ngspice_direct(local_config.nl_test_noise_spectrum)
 # test_check_output_files()
