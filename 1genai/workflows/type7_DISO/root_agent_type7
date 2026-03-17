@@ -215,8 +215,11 @@ def measuremnt(struct_path_id):
         elif spec_id == 5:  # gain margin
             results['gain_margin'] = float(spice_res.get_gain_margin(path))
         
-        elif spec_id == 13:  # icmr
-            results['gain_margin'] = float(spice_res.get_icmr(path))
+        elif spec_id == 13:  # icmr, it is a tuple(vrange, vcm, v_min, v_max)
+            results['icmr'] = spice_res.get_icmr(path)
+        
+        elif spec_id == 14:  # cmrr, it is a list
+            results['cmrr'] = spice_res.get_cmrr(path)
         
     
     return results

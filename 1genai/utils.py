@@ -1054,8 +1054,6 @@ class SpiceResultNew:
 
         self.data_trans = []
 
-        
-        
     def load_ac_gain_data(self, path_gain):
         self.path_ac_gain = path_gain
         data_gain = np.genfromtxt(path_gain, autostrip=True, skip_header=1)
@@ -1066,13 +1064,15 @@ class SpiceResultNew:
         self.mag_db = 20 * np.log10(self.mag)
         self.phase = np.unwrap(np.angle(self.vout_complex, deg=True))
 
+    #0 DC Gain
     def get_dc_gain(self, path_gain):
         """Returns the magnitude at the lowest frequency."""
         if self.path_ac_gain == "":
             self.load_ac_gain_data(path_gain)
 
         return self.mag[0]
-    
+
+    #1 Bandwidth
     def get_bandwidth(self):
         """Finds the -3dB cutoff frequency."""
         
@@ -1088,68 +1088,23 @@ class SpiceResultNew:
             target = self.mag_db[-1] - 3
             bw, found = get_best_crossing(self.freq, self.mag_db, target)
             return self.freq[-1] - bw if found else 0
-    
-    def get_psrr(self,path_psrr): # maybe it can be interpolated to get more precise value
-        """Return arrays (frequency, psrr_db) from the parsed PSRR file."""
-        if self.path_psrr == "":
-            self.path_psrr = path_psrr
-            data_psrr = np.genfromtxt(path_psrr, autostrip=True, skip_header=1)
-            psrr_gain_complex = data_psrr[:, 1] + 1j * data_psrr[:, 2]
-            psrr_gain_mag = np.abs(psrr_gain_complex)
-            psrr = self.mag / psrr_gain_mag            
-        return psrr
-    def get_icmr(self,path_icmr, input_amplitude = 0.01): # Input Common-Mode Range
-        data = np.genfromtxt(path_icmr, autostrip=True, skip_header=1)
-        v_sweep = data[:,0]
-        vout = data[:,1]
-        gain = np.gradient(vout, v_sweep)
-    
-        # Find the maximum gain (the "sweet spot")
-        max_gain = np.max(gain)
-        
-        # Find indices where gain is at least 99% of max_gain
-        # (This is your 1% error margin)
-        logic_test = (gain >= 0.99 * max_gain)
-        valid_indices = np.where(logic_test)[0]
-        
-        if len(valid_indices) > 0:
-            v_min = v_sweep[valid_indices[0]]
-            v_max = v_sweep[valid_indices[-1]]
-            return v_min, v_max
-        return None, None
-    def get_max_gain(self, path_gain):
+
+    #15 AC gain
+    def get_ac_gain(self, path_gain):
         """Returns the maximum gain in dB."""
         if self.path_ac_gain == "":
             self.load_ac_gain_data(path_gain)
         return np.max(self.mag_db)
-    def get_unity_gain_bw(self):
-        """Finds the frequency where gain is 0dB."""
-        ugbw, found = get_best_crossing(self.freq, self.mag_db, 0)
-        return ugbw if found else None
-    def get_ugbw(self):
-        
-        ac_mag = self.mag_db
-        ac_cross, ac_found = get_best_crossing(self.freq,ac_mag,0)
-        if not ac_found:
-            return 0
-        # print(f"ugbw: {ac_cross}\n")
-        return ac_cross
-    def get_phm(self):# assumed LP!!!
 
-        ugbw = self.get_ugbw()
-        if ugbw <= np.min(self.freq) or ugbw >= np.max(self.freq) or ugbw == 0:
-            print("Warning: UGBW out of interpolation range or not found")
-            return 0
-        phi_deg = np.unwrap(np.angle(self.vout_complex))*180/np.pi
-        phi_interpolate = interp.interp1d(self.freq,phi_deg)
-        phi_ugbw = phi_interpolate(ugbw)
+    #16 phase response
+    def get_phase_response(self):
+        """Returns the phase response array."""
+        if self.path_ac_gain == "":
+            raise ValueError("Load AC gain data first")
+        return self.phase
 
-        phm = 180 + phi_ugbw
-        # print(f"phm: {phm}\n")
-        
-        return phm
-    
-    def get_gain_margin(self,path_gain):
+    #5 gain margin
+    def get_gain_margin(self, path_gain):
         """
         Calculates the gain margin (in dB).
         Gain margin is the gain at the phase crossover frequency (where phase = -180°).
@@ -1187,15 +1142,30 @@ class SpiceResultNew:
             print("Warning: Phase does not cross -180 degrees in the frequency range")
             return 0
 
-    # ----- new PSRR helpers -----
-    
-    def get_in_equivalent_total_noise(self,path): # there is another vector that might calculate the integrated noise, 
+    #6 phase margin # assumed LP!!!
+    def get_phm(self): 
+        ugbw = self.get_ugbw()
+        if ugbw <= np.min(self.freq) or ugbw >= np.max(self.freq) or ugbw == 0:
+            print("Warning: UGBW out of interpolation range or not found")
+            return 0
+        phi_deg = np.unwrap(np.angle(self.vout_complex))*180/np.pi
+        phi_interpolate = interp.interp1d(self.freq,phi_deg)
+        phi_ugbw = phi_interpolate(ugbw)
+
+        phm = 180 + phi_ugbw
+        # print(f"phm: {phm}\n")
+        
+        return phm
+
+    #3 input equivalent integrated total noise
+    def get_in_equivalent_total_noise(self, path): # there is another vector that might calculate the integrated noise, 
         
         data_noise = np.genfromtxt(path, autostrip=True, skip_header=1)
         # this is total so just skip output, and head is skipped.
         return data_noise[1] 
-        
-    def get_in_equivalent_total_noise_from_spectrum(self,path): # there is another vector that might calculate the integrated noise, 
+
+    #7 input equivalent noise spectrum
+    def get_in_equivalent_total_noise_from_spectrum(self, path): # there is another vector that might calculate the integrated noise, 
         data_noise = np.genfromtxt(path, autostrip=True, skip_header=1)
         #0,2 are f, 1 is onoise, 3 is inoise
         inoise = data_noise[:, 1] 
@@ -1208,7 +1178,20 @@ class SpiceResultNew:
         
         # 4. Take the square root to get back to RMS Volts
         return np.sqrt(total_variance)
-    
+
+    #8 input impedance
+    def get_input_impedance(self):
+        # TODO: Implement input impedance calculation
+        # Requires additional simulation data (e.g., input current vs voltage)
+        return 0
+
+    #9 output impedance
+    def get_output_impedance(self):
+        # TODO: Implement output impedance calculation
+        # Requires additional simulation data
+        return 0
+
+    #4 slew rate
     def get_slew_rate(self, path, threshold_low=0.1, threshold_high=0.9): # there is another vector that might calculate the integrated noise, 
         if self.path_trans == "":
             self.path_trans = path
@@ -1240,6 +1223,104 @@ class SpiceResultNew:
             return 0
         mean = np.mean(slew_ary)*1e-6
         return mean
+
+    #12 settle time
+    def get_settle_time(self):
+        # TODO: Implement settle time calculation
+        # Requires transient data and settling criteria
+        return 0
+
+    #10 Input swing
+    def get_input_swing(self):
+        # TODO: Implement input swing calculation
+        # Requires DC sweep data
+        return 0
+
+    #11 Output swing
+    def get_output_swing(self, path, error = 0.05):
+        data = np.genfromtxt(path, autostrip=True, skip_header=1)
+        v_in = data[:,0]
+        v_out = data[:,1]
+        gain = np.abs(np.gradient(v_out, v_in)) 
+        max_gain = np.max(gain)
+        
+        # 2. Find indices where gain is at least 50% of max (for example)
+        valid_indices = np.where(gain >= max_gain * (1-error))[0]
+        
+        # 3. Get the output voltages at these "edge" indices
+        out_swing_min = v_out[valid_indices[-1]] # Usually lower Vout
+        out_swing_max = v_out[valid_indices[0]]  # Usually higher Vout
+        
+        useful_swing = out_swing_max - out_swing_min
+        return useful_swing, out_swing_min, out_swing_max
+
+    #2 Power Supply Rejection Ratio (PSRR)
+    def get_psrr(self, path_psrr): # maybe it can be interpolated to get more precise value
+        """Return arrays (frequency, psrr_db) from the parsed PSRR file."""
+        if self.path_psrr == "":
+            self.path_psrr = path_psrr
+            data_psrr = np.genfromtxt(path_psrr, autostrip=True, skip_header=1)
+            psrr_gain_complex = data_psrr[:, 1] + 1j * data_psrr[:, 2]
+            psrr_gain_mag = np.abs(psrr_gain_complex)
+            psrr = self.mag / psrr_gain_mag            
+        return psrr
+
+    #13 Input Common-Mode Range (ICMR)
+    def get_icmr(self, path_icmr, error = 0.01): # Input Common-Mode Range
+        data = np.genfromtxt(path_icmr, autostrip=True, skip_header=1)
+        v_sweep = data[:,0]
+        vout = data[:,1]
+        gain = np.gradient(vout, v_sweep)
+
+        
+        max_gain = np.max(gain) # Find the maximum gain, should be VCM
+        
+        # Find indices where gain is at least 99% of max_gain
+        # (This is your 1% error margin)
+        logic_test = (gain >= (1-error) * max_gain)
+        valid_indices = np.where(logic_test)[0]
+        
+        if len(valid_indices) > 0:
+            v_min = v_sweep[valid_indices[0]] # the voltage is increasing
+            v_max = v_sweep[valid_indices[-1]]
+            vcm = (v_max+ v_min)/2
+            vrange = v_max-v_min
+            return vrange, vcm, v_min, v_max
+        return None, None, None, None
+
+    #14 Common-Mode Rejection Ratio (CMRR)
+    def get_cmrr(self, path_acm):
+        data_cm = np.genfromtxt(path_acm, skip_header=1)
+        
+        # Column 0: Freq, Column 1: Real, Column 2: Imag (or Mag depending on wrdata)
+        # If using default wrdata, it's usually Real/Imag pairs
+        if self.mag_db == []:
+            raise("there is no ac_dm when you want cmrr!!")
+
+        adm_mag = self.mag
+
+        vcm_complex = data_cm[:, 1] + 1j * data_cm[:, 2]
+        acm_mag = np.abs(vcm_complex)
+
+        cmrr = adm_mag / acm_mag
+        cmrr_db = 20 * np.log10(cmrr)
+        
+        return  cmrr_db # Return freq and CMRR in dB
+
+    # Helper methods
+    def get_unity_gain_bw(self):
+        """Finds the frequency where gain is 0dB."""
+        ugbw, found = get_best_crossing(self.freq, self.mag_db, 0)
+        return ugbw if found else None
+    
+    def get_ugbw(self):
+        
+        ac_mag = self.mag_db
+        ac_cross, ac_found = get_best_crossing(self.freq,ac_mag,0)
+        if not ac_found:
+            return 0
+        # print(f"ugbw: {ac_cross}\n")
+        return ac_cross
 
     
 def get_best_crossing(xvec, yvec, val):
