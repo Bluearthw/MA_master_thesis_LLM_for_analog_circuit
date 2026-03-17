@@ -352,6 +352,7 @@ end_time = time.perf_counter()
 # test_find_num_from_class(1)
 # test_find_num_from_class(4)
 # test_find_num_from_class(7)
+test_find_num_from_class(40)
 # test_find_category_str(4)
 #endregion find type nums
 

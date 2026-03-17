@@ -1,4 +1,9 @@
+import sys
+# local import
+sys.path.append("./1genai")
 import utils
+path_id = {0: './1genai/output/155/ac_gain.csv', 1: './1genai/output/155/ac_gain.csv', 15: './1genai/output/155/ac_gain.csv', 16: './1genai/output/155/ac_gain.csv', 5: './1genai/output/155/ac_gain.csv', 6: './1genai/output/155/ac_gain.csv', 3: './1genai/output/155/noise.csv', 4: './1genai/output/155/tran_SR.csv', 12: './1genai/output/155/tran_SR.csv', 10: './1genai/output/155/dc_swing.csv', 11: './1genai/output/155/dc_swing.csv', 13: './1genai/output/155/dc_icmr.csv', 14: './1genai/output/155/ac_cmrr.csv', 2: './1genai/output/155/ac_psrr.csv'}
+path_id2 = {15: './1genai/output/155/ac_gain.csv', 3: './1genai/output/155/noise.csv', 4: './1genai/output/155/tran_sr.csv', 13: './1genai/output/155/dc_icmr.csv', 0: './1genai/output/155/dc_sw.csv', 14: './1genai/output/155/ac_cmrr.csv', 2: './1genai/output/155/ac_psrr.csv'}
 def test_measurement_spice_result(path_gain = "./1genai/output/ac_gain.csv"):
     # Example data (replace with actual data from your simulation)
     path_psrr = "./1genai/output/psrr.csv"
@@ -24,7 +29,7 @@ def test_measurement_spice_result(path_gain = "./1genai/output/ac_gain.csv"):
     print(f"Slew Rate: {slew_rate} V/s")
 
 def test_measurement_spice_result_new():
-    
-    spice_result = utils.SpiceResultNew()
-    spice_result.get_ac_gain(path)
-    return 0
+    result = utils.measuremnt(path_id2)
+    print(result)
+    print(result["icmr"][0])
+test_measurement_spice_result_new()

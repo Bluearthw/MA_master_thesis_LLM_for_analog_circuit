@@ -877,6 +877,54 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
 # endregion pyspice
 
 # region measurement
+def measuremnt(struct_path_id):
+    """Run measurements based on produced simulation files.
+
+    Args:
+        spec_sims: list of Struct_specs_sim objects describing sims produced.
+        output_path: folder where sim CSV files are written (ends with / or \\).
+
+    Returns:
+        dict of computed metrics.
+    """
+    
+    results = {}
+    spice_res = SpiceResultNew()
+
+    for spec_id, path in struct_path_id.items():
+        if spec_id == 0:  # DC gain 
+            results['dc_gain'] = float(spice_res.get_dc_gain(path))
+        elif spec_id == 1:  # Bandwidth (if separate from gain) or other AC sim
+            results['bandwidth'] = float(spice_res.get_bandwidth(path))
+        
+        elif spec_id == 2:  # PSRR
+            results["psrr"] = spice_res.get_psrr(path)
+        
+        elif spec_id == 3:  # input noise
+            results['input_ref_total_noise'] = float(spice_res.get_in_equivalent_total_noise(path))
+        
+        elif spec_id == 7:  # input equivalent total noise from spectrum
+            results['input_ref_noise_spectrum'] = spice_res.get_in_equivalent_total_noise_from_spectrum(path)
+        
+        elif spec_id == 4:  # slew rate
+            results['slew_rate'] = float(spice_res.get_slew_rate(path))
+        elif spec_id == 5:  # gain margin
+            results['gain_margin'] = float(spice_res.get_gain_margin(path))
+        
+        elif spec_id == 13:  # icmr, it is a tuple(vrange, vcm, v_min, v_max)
+            results['icmr'] = spice_res.get_icmr(path)
+        
+        elif spec_id == 14:  # cmrr, it is a list
+            results['cmrr'] = spice_res.get_cmrr(path)
+        elif spec_id == 15:
+            results['ac_gain'] = spice_res.get_ac_gain(path)
+        elif spec_id == 10:
+            results["input_swing"] = 0# to be done
+        else:
+            continue
+    
+    return results
+
 class SpiceResult:
     def __init__(self, path_gain, path_psrr, path_noise, path_trans):
         # gain data
@@ -1038,23 +1086,23 @@ class SpiceResult:
 class SpiceResultNew:
     def __init__(self):
         # paths
-        self.path_ac_gain = ""
-        self.path_psrr = ""
-        self.path_noise = ""
-        self.path_trans = ""
+        self.path_ac_gain = None
+        self.path_psrr = None
+        self.path_noise = None
+        self.path_trans = None
 
-        self.freq = 0
+        self.freq = None
         # store gain as complex and compute magnitude/phase
-        self.vout_complex = []
-        self.mag = []
-        self.mag_db = []
-        self.phase = []
+        self.vout_complex = None
+        self.mag = None
+        self.mag_db = None
+        self.phase = None
 
         self.psrr_db = 0
 
-        self.data_trans = []
+        self.data_trans = None
 
-    def load_ac_gain_data(self, path_gain):
+    def load_ac_gain_data(self, path_gain=""):
         self.path_ac_gain = path_gain
         data_gain = np.genfromtxt(path_gain, autostrip=True, skip_header=1)
         self.freq = data_gain[:, 0]
@@ -1065,17 +1113,18 @@ class SpiceResultNew:
         self.phase = np.unwrap(np.angle(self.vout_complex, deg=True))
 
     #0 DC Gain
-    def get_dc_gain(self, path_gain):
+    def get_dc_gain(self, path_gain=""):
         """Returns the magnitude at the lowest frequency."""
-        if self.path_ac_gain == "":
+        if self.path_ac_gain is None:
             self.load_ac_gain_data(path_gain)
 
         return self.mag[0]
 
     #1 Bandwidth
-    def get_bandwidth(self):
+    def get_bandwidth(self,path=""):
         """Finds the -3dB cutoff frequency."""
-        
+        if self.path_ac_gain is None:
+            self.load_ac_gain_data(path)
         length = len(self.mag_db)
         last_mag_db =  np.mean(self.mag_db[int(length*0.7) : -1])
         first_mag_db = np.mean(self.mag_db[0 : int(length*0.3)])
@@ -1090,17 +1139,17 @@ class SpiceResultNew:
             return self.freq[-1] - bw if found else 0
 
     #15 AC gain
-    def get_ac_gain(self, path_gain):
+    def get_ac_gain(self, path_gain=""):
         """Returns the maximum gain in dB."""
-        if self.path_ac_gain == "":
+        if self.path_ac_gain is None:
             self.load_ac_gain_data(path_gain)
-        return np.max(self.mag_db)
+        return self.mag_db
 
     #16 phase response
-    def get_phase_response(self):
+    def get_phase_response(self, path_gain=""):
         """Returns the phase response array."""
-        if self.path_ac_gain == "":
-            raise ValueError("Load AC gain data first")
+        if self.path_ac_gain is None:
+            self.load_ac_gain_data(path_gain)
         return self.phase
 
     #5 gain margin
@@ -1109,7 +1158,7 @@ class SpiceResultNew:
         Calculates the gain margin (in dB).
         Gain margin is the gain at the phase crossover frequency (where phase = -180°).
         """
-        if self.path_ac_gain == "":
+        if self.path_ac_gain is None:
             self.load_ac_gain_data(path_gain)
             
             
@@ -1143,7 +1192,10 @@ class SpiceResultNew:
             return 0
 
     #6 phase margin # assumed LP!!!
-    def get_phm(self): 
+    def get_phm(self, path_gain=""): 
+        if self.path_ac_gain is None:
+            self.load_ac_gain_data(path_gain)
+            
         ugbw = self.get_ugbw()
         if ugbw <= np.min(self.freq) or ugbw >= np.max(self.freq) or ugbw == 0:
             print("Warning: UGBW out of interpolation range or not found")
@@ -1193,7 +1245,7 @@ class SpiceResultNew:
 
     #4 slew rate
     def get_slew_rate(self, path, threshold_low=0.1, threshold_high=0.9): # there is another vector that might calculate the integrated noise, 
-        if self.path_trans == "":
+        if self.path_trans is None:
             self.path_trans = path
             data_trans = np.genfromtxt(path, autostrip=True, skip_header=1)
             self.data_trans = data_trans
@@ -1257,7 +1309,7 @@ class SpiceResultNew:
     #2 Power Supply Rejection Ratio (PSRR)
     def get_psrr(self, path_psrr): # maybe it can be interpolated to get more precise value
         """Return arrays (frequency, psrr_db) from the parsed PSRR file."""
-        if self.path_psrr == "":
+        if self.path_psrr is None:
             self.path_psrr = path_psrr
             data_psrr = np.genfromtxt(path_psrr, autostrip=True, skip_header=1)
             psrr_gain_complex = data_psrr[:, 1] + 1j * data_psrr[:, 2]
@@ -1266,15 +1318,16 @@ class SpiceResultNew:
         return psrr
 
     #13 Input Common-Mode Range (ICMR)
-    def get_icmr(self, path_icmr, error = 0.01): # Input Common-Mode Range
+    def get_icmr(self, path_icmr, error = 0.05): # Input Common-Mode Range
         data = np.genfromtxt(path_icmr, autostrip=True, skip_header=1)
         v_sweep = data[:,0]
         vout = data[:,1]
-        gain = np.gradient(vout, v_sweep)
+        gain = np.abs(np.gradient(vout, v_sweep))
+        # print("==imcr gain",gain)
 
         
         max_gain = np.max(gain) # Find the maximum gain, should be VCM
-        
+        print(max_gain)
         # Find indices where gain is at least 99% of max_gain
         # (This is your 1% error margin)
         logic_test = (gain >= (1-error) * max_gain)
@@ -1294,8 +1347,8 @@ class SpiceResultNew:
         
         # Column 0: Freq, Column 1: Real, Column 2: Imag (or Mag depending on wrdata)
         # If using default wrdata, it's usually Real/Imag pairs
-        if self.mag_db == []:
-            raise("there is no ac_dm when you want cmrr!!")
+        if self.mag_db is None:
+            raise ValueError("there is no ac_dm when you want cmrr!!")
 
         adm_mag = self.mag
 
@@ -1308,13 +1361,17 @@ class SpiceResultNew:
         return  cmrr_db # Return freq and CMRR in dB
 
     # Helper methods
-    def get_unity_gain_bw(self):
+    def get_unity_gain_bw(self, path = ""):
         """Finds the frequency where gain is 0dB."""
+        if self.path_ac_gain is None:
+            self.load_ac_gain_data(path)
         ugbw, found = get_best_crossing(self.freq, self.mag_db, 0)
         return ugbw if found else None
     
-    def get_ugbw(self):
-        
+    def get_ugbw(self, path = ""):
+        if self.path_ac_gain is None:
+            self.load_ac_gain_data(path)
+            
         ac_mag = self.mag_db
         ac_cross, ac_found = get_best_crossing(self.freq,ac_mag,0)
         if not ac_found:
