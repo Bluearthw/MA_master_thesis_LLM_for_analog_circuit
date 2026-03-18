@@ -1138,13 +1138,18 @@ class SpiceResultNew:
             bw, found = get_best_crossing(self.freq, self.mag_db, target)
             return self.freq[-1] - bw if found else 0
 
-    #15 AC gain
+    #15 AC gain #single port
     def get_ac_gain(self, path_gain=""):
         """Returns the maximum gain in dB."""
         if self.path_ac_gain is None:
             self.load_ac_gain_data(path_gain)
         return self.mag_db
-
+    #17
+    def get_common_gain():
+        return 0
+    #18
+    def get_differential_mode_gain():
+        return 0
     #16 phase response
     def get_phase_response(self, path_gain=""):
         """Returns the phase response array."""

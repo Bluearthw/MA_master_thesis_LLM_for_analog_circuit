@@ -1,7 +1,5 @@
 git add .
-git commit -m "put spec table to debug agent.
-use total if spectrum is not working
-accumulate error msg"
+git commit -m "now the specification will not have ac gain for differential output but differential gain and CM gain"
 git push
 
 venv\Scripts\Activate.ps1
