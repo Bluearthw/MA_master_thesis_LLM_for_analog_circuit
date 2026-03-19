@@ -1,9 +1,31 @@
 import sys
+import numpy as np
 # local import
 sys.path.append("./1genai")
 import utils
 path_id = {0: './1genai/output/155/ac_gain.csv', 1: './1genai/output/155/ac_gain.csv', 15: './1genai/output/155/ac_gain.csv', 16: './1genai/output/155/ac_gain.csv', 5: './1genai/output/155/ac_gain.csv', 6: './1genai/output/155/ac_gain.csv', 3: './1genai/output/155/noise.csv', 4: './1genai/output/155/tran_SR.csv', 12: './1genai/output/155/tran_SR.csv', 10: './1genai/output/155/dc_swing.csv', 11: './1genai/output/155/dc_swing.csv', 13: './1genai/output/155/dc_icmr.csv', 14: './1genai/output/155/ac_cmrr.csv', 2: './1genai/output/155/ac_psrr.csv'}
 path_id2 = {15: './1genai/output/155/ac_gain.csv', 3: './1genai/output/155/noise.csv', 4: './1genai/output/155/tran_sr.csv', 13: './1genai/output/155/dc_icmr.csv', 0: './1genai/output/155/dc_sw.csv', 14: './1genai/output/155/ac_cmrr.csv', 2: './1genai/output/155/ac_psrr.csv'}
+
+def test_phase_calculation():
+    print("--- SPICE Phase Processing Test Bench ---")
+    
+    # 1. Simulate a signal that rotates multiple times (e.g., a high-order filter)
+    # Frequency from 1Hz to 100GHz (log space)
+    freqs = np.logspace(0, 11, 10) 
+    y = -1 + 2 * np.random.randn(1, 10)
+    x = -1 + 2 * np.random.randn(1, 10)
+    print(x)
+    print(y)
+    complex_v = x+1j*y
+    wrapped_phase_deg = np.angle(complex_v, deg=True)
+    unwrapped_phase_deg = np.unwrap(wrapped_phase_deg, period=360)
+    unwrapped_phase_deg_180 = np.unwrap(wrapped_phase_deg, period=180)
+    unwrapped_phase_deg_default_period = np.unwrap(wrapped_phase_deg)
+    print(wrapped_phase_deg)
+    print(unwrapped_phase_deg)
+    print(unwrapped_phase_deg_180)
+    print(unwrapped_phase_deg_default_period)
+    
 def test_measurement_spice_result(path_gain = "./1genai/output/ac_gain.csv"):
     # Example data (replace with actual data from your simulation)
     path_psrr = "./1genai/output/psrr.csv"
@@ -32,4 +54,5 @@ def test_measurement_spice_result_new():
     result = utils.measuremnt(path_id2)
     print(result)
     print(result["icmr"][0])
-test_measurement_spice_result_new()
+# test_measurement_spice_result_new()
+test_phase_calculation()

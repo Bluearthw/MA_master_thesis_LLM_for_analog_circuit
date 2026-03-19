@@ -1,5 +1,5 @@
 git add .
-git commit -m "now the specification will not have ac gain for differential output but differential gain and CM gain"
+git commit -m "I think the previous phase calculation are all wrong. you should use 360 priod to see the inversed effect"
 git push
 
 venv\Scripts\Activate.ps1

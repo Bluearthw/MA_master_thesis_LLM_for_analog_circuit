@@ -920,6 +920,9 @@ def measuremnt(struct_path_id):
             results['ac_gain'] = spice_res.get_ac_gain(path)
         elif spec_id == 10:
             results["input_swing"] = 0# to be done
+        elif spec_id == 18:
+            results["Adm"] = spice_res.get_differential_mode_gain(path)
+
         else:
             continue
     
@@ -1102,6 +1105,15 @@ class SpiceResultNew:
 
         self.data_trans = None
 
+        #differential output
+        self.path_adm = None
+        self.path_acm = None
+        self.vout1_complex = None
+        self.vout2_complex = None
+        self.phase_v1 = None # for output balance
+        self.phase_v2 = None
+        
+
     def load_ac_gain_data(self, path_gain=""):
         self.path_ac_gain = path_gain
         data_gain = np.genfromtxt(path_gain, autostrip=True, skip_header=1)
@@ -1111,6 +1123,34 @@ class SpiceResultNew:
         self.mag = np.abs(self.vout_complex)
         self.mag_db = 20 * np.log10(self.mag)
         self.phase = np.unwrap(np.angle(self.vout_complex, deg=True))
+    
+    def load_adm_data(self, path_adm = ""):
+        self.path_adm = path_adm
+        # ADM files can have repeated frequency columns (one per output) and may include header.
+        # Expected layout (based on sample):
+        # frequency  v(VOUT1)  v(VOUT1)  frequency  v(VOUT2)  v(VOUT2)
+        # (freq, real1, imag1, freq, real2, imag2)
+
+        data_adm = np.genfromtxt(path_adm, autostrip=True, skip_header=1)
+        # if it is still 1 col
+        if data_adm.ndim == 1:
+            data_adm = data_adm.reshape(1, -1)
+
+        self.freq = data_adm[:, 0]
+
+        # Build complex vectors for each output; if columns missing, fill with zeros
+        def _complex_from_cols(real_col, imag_col):
+            if real_col < data_adm.shape[1] and imag_col < data_adm.shape[1]:
+                return data_adm[:, real_col] + 1j * data_adm[:, imag_col]
+            return np.zeros(len(self.freq), dtype=complex)
+
+        self.vout1_complex = _complex_from_cols(1, 2)
+        self.vout2_complex = _complex_from_cols(4, 5)
+
+        self.phase_v1 = np.unwrap(np.angle(self.vout1_complex, deg=True))
+        self.phase_v2 = np.unwrap(np.angle(self.vout2_complex, deg=True))
+
+
 
     #0 DC Gain
     def get_dc_gain(self, path_gain=""):
@@ -1144,12 +1184,25 @@ class SpiceResultNew:
         if self.path_ac_gain is None:
             self.load_ac_gain_data(path_gain)
         return self.mag_db
-    #17
-    def get_common_gain():
-        return 0
-    #18
-    def get_differential_mode_gain():
-        return 0
+    #17 common-mode gain (Vout1+Vout2)/2
+    def get_common_mode_gain(self, path_adm=""):
+        """Return the common-mode gain (dB) based on the adm file."""
+        if self.path_adm is None:
+            self.load_adm_data(path_adm)
+
+        v_common = (self.vout1_complex + self.vout2_complex) / 2
+        mag = np.abs(v_common)
+        return 20 * np.log10(mag)
+
+    #18 differential-mode gain (Vout1 - Vout2)
+    def get_differential_mode_gain(self, path_adm=""):
+        """Return the differential-mode gain (dB) based on the adm file."""
+        if self.path_adm is None:
+            self.load_adm_data(path_adm)
+
+        v_diff = self.vout1_complex - self.vout2_complex
+        mag = np.abs(v_diff)
+        return 20 * np.log10(mag)
     #16 phase response
     def get_phase_response(self, path_gain=""):
         """Returns the phase response array."""
