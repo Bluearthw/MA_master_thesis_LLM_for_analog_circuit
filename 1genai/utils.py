@@ -905,9 +905,12 @@ def measure(struct_path_id, is_diff_out = False):
         
         elif spec_id == 7:  # input equivalent total noise from spectrum
             results['input_ref_noise_spectrum'] = spice_res.get_in_equivalent_total_noise_from_spectrum(path)
-        
+        #Trans
         elif spec_id == 4:  # slew rate
             results['slew_rate'] = float(spice_res.get_slew_rate(path))
+        elif spec_id == 12:  # settle time
+            results['slew_rate'] = float(spice_res.get_slew_rate(path))
+        
         elif spec_id == 5:  # gain margin
             results['gain_margin'] = float(spice_res.get_gain_margin(path))
         
@@ -1131,7 +1134,7 @@ class SpiceResultNew:
             self.freq = data_gain[:, 0]
             # store gain as complex and compute magnitude/phase
             # self.vout_complex = data_gain[:, 1] + 1j * data_gain[:, 2]
-            self.vout_complex = complex_from_cols(1,2)
+            self.vout_complex = complex_from_cols(data_gain, 1, 2)
             self.mag = np.abs(self.vout_complex)
             self.mag_db = 20 * np.log10(self.mag)
             self.phase = np.unwrap(np.angle(self.vout_complex, deg=True))
@@ -1151,12 +1154,8 @@ class SpiceResultNew:
             data_adm = data_adm.reshape(1, -1)
 
         self.freq = data_adm[:, 0]
-
-        # Build complex vectors for each output; if columns missing, fill with zeros
-        
-
-        self.vout1_complex = complex_from_cols(1, 2)
-        self.vout2_complex = complex_from_cols(4, 5)
+        self.vout1_complex = complex_from_cols(data_adm, 1, 2)
+        self.vout2_complex = complex_from_cols(data_adm, 4, 5)
 
         self.phase_v1 = np.unwrap(np.angle(self.vout1_complex, deg=True), period=360)
         self.phase_v2 = np.unwrap(np.angle(self.vout2_complex, deg=True), period=360)
@@ -1222,7 +1221,7 @@ class SpiceResultNew:
         return self.mag, self.mag_db
     #19
     def get_output_balance(self,path, error_deg = 5):
-        if self.phase_v1 and self.phase_v2:
+        if len(self.phase_v1) and len(self.phase_v2):
             self.load_adm_data(path)
         diffs = np.abs(self.phase_v1 - self.phase_v2) % 360
         return np.all(np.abs(diffs - 180) <= error_deg)
@@ -1359,9 +1358,42 @@ class SpiceResultNew:
         return mean
 
     #12 settle time
-    def get_settle_time(self):
+    def get_settle_time(self, path, error_margin=0.01):
         # TODO: Implement settle time calculation
-        # Requires transient data and settling criteria
+        if self.path_trans is None:
+            self.path_trans = path
+            data_trans = np.genfromtxt(path, autostrip=True, skip_header=1)
+            self.data_trans = data_trans
+        if self.is_diff:
+            time = self.data_trans[:,0]
+            v1 = self.data_trans[:,1]
+            v2 = self.data_trans[:,3]
+            v_diff = v1 - v2
+    
+            # 2. Determine Steady State (Final Value)
+            final_value = np.mean(v_diff[-int(len(v_diff)*0.05):])
+            
+            # 3. Define the Error Band
+            error_band = abs(final_value * error_margin)
+            upper_bound = final_value + error_band
+            lower_bound = final_value - error_band
+            
+            # We look for indices where the signal is OUTSIDE the band
+            outside_indices = np.where((v_diff > upper_bound) | (v_diff < lower_bound))[0]
+            
+            if len(outside_indices) == 0:
+                return 0.0  # Already settled
+            
+            # The last index where it was "outside" + 1 is the point it "settled"
+            last_outside_idx = outside_indices[-1]
+            
+            # Ensure we don't exceed array bounds
+            settle_idx = min(last_outside_idx + 1, len(time) - 1)
+            
+            settle_time_absolute = time[settle_idx]
+            
+            # Settling time is relative to when the pulse started
+            return settle_time_absolute
         return 0
 
     #10 Input swing
