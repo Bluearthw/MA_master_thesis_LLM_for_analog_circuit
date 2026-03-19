@@ -152,7 +152,9 @@ ein2 net2 VCM aid 0 -0.5
 10. If the circuit is differential output. Make sure the specification is correct.
 Example:
 Use differential mode gain instead of AC gain (single port) for differential output circuits.
- """
+
+11. Also, you should pay attention to whether there is CMFB stability specification check. Espacially when Vgate is not connected to VB directly. The following agent will make a new netlist if the CMFB stability is needed.
+"""
     
 
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
@@ -200,7 +202,7 @@ Use differential mode gain instead of AC gain (single port) for differential out
 
 test = category_numbers.num_class_40[:10]
 
-num = 69
+num = 96
 isLoop = False
 
 if isLoop:

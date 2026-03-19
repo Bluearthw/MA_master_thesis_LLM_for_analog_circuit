@@ -1172,7 +1172,7 @@ class SpiceResultNew:
         """Returns the magnitude at the lowest frequency."""
         if self.path_ac_gain is None and not self.is_diff :
             self.load_ac_gain_data(path_gain)
-        elif self.path_adm is not None and self.is_diff:
+        elif self.path_adm is None and self.is_diff:
             self.load_adm_data(path_gain)
 
         return self.mag[0]

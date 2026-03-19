@@ -1,5 +1,6 @@
 git add .
-git commit -m "output balance done, but CMFB is not for every circuit, at least not in 69. Next is settling time "
+git commit -m "#TODO, still some bugs with measure()
+a new agent is required for CMFB stability since the netlist is different. "
 git push
 
 venv\Scripts\Activate.ps1
