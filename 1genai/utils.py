@@ -877,7 +877,7 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
 # endregion pyspice
 
 # region measurement
-def measuremnt(struct_path_id):
+def measure(struct_path_id, is_diff_out = False):
     """Run measurements based on produced simulation files.
 
     Args:
@@ -889,7 +889,7 @@ def measuremnt(struct_path_id):
     """
     
     results = {}
-    spice_res = SpiceResultNew()
+    spice_res = SpiceResultNew(is_diff_out)
 
     for spec_id, path in struct_path_id.items():
         if spec_id == 0:  # DC gain 
@@ -920,8 +920,13 @@ def measuremnt(struct_path_id):
             results['ac_gain'] = spice_res.get_ac_gain(path)
         elif spec_id == 10:
             results["input_swing"] = 0# to be done
+        elif spec_id == 17:
+            results["Acm"] = spice_res.get_common_mode_gain(path)
         elif spec_id == 18:
             results["Adm"] = spice_res.get_differential_mode_gain(path)
+        elif spec_id == 19:
+            results["output_balance"] = spice_res.get_output_balance(path)
+
 
         else:
             continue
@@ -1086,8 +1091,13 @@ class SpiceResult:
             return 0
         mean = np.mean(slew_ary)*1e-6
         return mean
+def complex_from_cols(data, real_col, imag_col):
+            if real_col < data.shape[1] and imag_col < data.shape[1]:
+                return data[:, real_col] + 1j * data[:, imag_col]
+            raise ("form is not correct while getting complex data ")
 class SpiceResultNew:
-    def __init__(self):
+    def __init__(self, is_differential = False):
+        self.is_diff = is_differential
         # paths
         self.path_ac_gain = None
         self.path_psrr = None
@@ -1115,14 +1125,18 @@ class SpiceResultNew:
         
 
     def load_ac_gain_data(self, path_gain=""):
-        self.path_ac_gain = path_gain
-        data_gain = np.genfromtxt(path_gain, autostrip=True, skip_header=1)
-        self.freq = data_gain[:, 0]
-        # store gain as complex and compute magnitude/phase
-        self.vout_complex = data_gain[:, 1] + 1j * data_gain[:, 2]
-        self.mag = np.abs(self.vout_complex)
-        self.mag_db = 20 * np.log10(self.mag)
-        self.phase = np.unwrap(np.angle(self.vout_complex, deg=True))
+        if self. is_diff == False:
+            self.path_ac_gain = path_gain
+            data_gain = np.genfromtxt(path_gain, autostrip=True, skip_header=1)
+            self.freq = data_gain[:, 0]
+            # store gain as complex and compute magnitude/phase
+            # self.vout_complex = data_gain[:, 1] + 1j * data_gain[:, 2]
+            self.vout_complex = complex_from_cols(1,2)
+            self.mag = np.abs(self.vout_complex)
+            self.mag_db = 20 * np.log10(self.mag)
+            self.phase = np.unwrap(np.angle(self.vout_complex, deg=True))
+        else:
+            raise ("why dif goes to load_ac_gain_data()")
     
     def load_adm_data(self, path_adm = ""):
         self.path_adm = path_adm
@@ -1139,26 +1153,32 @@ class SpiceResultNew:
         self.freq = data_adm[:, 0]
 
         # Build complex vectors for each output; if columns missing, fill with zeros
-        def _complex_from_cols(real_col, imag_col):
-            if real_col < data_adm.shape[1] and imag_col < data_adm.shape[1]:
-                return data_adm[:, real_col] + 1j * data_adm[:, imag_col]
-            return np.zeros(len(self.freq), dtype=complex)
+        
 
-        self.vout1_complex = _complex_from_cols(1, 2)
-        self.vout2_complex = _complex_from_cols(4, 5)
+        self.vout1_complex = complex_from_cols(1, 2)
+        self.vout2_complex = complex_from_cols(4, 5)
 
-        self.phase_v1 = np.unwrap(np.angle(self.vout1_complex, deg=True))
-        self.phase_v2 = np.unwrap(np.angle(self.vout2_complex, deg=True))
+        self.phase_v1 = np.unwrap(np.angle(self.vout1_complex, deg=True), period=360)
+        self.phase_v2 = np.unwrap(np.angle(self.vout2_complex, deg=True), period=360)
+
+        self.vout_complex = self.vout1_complex - self.vout2_complex
+        self.mag = np.abs(self.vout_complex)
+        self.mag_db = 20 * np.log10(self.mag)
+        self.phase = np.unwrap(np.angle(self.vout_complex, deg=True))
 
 
 
     #0 DC Gain
-    def get_dc_gain(self, path_gain=""):
+    def get_dc_gain(self, path_gain="", ):
         """Returns the magnitude at the lowest frequency."""
-        if self.path_ac_gain is None:
+        if self.path_ac_gain is None and not self.is_diff :
             self.load_ac_gain_data(path_gain)
+        elif self.path_adm is not None and self.is_diff:
+            self.load_adm_data(path_gain)
 
         return self.mag[0]
+
+        
 
     #1 Bandwidth
     def get_bandwidth(self,path=""):
@@ -1192,17 +1212,21 @@ class SpiceResultNew:
 
         v_common = (self.vout1_complex + self.vout2_complex) / 2
         mag = np.abs(v_common)
-        return 20 * np.log10(mag)
+        return mag, 20 * np.log10(mag)
 
     #18 differential-mode gain (Vout1 - Vout2)
     def get_differential_mode_gain(self, path_adm=""):
         """Return the differential-mode gain (dB) based on the adm file."""
         if self.path_adm is None:
             self.load_adm_data(path_adm)
-
-        v_diff = self.vout1_complex - self.vout2_complex
-        mag = np.abs(v_diff)
-        return 20 * np.log10(mag)
+        return self.mag, self.mag_db
+    #19
+    def get_output_balance(self,path, error_deg = 5):
+        if self.phase_v1 and self.phase_v2:
+            self.load_adm_data(path)
+        diffs = np.abs(self.phase_v1 - self.phase_v2) % 360
+        return np.all(np.abs(diffs - 180) <= error_deg)
+        
     #16 phase response
     def get_phase_response(self, path_gain=""):
         """Returns the phase response array."""

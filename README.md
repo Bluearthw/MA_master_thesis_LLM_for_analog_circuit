@@ -1,5 +1,5 @@
 git add .
-git commit -m "I think the previous phase calculation are all wrong. you should use 360 priod to see the inversed effect"
+git commit -m "output balance done, but CMFB is not for every circuit, at least not in 69. Next is settling time "
 git push
 
 venv\Scripts\Activate.ps1

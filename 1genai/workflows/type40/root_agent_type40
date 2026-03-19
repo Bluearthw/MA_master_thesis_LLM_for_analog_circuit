@@ -76,7 +76,8 @@ def test_make_cir_sim(cir_num):
             netlist_path = path_output_num + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
-            measurement_results = utils.measuremnt(struct_path_id)
+            is_diff_out = True
+            measurement_results = utils.measure(struct_path_id, is_diff_out)
             # Run measurements using SpiceResult helpers
             
             print("Measurement results:", measurement_results)
