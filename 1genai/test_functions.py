@@ -315,6 +315,23 @@ def test_run_ngspice_direct_from_final_netlist(num = 4):
         print("Simulation successful!")
     else:
         print("Simulation failed with message:", success["message"])
+def test_cmfb_check_agent(netlist, cir_num=4):
+    category_num = utils.find_cat_from_num(cir_num) # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
+    path_category = local_config.path_category + f"{category_num}.md"
+    # or the cat_num is already known, so just +"4.md"
+    category = utils.get_file_to_str(path_category)
+    client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
+    contents = f"""You are an expert Analog IC Designer. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs : {local_config.table_specs_id}, and a brief requirement about this type of circuit : {category}.
+Your goal is to check whether there is CMFB loop in this circuit. If there is, say yes and explain shortly like 1 sentence. I think, if the IN,CM increases, the net017 can stop VOUT,CM to increase, right? That is also a CMFB, right?
+"""
+    response = client.models.generate_content(
+                model=local_config.agent_model3,
+                contents=contents,
+                
+            )
+    print(response.text)
+
+
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -336,7 +353,7 @@ start_time = time.perf_counter()
 # test_find_cir_without_vdd()
 # test_pyspice_sim(local_config.nl_mar02_total)
 # test_pycpice_op()
-test_run_ngspice_direct(saved_netlist.nl_mar_17)
+# test_run_ngspice_direct(saved_netlist.nl_mar_17)
 # test_run_ngspice_direct(local_config.nl_2_stage_opamp)
 # test_run_ngspice_direct(local_config.nl_test_noise_spectrum)
 # test_check_output_files()
@@ -352,7 +369,7 @@ end_time = time.perf_counter()
 # test_find_num_from_class(1)
 # test_find_num_from_class(4)
 # test_find_num_from_class(7)
-test_find_num_from_class(40)
+# test_find_num_from_class(40)
 # test_find_category_str(4)
 #endregion find type nums
 
@@ -366,6 +383,11 @@ test_find_num_from_class(40)
 
 # region category7
 #endregion category7
+
+#region agent test
+
+test_cmfb_check_agent(saved_netlist.nl_96_diff_with_cmfb_not_for_sim, 96)
+#endregion
 print(f"Execution time: {end_time - start_time:.6f} seconds")
 
 

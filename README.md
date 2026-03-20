@@ -1,5 +1,5 @@
 git add .
-git commit -m "modify debug agent for spec sim, ask add sim agent for differential check. fix bug measure() , now bw for diff"
+git commit -m "96 is not with CMFB but 182, which is with output CM involved. Gemini says."
 git push
 
 venv\Scripts\Activate.ps1

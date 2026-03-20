@@ -198,3 +198,25 @@ tran 10n 20u
 wrdata ./1genai/output/155/tran_sr.csv v(VOUT1)
 .endc
 .end"""
+
+
+nl_96_diff_with_fake_cmfb_not_for_sim = """
+* Circuit Components
+M2 VOUT2 VIN2 net017 VSS nmos w=w2 l=l2 m=m2
+M0 VOUT1 VIN1 net017 VSS nmos w=w0 l=l0 m=m0
+M1 net017 VB1 VSS VSS nmos w=w1 l=l1 m=m1
+M4 VOUT2 net017 VDD VDD pmos w=w4 l=l4 m=m4
+M3 VOUT1 net017 VDD VDD pmos w=w3 l=l3 m=m3
+"""
+
+nl_182_diff_with_cmfb_not_for_sim ="""M5 (VOUT2 VB1 net36 VSS) nmos4
+M4 (VOUT1 VB1 net32 VSS) nmos4
+M1 (net32 VIN2 IB1 VSS) nmos4
+M0 (net36 VIN1 IB1 VSS) nmos4
+R1 (VOUT2 net29) resistor
+R2 (net29 VOUT1) resistor
+R0 (net36 net35) resistor
+C1 (VDD net29) capacitor
+C0 (net35 net32) capacitor
+M3 (VOUT1 net29 VDD VDD) pmos4
+M2 (VOUT2 net29 VDD VDD) pmos4"""
