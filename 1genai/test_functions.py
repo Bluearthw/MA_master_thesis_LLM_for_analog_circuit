@@ -11,6 +11,7 @@ import pandas as pd
 ## local imports
 import local_config
 import debug_agent
+from workflows import cmfb_agent
 def test_clean():
     for i in range(2, 20):
         cir_path = f"../material/dataset/tb_dataset/{i}/{i}.cir"
@@ -331,7 +332,8 @@ Your goal is to check whether there is CMFB loop in this circuit. If there is, s
             )
     print(response.text)
 
-
+def test_cmfb_agent():
+    cmfb_agent(saved_netlist.nl_182_diff_with_cmfb_before_cmfb_agent,182)
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -386,7 +388,7 @@ end_time = time.perf_counter()
 
 #region agent test
 
-test_cmfb_check_agent(saved_netlist.nl_96_diff_with_cmfb_not_for_sim, 96)
+test_cmfb_check_agent(saved_netlist.nl_182_diff_with_cmfb_not_for_sim, 182)
 #endregion
 print(f"Execution time: {end_time - start_time:.6f} seconds")
 

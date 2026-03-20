@@ -9,7 +9,8 @@ class Struct_flow(BaseModel):
     netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
     spec_sims : list[Struct_specs_sim] = Field(description="specifications required and simulations needed")
     is_diff: bool = Field(description="If the circuit is differential output, this field is True.")
-
+    is_CMFB: bool = Field(description="If the circuit has CMFB, this field is True.")
+    
 class Struct_debug(BaseModel):
     netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
     spec_sims : list[Struct_specs_sim] = Field(description="simulations needed and why")
