@@ -4,13 +4,13 @@ from google.genai import types
 import local_config
 import utils
 import tools
-def debug_agent(netlist, error_message, cir_num):
+def debug_agent(netlist, error_message, cir_num, spec_sims):
     print("==netlist in debug agent\n", netlist)
     print("==error_message\n", error_message)
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist.
-Your goal is to fix a bugged netlist: {netlist} based on the error message: "{error_message}". You are also given a specification id table: {local_config.table_specs_id}. 
-You should output the fixed netlist and the specification-simulation relationship.
+Your goal is to fix a netlist with error or warning: {netlist} based on the error message: "{error_message}". You are also given a specification id table: {local_config.table_specs_id} and the specification-simulation needed from previous agent:{spec_sims}. 
+You should output the fixed netlist and simply the fixing info. Also, if the specification-simulation relationship is not enought or redundant, you should output updated it.
 ### STRICT FORMATTING RULES:
 0, ONE COMMAND PER LINE: Every '.param', '.model', or component must start on a NEW line. 
    - BAD: .param VDD=1.2 .param W=1u
@@ -18,7 +18,7 @@ You should output the fixed netlist and the specification-simulation relationshi
      .param VDD=1.2
      .param W=1u l=1u m=1
 1, PARAMETER SYNTAX: Use '.param name=value'. Do not use curly brackets {{}} if an '=' is present (e.g., 'dc=VDD' is good, 'dc={{VDD}}' is bad).
-2, In NGSpice, you can use inoise_total if the integration noise is required.If there is no inoise_spectrum vector, try inoise_total.
+2, In NGSpice, you can use inoise_total if the integration noise is required. If there is no inoise_spectrum vector, try inoise_total.
 Example1 for input refer total noise integrated:
 noise v(VOUT1) vin dec 10 1 10G
 wrdata ./1genai/output/{cir_num}/noise.csv inoise_total

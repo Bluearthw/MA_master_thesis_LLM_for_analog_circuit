@@ -44,10 +44,12 @@ def test_make_cir_sim(cir_num):
     struc = add_sim_agent(netlist, category_str, cir_num)
     netlist = struc.netlist
     spec_sims = struc.spec_sims
+    is_differential_output = struc.is_diff
     for spec_sim in spec_sims:
         print("==spec_sims", spec_sim)
     print("======sim netlist = ")
     print(netlist)
+    print(is_differential_output)
     
     utils.save_str_to_file(netlist, path_output_num + "final_netlist.cir")
     
@@ -76,8 +78,7 @@ def test_make_cir_sim(cir_num):
             netlist_path = path_output_num + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
-            is_diff_out = True
-            measurement_results = utils.measure(struct_path_id, is_diff_out)
+            measurement_results = utils.measure(struct_path_id, is_differential_output)
             # Run measurements using SpiceResult helpers
             
             print("Measurement results:", measurement_results)
@@ -92,7 +93,7 @@ def test_make_cir_sim(cir_num):
             error_msg_input = "\n".join(error_msg)
             print(error_msg_input)
             utils.test_delay(30)  # Wait 10 seconds before retrying
-            struct_debug = debug_agent.debug_agent(netlist, error_msg_input,cir_num)
+            struct_debug = debug_agent.debug_agent(netlist, error_msg_input,cir_num, spec_sims)
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims
             error_msg.append("fixing info:\n"+struct_debug.fix_info)
@@ -107,7 +108,7 @@ def test_make_cir_sim(cir_num):
 def add_sim_agent(netlist, category,cir_num=4):
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs : {local_config.table_specs_id}, and a brief requirement about this type of circuit : {category}.
-Your goal is to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. You should output the complete netlist and a list of required specifications and corresponding simulation files for measurement. The measurement will be done by following agents.
+Your goal is to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. You should output the complete netlist, tell whether it is differential output or not, a list of required specifications and corresponding simulation files for measurement. The measurement will be done by following agents.
 ### Here are some rules.
 0. Check whether the circuit needs a load. If the circuit does not have a load, add a capacitor load. Example: 
 .param Cload=10p 
@@ -150,8 +151,10 @@ ein1 net1 VCM aid 0 0.5
 ein2 net2 VCM aid 0 -0.5
 
 10. If the circuit is differential output. Make sure the specification is correct.
-Example:
 Use differential mode gain instead of AC gain (single port) for differential output circuits.
+Also, the simulation should simulate the output separately for CM gain and DM gain. This is the format for later measurement.
+Example:
+wrdata ./1genai/output/69/ac_gain.csv v(VOUT1) v(VOUT2)
 
 11. Also, you should pay attention to whether there is CMFB stability specification check. Espacially when Vgate is not connected to VB directly. The following agent will make a new netlist if the CMFB stability is needed.
 """

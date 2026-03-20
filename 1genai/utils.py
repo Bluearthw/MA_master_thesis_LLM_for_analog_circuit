@@ -1102,7 +1102,7 @@ class SpiceResultNew:
     def __init__(self, is_differential = False):
         self.is_diff = is_differential
         # paths
-        self.path_ac_gain = None
+        self.path_ac_gain = None 
         self.path_psrr = None
         self.path_noise = None
         self.path_trans = None
@@ -1182,8 +1182,13 @@ class SpiceResultNew:
     #1 Bandwidth
     def get_bandwidth(self,path=""):
         """Finds the -3dB cutoff frequency."""
-        if self.path_ac_gain is None:
-            self.load_ac_gain_data(path)
+        if self.is_diff:
+            if self.path_adm is None:
+                self.load_adm_data(path)
+        else:
+            if self.path_ac_gain is None:
+                self.load_ac_gain_data(path)
+        #used for both, it is already 1 signal after calculation
         length = len(self.mag_db)
         last_mag_db =  np.mean(self.mag_db[int(length*0.7) : -1])
         first_mag_db = np.mean(self.mag_db[0 : int(length*0.3)])

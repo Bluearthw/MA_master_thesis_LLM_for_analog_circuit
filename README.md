@@ -1,6 +1,5 @@
 git add .
-git commit -m "#TODO, still some bugs with measure()
-a new agent is required for CMFB stability since the netlist is different. "
+git commit -m "modify debug agent for spec sim, ask add sim agent for differential check. fix bug measure() , now bw for diff"
 git push
 
 venv\Scripts\Activate.ps1
