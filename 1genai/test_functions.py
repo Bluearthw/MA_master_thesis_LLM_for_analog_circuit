@@ -332,8 +332,13 @@ Your goal is to check whether there is CMFB loop in this circuit. If there is, s
             )
     print(response.text)
 
-def test_cmfb_agent():
-    cmfb_agent(saved_netlist.nl_182_diff_with_cmfb_before_cmfb_agent,182)
+def test_clean_before_CMFB(nl):
+    nl2 = utils.clean_before_CMFB(nl)
+    print(nl2)
+
+def test_cmfb_agent(nl):
+    response = cmfb_agent.cmfb_agent(nl,182)
+    print(response)
 # region test
 start_time = time.perf_counter()
 # test_clean()
@@ -363,6 +368,8 @@ start_time = time.perf_counter()
 # test_debug_agent()
 # test_run_ngspice_direct_from_final_netlist(155)
 # test_find_cat_from_num(186)
+# test_clean_before_CMFB(saved_netlist.nl_182_diff_with_cmfb_before_cmfb_agent)
+
 end_time = time.perf_counter()
 
 # endregion
@@ -387,8 +394,8 @@ end_time = time.perf_counter()
 #endregion category7
 
 #region agent test
-
-test_cmfb_check_agent(saved_netlist.nl_182_diff_with_cmfb_not_for_sim, 182)
+# test_cmfb_check_agent(saved_netlist.nl_182_diff_with_cmfb_not_for_sim, 182)
+test_cmfb_agent( saved_netlist.nl_182_before_cmfb_agent_cleaned)
 #endregion
 print(f"Execution time: {end_time - start_time:.6f} seconds")
 

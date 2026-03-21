@@ -318,3 +318,188 @@ wrdata ./1genai/output/182/tran_sr.csv v(VOUT1) v(VOUT2)
 
 .endc
 .end"""
+
+nl_182_before_cmfb_agent_cleaned = """* Fully Differential Amplifier 182
+.param VDD_val=1.1
+.param VCM_val=0.55
+.param Cload_val=1p
+.param VB1=0.7
+.param IB1=0.01
+.param w5=0.5u
+.param l5=90n
+.param m5=1
+.param w4=0.5u
+.param l4=90n
+.param m4=1
+.param w1=0.5u
+.param l1=90n
+.param m1=1
+.param w0=0.5u
+.param l0=90n
+.param m0=1
+.param r1=1k
+.param r2=1k
+.param r0=1k
+.param c1=3p
+.param c0=3p
+.param w3=0.5u
+.param l3=90n
+.param m3=1
+.param w2=0.5u
+.param l2=90n
+.param m2=1
+.param trf=0.5u
+.param period=10u
+.include "1genai/data/p045_TT.sp"
+
+* Core Circuit
+M5 VOUT2 VB1 net36 VSS nmos w=w5 l=l5 m=m5
+M4 VOUT1 VB1 net32 VSS nmos w=w4 l=l4 m=m4
+M1 net32 VIN2 IB1 VSS nmos w=w1 l=l1 m=m1
+M0 net36 VIN1 IB1 VSS nmos w=w0 l=l0 m=m0
+R1 VOUT2 net29 {r1}
+R2 net29 VOUT1 {r2}
+R0 net36 net35 {r0}
+C1 VDD net29 {c1}
+C0 net35 net32 {c0}
+M3 VOUT1 net29 VDD VDD pmos w=w3 l=l3 m=m3
+M2 VOUT2 net29 VDD VDD pmos w=w2 l=l2 m=m2
+
+* Bias Sources
+ib1 IB1 0 dc={IB1}
+vb1 VB1 0 dc={VB1}
+v_vdd VDD 0 dc {VDD_val}
+vss VSS 0 dc 0
+v_vcm VCM 0 dc {VCM_val}
+
+* Loads
+CL1 VOUT1 0 {Cload_val}
+CL2 VOUT2 0 {Cload_val}
+
+* Stimuli Sources
+vid aid 0 dc 0 ac 1.0 PULSE(-0.1 0.1 1n 1n 1n 5u 10u)
+vicm acm 0 dc 0 ac 0
+ein1 VIN1 VCM aid 0 0.5
+ein2 VIN2 VCM aid 0 -0.5
+
+.control
+option numdgt=7
+set temp=25
+set units=degrees
+set wr_vecnames
+.endc
+.end"""
+
+nl_182_after_cmfb_agent = """* Fully Differential Amplifier with Common-Mode Feedback (CMFB) - Circuit 182
+
+** Parameters **
+.param VDD_val=1.1
+.param VCM_val=0.55
+.param Cload_val=1p
+.param VB1=0.7
+.param IB1=0.01
+.param w5=0.5u
+.param l5=90n
+.param m5=1
+.param w4=0.5u
+.param l4=90n
+.param m4=1
+.param w1=0.5u
+.param l1=90n
+.param m1=1
+.param w0=0.5u
+.param l0=90n
+.param m0=1
+.param r1=100k
+.param r2=100k
+.param r0=1k
+.param c1=3p
+.param c0=3p
+.param w3=0.5u
+.param l3=90n
+.param m3=1
+.param w2=0.5u
+.param l2=90n
+.param m2=1
+.param trf=0.5u
+.param period=10u
+
+* CMFB Specific Parameters
+.param VCMFB_REF=0.55
+.param w_ean=1.0u
+.param l_ean=90n
+.param m_ean=1
+.param w_eap=2.0u
+.param l_eap=90n
+.param m_eap=1
+.param I_ea_val=20u
+
+.include "1genai/data/p045_TT.sp"
+
+** Core Differential Amplifier Circuit **
+* NMOS Cascode Stage
+M5 VOUT2 VB1 net36 VSS nmos w=w5 l=l5 m=m5
+M4 VOUT1 VB1 net32 VSS nmos w=w4 l=l4 m=m4
+M1 net32 VIN2 IB1 VSS nmos w=w1 l=l1 m=m1
+M0 net36 VIN1 IB1 VSS nmos w=w0 l=l0 m=m0
+
+* Differential Load and Compensation
+R0 net36 net35 {r0}
+C0 net35 net32 {c0}
+
+* PMOS Active Loads (Controlled by CMFB via net29)
+M3 VOUT1 net29 VDD VDD pmos w=w3 l=l3 m=m3
+M2 VOUT2 net29 VDD VDD pmos w=w2 l=l2 m=m2
+C1 VDD net29 {c1}
+
+** Common-Mode Feedback (CMFB) Circuit **
+* 1. Sensed Common-Mode Voltage (Center tap of R1, R2)
+R1 VOUT2 VCM_SENSE {r1}
+R2 VCM_SENSE VOUT1 {r2}
+
+* 2. Reference Voltage for CMFB
+v_cmfb_ref VCM_REF_NODE 0 dc {VCMFB_REF}
+
+* 3. Error Amplifier (OTA topology)
+* Senses VCM_SENSE and VCMFB_REF, drives net29
+M_EA1 EA_D1 VCM_SENSE EA_S VSS nmos w=w_ean l=l_ean m=m_ean
+M_EA2 net29 VCM_REF_NODE EA_S VSS nmos w=w_ean l=l_ean m=m_ean
+M_EA3 EA_D1 EA_D1 VDD VDD pmos w=w_eap l=l_eap m=m_eap
+M_EA4 net29 EA_D1 VDD VDD pmos w=w_eap l=l_eap m=m_eap
+I_EA_TAIL EA_S VSS dc {I_ea_val}
+
+** Bias and Power Sources **
+ib1 IB1 0 dc={IB1}
+vb1 VB1 0 dc={VB1}
+v_vdd VDD 0 dc {VDD_val}
+vss VSS 0 dc 0
+v_vcm VCM 0 dc {VCM_val} PULSE({VCM_val} {VCM_val+0.05} 1u 1n 1n 2u 10u)
+
+** Loads **
+CL1 VOUT1 0 {Cload_val}
+CL2 VOUT2 0 {Cload_val}
+
+** Stimuli Sources **
+vid aid 0 dc 0 ac 1.0 PULSE(-0.1 0.1 1n 1n 1n 5u 10u)
+ein1 VIN1 VCM aid 0 0.5
+ein2 VIN2 VCM aid 0 -0.5
+
+** Simulation Commands **
+.control
+option numdgt=7
+set temp=25
+
+* 1. DC Analysis
+op
+
+* 2. AC Analysis (Differential Gain with CMFB active)
+ac dec 20 1 10G
+wrdata ./1genai/output/182/ac_gain_cmfb.csv v(VOUT1,VOUT2)
+
+* 3. Transient Analysis (Check CMFB stabilization and control signal)
+tran 1n 10u
+wrdata ./1genai/output/182/cmfb_control.csv v(net29)
+
+.endc
+.end
+"""

@@ -1,5 +1,5 @@
 git add .
-git commit -m "96 is not with CMFB but 182, which is with output CM involved. Gemini says."
+git commit -m "test CMFB, clean netlist before CMFB. Now the problem is , is that gain correct? net29/vout?"
 git push
 
 venv\Scripts\Activate.ps1

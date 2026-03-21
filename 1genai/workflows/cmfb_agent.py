@@ -1,50 +1,34 @@
 from google import genai
-
+import sys
+#local import
+sys.path.append("./1genai")
 import local_config
 import tools
 def cmfb_agent(netlist, cir_num=4):
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
-    contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given a differential output netlist and you need to add a Common-Mode Feedback (CMFB) circuit to stabilize the output common-mode voltage.
+    contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. 
+    You are given a differential output netlist and you need to modify the netlist and try to add simulation to measure the Common-mode feedback (CMFB) for later agent to stabilize the output common-mode voltage.
 
 **Circuit Information:**
+- Description: The netlist is already used for other specifications and the simulations are removed. You should add only simulation related to CMFB
 - Circuit Number: {cir_num}
 - Original Netlist:
 {netlist}
 
-**Specifications Table:**
-{local_config.table_specs_id}
-
-**Your Objectives:**
-1. Analyze the given netlist and identify the differential output nodes (VOUT1, VOUT2)
-2. Add a CMFB circuit that:
-   - Senses the common-mode voltage: VCMFB = (VOUT1 + VOUT2)/2
-   - Compares it to a reference VCMFB_REF (typically VDD/2)
-   - Adjusts a bias current or tail current to maintain VCMFB at the setpoint
-3. Choose an appropriate CMFB topology (e.g., voltage follower, telescopic, or high-impedance)
-4. Add the CMFB control signal to the main differential pair or current mirror tail
-5. Ensure the netlist has proper parameters and can be simulated without errors
-6. Add AC and DC simulation commands to verify CMFB operation
-
-**CMFB Simulation Requirements:**
-- DC operating point analysis to check voltage levels
-- AC analysis to verify frequency response with CMFB
-- Transient analysis (optional) to verify settling behavior
-- Write simulation results to appropriate output files
-
-**Output File Paths** (use circuit number {cir_num}):
-- AC Gain with CMFB: ./1genai/output/{cir_num}/ac_gain_cmfb.csv
-- CMFB control signal: ./1genai/output/{cir_num}/cmfb_control.csv (transient)
+You can use Middlebrook Method or any other method that is good. Measurement will be done by following agent using the wrdata output data so meas is not needed.
 
 **Important Rules:**
 1. Keep the original differential pair and all component definitions intact
 2. Do NOT use bare transistor parameters like w={{}} or l={{}}: use .param instead
-   - Example: M_cmfb node1 node2 node3 node4 nmos w=w_cmfb l=l_cmfb m=m_cmfb
+   - Example: M0 node1 node2 node3 node4 nmos w=w0 l=l0 m=m0
 3. All passive components (R, C) MUST use {{parameter}} format
-4. Add .param statements for all new CMFB circuit components
-5. Every netlist command must be on a NEW line (no multi-line statements)
-6. The CMFB reference voltage should be a parameter (e.g., VCMFB_REF = VDD/2)
-7. Return the complete, augmented netlist ready for simulation
-8. Include control block with appropriate simulation commands and output file writes
+4. Every netlist command must be on a NEW line (no multi-line statements)
+5. The CMFB reference voltage should be a parameter (e.g., VCMFB_REF = VDD/2)
+6. Return the complete, augmented netlist ready for simulation
+7. Include control block with appropriate simulation commands and output file writes
+Example:
+ac dec 50 1 100G
+wrdata ./1genai/output/{cir_num}/cmfb_stb.csv v(net29)/v(gate_fb)
 
 **Output Format:**
 Return the new netlist that is for CMFB.

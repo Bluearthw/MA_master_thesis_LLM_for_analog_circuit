@@ -315,34 +315,6 @@ def find_cat_from_num(num):
 
 
 # region for adding (tool)
-def clean_netlist(netlist):
-    """
-    Cleans an analog SPICE netlist string by standardizing component names and removing
-    descriptive text.
-
-    Performs the following transformations on the input netlist string:
-    1. Removes all parentheses '(', ')'.
-    2. Renames the device model 'nmos4' to 'nmos' and 'pmos4' to 'pmos'.
-    3. Removes the descriptive words 'resistor' and 'capacitor' and replaces them
-       with a newline character, effectively removing them from the component definition line.
-    4. Add inclusion
-    Args:
-        netlist: The raw, potentially incomplete or flawed SPICE netlist content as a single string.
-
-    Returns:
-        The cleaned and standardized SPICE netlist string.
-    """
-    netlist = netlist.strip()
-
-    netlist = re.sub(r"[()]", "", netlist)
-
-    netlist = re.sub(r"\bnmos4\b", "nmos", netlist)
-    netlist = re.sub(r"\bpmos4\b", "pmos", netlist)
-    netlist = re.sub(r"\s*resistor\s*", "\n", netlist, flags=re.IGNORECASE)
-    netlist = re.sub(r"\s*capacitor\s*", "\n", netlist, flags=re.IGNORECASE)
-
-    return local_config.str_nl_include + netlist
-
 
 def match_transistor(match):
 
@@ -661,6 +633,58 @@ set wr_vecnames
 
 
 # region for modifying
+def clean_netlist(netlist):
+    """
+    Cleans an analog SPICE netlist string by standardizing component names and removing
+    descriptive text.
+
+    Performs the following transformations on the input netlist string:
+    1. Removes all parentheses '(', ')'.
+    2. Renames the device model 'nmos4' to 'nmos' and 'pmos4' to 'pmos'.
+    3. Removes the descriptive words 'resistor' and 'capacitor' and replaces them
+       with a newline character, effectively removing them from the component definition line.
+    4. Add inclusion
+    Args:
+        netlist: The raw, potentially incomplete or flawed SPICE netlist content as a single string.
+
+    Returns:
+        The cleaned and standardized SPICE netlist string.
+    """
+    netlist = netlist.strip()
+
+    netlist = re.sub(r"[()]", "", netlist)
+
+    netlist = re.sub(r"\bnmos4\b", "nmos", netlist)
+    netlist = re.sub(r"\bpmos4\b", "pmos", netlist)
+    netlist = re.sub(r"\s*resistor\s*", "\n", netlist, flags=re.IGNORECASE)
+    netlist = re.sub(r"\s*capacitor\s*", "\n", netlist, flags=re.IGNORECASE)
+
+    return local_config.str_nl_include + netlist
+
+def clean_before_CMFB(netlist):
+    """
+    Remove the simulation block from the netlist.
+    Specifically, removes lines from the last 'set' command to '.endc' inclusive.
+    This cleans the netlist before adding CMFB simulation.
+    """
+    lines = netlist.strip().splitlines()
+    start_idx = None
+    end_idx = None
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith('set'):
+            start_idx = i  # update to the last 'set' line
+        elif stripped == '.endc':
+            end_idx = i
+            break
+    if start_idx is not None and end_idx is not None and start_idx < end_idx:
+        # Remove from start_idx to end_idx inclusive
+        new_lines = lines[:start_idx + 1] + lines[end_idx :] # do not + 1 since .endc is still needed
+        return '\n'.join(new_lines)
+    else:
+        # If no such block found, return the netlist unchanged
+        return netlist
+
 def modify_duplicate_component(circuit_string):
     seen_names = set()
     new_lines = []
@@ -1094,6 +1118,7 @@ class SpiceResult:
             return 0
         mean = np.mean(slew_ary)*1e-6
         return mean
+
 def complex_from_cols(data, real_col, imag_col):
             if real_col < data.shape[1] and imag_col < data.shape[1]:
                 return data[:, real_col] + 1j * data[:, imag_col]
