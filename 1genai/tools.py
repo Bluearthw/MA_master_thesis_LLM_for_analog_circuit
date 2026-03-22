@@ -17,7 +17,10 @@ class Struct_debug(BaseModel):
     
     # sim_file_names : list[str] =Field(description="list of names of simulations output files. Here are .csv files, e.g., ac_gain.csv and noise.csv")
     fix_info: str = Field(description="what is fixed in the netlist based on the error message and why")
-
+class Struct_cmfb_agent(BaseModel):
+    netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
+    spec_sims : Struct_specs_sim = Field(description="CMFB stability. id is 20")
+    
 clean_netlist_declaration = { 
     "name": "clean_netlist",# it is a mistery, how does it find the utils.clean_netlist
     "description": "Standardizes and cleans an analog SPICE netlist string by removing parentheses, renaming 'nmos4/pmos4' models, and removing descriptive words like 'resistor/capacitor'.",

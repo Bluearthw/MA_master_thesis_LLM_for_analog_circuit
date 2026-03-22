@@ -1,8 +1,5 @@
 git add .
-git commit -m "Now the agent is ready, modify tool.py for structure output: 1 netlist, 2 file path, 3 id,
-
-For now, it is only sequential. As 1 netlist is done(debug, sim, output{id:path}) the next will start (debug debug, sim, output{id:path}), then measure.
-vout,s/vin,s is the loop gain
+git commit -m "gonna change the agnet structure, the output is structured.
 "
 git push
 

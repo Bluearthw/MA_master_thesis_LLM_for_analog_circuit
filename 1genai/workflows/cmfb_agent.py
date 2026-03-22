@@ -31,7 +31,7 @@ ac dec 50 1 100G
 wrdata ./1genai/output/{cir_num}/cmfb_stb.csv v(net29)/v(gate_fb)
 
 **Output Format:**
-Return the new netlist that is for CMFB.
+Return the new netlist that is for CMFB. The specification (CMFB stb), id (20) and the output file path. 
 """
 
     max_retries = 5
@@ -42,9 +42,12 @@ Return the new netlist that is for CMFB.
             response = client.models.generate_content(
                 model=local_config.agent_model3,
                 contents=contents,
-                
+                config={
+                    "response_mime_type": "application/json",
+                    "response_schema": tools.Struct_cmfb_agent,
+                },
             )
-            return response.text
+            return response.parsed
 
         except Exception as e:
             error_msg = str(e)

@@ -53,7 +53,8 @@ def test_make_cir_sim(cir_num):
     print(is_differential_output)
     print("is CMFB:", is_CMFB)
     if is_CMFB:
-        cmfb_agent(netlist)
+        cmfb_netlist = cmfb_agent(netlist)
+        utils.save_str_to_file(cmfb_netlist, path_output_num + "cmfb_netlist.cir")
     utils.save_str_to_file(netlist, path_output_num + "final_netlist.cir")
     
     counter = 0
