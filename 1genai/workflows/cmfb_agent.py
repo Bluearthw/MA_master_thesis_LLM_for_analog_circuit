@@ -57,7 +57,7 @@ Return the new netlist that is for CMFB.
                 time.sleep(wait_sec)
             elif "429" in error_msg or "TooManyRequests" in error_msg:
                 retry_count += 1
-                wait_sec = 120 * retry_count
+                wait_sec = 60 * retry_count
                 print(f"Rate limit exceeded (429). Retry #{retry_count}.")
                 import time
                 time.sleep(wait_sec)

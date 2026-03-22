@@ -1,5 +1,9 @@
 git add .
-git commit -m "test CMFB, clean netlist before CMFB. Now the problem is , is that gain correct? net29/vout?"
+git commit -m "Now the agent is ready, modify tool.py for structure output: 1 netlist, 2 file path, 3 id,
+
+For now, it is only sequential. As 1 netlist is done(debug, sim, output{id:path}) the next will start (debug debug, sim, output{id:path}), then measure.
+vout,s/vin,s is the loop gain
+"
 git push
 
 venv\Scripts\Activate.ps1
