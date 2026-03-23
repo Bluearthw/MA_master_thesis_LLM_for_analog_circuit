@@ -4,3 +4,6 @@ googleFrame
 *.pyc
 1genai/data
 1genai/output
+1genai/before2026_py_files/CAD/
+no_backup
+output_figs

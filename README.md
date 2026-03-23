@@ -1,7 +1,5 @@
 git add .
-git commit -m "it setplot but does not use noise1. In this way inoise_spectrum works
-setplot noise1
-wrdata ./1genai/output/{cir_num}/noise.csv inoise_spectrum 
+git commit -m "decide to put it at the workplace/ finally. Try to make it work later, Now it has figs and output netlist but there is no csv. I think it is because it does not see the ngspice.
 "
 git push
 
