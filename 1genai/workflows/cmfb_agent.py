@@ -25,10 +25,11 @@ You can use Middlebrook Method or any other method that is good. Measurement wil
 4. Every netlist command must be on a NEW line (no multi-line statements)
 5. The CMFB reference voltage should be a parameter (e.g., VCMFB_REF = VDD/2)
 6. Return the complete, augmented netlist ready for simulation
-7. Include control block with appropriate simulation commands and output file writes
+7. Include control block with appropriate simulation commands and output file writes. Use the path in the example. 
+The only thing can change is the number or file name. It should output 2 voltages. Not the ratio of the voltages.
 Example:
 ac dec 50 1 100G
-wrdata ./1genai/output/{cir_num}/cmfb_stb.csv v(net29)/v(gate_fb)
+wrdata ./1genai/output/{cir_num}/cmfb_stb.csv v(net29) v(gate_fb)
 
 **Output Format:**
 Return the new netlist that is for CMFB. The specification (CMFB stb), id (20) and the output file path. 

@@ -953,6 +953,9 @@ def measure(struct_path_id, is_diff_out = False):
             results["Adm"] = spice_res.get_differential_mode_gain(path)
         elif spec_id == 19:
             results["output_balance"] = spice_res.get_output_balance(path)
+        elif spec_id == 20:
+            results["cmfb_stb"] = spice_res.get_cmfb_stb(path)
+
 
 
         else:
@@ -1162,7 +1165,7 @@ class SpiceResultNew:
             self.vout_complex = complex_from_cols(data_gain, 1, 2)
             self.mag = np.abs(self.vout_complex)
             self.mag_db = 20 * np.log10(self.mag)
-            self.phase = np.unwrap(np.angle(self.vout_complex, deg=True))
+            self.phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
         else:
             raise ("why dif goes to load_ac_gain_data()")
     
@@ -1188,7 +1191,7 @@ class SpiceResultNew:
         self.vout_complex = self.vout1_complex - self.vout2_complex
         self.mag = np.abs(self.vout_complex)
         self.mag_db = 20 * np.log10(self.mag)
-        self.phase = np.unwrap(np.angle(self.vout_complex, deg=True))
+        self.phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
 
 
 
@@ -1249,12 +1252,6 @@ class SpiceResultNew:
         if self.path_adm is None:
             self.load_adm_data(path_adm)
         return self.mag, self.mag_db
-    #19
-    def get_output_balance(self,path, error_deg = 5):
-        if len(self.phase_v1) and len(self.phase_v2):
-            self.load_adm_data(path)
-        diffs = np.abs(self.phase_v1 - self.phase_v2) % 360
-        return np.all(np.abs(diffs - 180) <= error_deg)
         
     #16 phase response
     def get_phase_response(self, path_gain=""):
@@ -1319,6 +1316,67 @@ class SpiceResultNew:
         # print(f"phm: {phm}\n")
         
         return phm
+    #19 output balance
+    def get_output_balance(self,path, error_deg = 5):
+        if len(self.phase_v1) and len(self.phase_v2):
+            self.load_adm_data(path)
+        diffs = np.abs(self.phase_v1 - self.phase_v2) % 360
+        return np.all(np.abs(diffs - 180) <= error_deg)
+    #20 cmfb stb
+    def get_cmfb_stb(self, path_cmfb_stb):
+        """Analyze CMFB loop stability from simulation data.
+        
+        Args:
+            path_cmfb_stb: Path to the CMFB stability CSV file with columns:
+                          freq, v(in) real, v(in) imag, freq, v(out) real, v(out) imag
+        
+        Returns:
+            tuple: (is_stable: bool, phase_margin: float, gain_margin: float)
+        """
+        data = np.genfromtxt(path_cmfb_stb, skip_header=1)
+        
+        freq = data[:, 0]
+        v_in_real = data[:, 1]
+        v_in_imag = data[:, 2]
+        v_out_real = data[:, 4]
+        v_out_imag = data[:, 5]
+        
+        v_in = v_in_real + 1j * v_in_imag
+        v_out = v_out_real + 1j * v_out_imag
+        
+        # Loop gain = v_out / v_in
+        loop_gain = v_out / v_in
+        mag_db = 20 * np.log10(np.abs(loop_gain))
+        phase_deg = np.unwrap(np.angle(loop_gain, deg=True), period=360)
+        
+        # Phase margin: phase at gain = 0dB
+        try:
+            pm_cross_freq, pm_found = get_best_crossing(freq, mag_db, 0)
+            if pm_found:
+                phase_at_0db = np.interp(pm_cross_freq, freq, phase_deg)
+                phase_margin = 180 + phase_at_0db
+            else:
+                phase_margin = float('inf') if np.all(mag_db > 0) else float('-inf')
+        except:
+            phase_margin = 0
+        
+        # Gain margin: gain at phase = -180°
+        try:
+            def phase_error(f):
+                return np.interp(f, freq, phase_deg) - (-180)
+            
+            xstart, xstop = freq[0], freq[-1]
+            phase_cross_freq = sciopt.brentq(phase_error, xstart, xstop)
+            gain_at_180deg = np.interp(phase_cross_freq, freq, mag_db)
+            gain_margin = -gain_at_180deg
+        except ValueError:
+            # Phase never crosses -180°
+            gain_margin = float('inf') if np.all(phase_deg > -180) else float('-inf')
+        
+        # Stable if both margins are positive
+        is_stable = gain_margin > 0 and phase_margin > 0
+        
+        return is_stable, phase_margin, gain_margin
 
     #3 input equivalent integrated total noise
     def get_in_equivalent_total_noise(self, path): # there is another vector that might calculate the integrated noise, 
@@ -1504,6 +1562,7 @@ class SpiceResultNew:
         
         return  cmrr_db # Return freq and CMRR in dB
 
+
     # Helper methods
     def get_unity_gain_bw(self, path = ""):
         """Finds the frequency where gain is 0dB."""
@@ -1522,7 +1581,7 @@ class SpiceResultNew:
             return 0
         # print(f"ugbw: {ac_cross}\n")
         return ac_cross
-
+    
     
 def get_best_crossing(xvec, yvec, val):
         interp_fun = interp.InterpolatedUnivariateSpline(xvec, yvec)

@@ -1,5 +1,5 @@
 git add .
-git commit -m "gonna change the agnet structure, the output is structured.
+git commit -m "structure is ready, the next step is finish the measure of CMFB
 "
 git push
 

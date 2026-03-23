@@ -7,6 +7,7 @@ path_id = {0: './1genai/output/155/ac_gain.csv', 1: './1genai/output/155/ac_gain
 path_id2 = {15: './1genai/output/155/ac_gain.csv', 3: './1genai/output/155/noise.csv', 4: './1genai/output/155/tran_sr.csv', 13: './1genai/output/155/dc_icmr.csv', 0: './1genai/output/155/dc_sw.csv', 14: './1genai/output/155/ac_cmrr.csv', 2: './1genai/output/155/ac_psrr.csv'}
 path_id_69 = {0: './1genai/output/69/ac_gain.csv', 1: './1genai/output/69/ac_gain.csv', 15: './1genai/output/69/ac_gain.csv', 18: './1genai/output/69/ac_gain.csv', 19: './1genai/output/69/ac_balance.csv', 3: './1genai/output/69/noise.csv', 4: './1genai/output/69/tran_sr.csv', 12: './1genai/output/69/tran_sr.csv'}
 path_id_96 = {18: './1genai/output/96/ac_gain.csv', 17: './1genai/output/96/ac_cm.csv', 0: './1genai/output/96/ac_gain.csv', 1: './1genai/output/96/ac_gain.csv', 16: './1genai/output/96/ac_gain.csv', 6: './1genai/output/96/ac_gain.csv', 3: './1genai/output/96/noise.csv', 4: './1genai/output/96/tran_sr.csv', 10: './1genai/output/96/dc_sweep.csv', 11: './1genai/output/96/dc_sweep.csv'}
+path_id_182 = {20: './1genai/output/182/cmfb_stb.csv'}
 def test_phase_calculation():
     print("--- SPICE Phase Processing Test Bench ---")
     
@@ -56,5 +57,5 @@ def test_measurement_spice_result_new(path_id):
     print(result)
     # print(result["icmr"][0])
 
-test_measurement_spice_result_new(path_id_96)
+test_measurement_spice_result_new(path_id_182)
 # test_phase_calculation()
