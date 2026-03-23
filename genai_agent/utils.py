@@ -833,7 +833,7 @@ def pyspice_op_sim_final(circuit):
 def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.path_output +  "4/final_netlist.cir"):
     # 1. Save netlist to a temporary file
     if is_save:
-        path_nl = "./1genai/output/temp_circuit.cir"
+        path_nl = f"{local_config.path_output}/temp_circuit.cir"
         with open(path_nl, "w") as f:
             f.write(netlist_content)
         

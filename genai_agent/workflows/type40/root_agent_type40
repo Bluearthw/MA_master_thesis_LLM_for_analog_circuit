@@ -10,18 +10,66 @@ from pathlib import Path
 
 ######################
 # local import
-sys.path.append("./1genai")
+sys.path.append("./genai_agent")
 import local_config
 import utils
 import tools
 import debug_agent
+from memory import category_numbers
+from workflows import cmfb_agent
 
+path_output = local_config.path_output
+
+def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, path_output_num):
+    
+    counter = 0
+    error_msg = []
+    while True:
+        sim_output = utils.run_ngspice_direct(netlist)
+        print("=====sim output", sim_output)
+        if sim_output["success"]: 
+            # check files
+            # gather all generated file paths; use a set to ensure uniqueness
+            struct_path_id = {}  # id: path
+            for spec_sim in spec_sims:
+                path_file = path_output_num + spec_sim.sim_file_name
+                if os.path.exists(path_file):
+                    print(f"File {path_file} exists.")
+                    struct_path_id[spec_sim.spec_id] = path_file
+                else:
+                    print(f"File {path_file} does not exist.")
+                    raise RuntimeError(f"Expected output file {path_file} not found.")
+            print(f"===  path_id_{cir_num} = ", struct_path_id)
+            print("Simulation successful and output files verified!")
+            # save the netlist
+            netlist_path = path_output_num + "final_netlist.cir"
+            with open(netlist_path, "w") as f:
+                f.write(netlist)
+            measurement_results = utils.measure(struct_path_id, is_differential_output)
+            for mr in measurement_results:
+                print("Measurement results:", mr)
+            return measurement_results
+        else:
+            print(f"==================bug found!!!!======={counter}===============")
+            error_msg.append(f"iteration{counter}:")
+            error_msg.append(sim_output["message"] + "")
+            error_msg_input = "\n".join(error_msg)
+            print(error_msg_input)
+            utils.test_delay(30)  # Wait 10 seconds before retrying
+            struct_debug = debug_agent.debug_agent(netlist, error_msg_input, cir_num, spec_sims)
+            netlist = struct_debug.netlist
+            spec_sims = struct_debug.spec_sims
+            error_msg.append("fixing info:\n" + struct_debug.fix_info)
+        counter += 1
+        if counter > 5:
+            raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
 
 def test_make_cir_sim(cir_num):
     
     path_cir = local_config.path_dataset + f"/{cir_num}/{cir_num}.cir"
     print("==cir_path\n", path_cir)
-    path_output_num = local_config.path_output + f"{cir_num}/"
+    
+    path_output_num = path_output + f"{cir_num}/"
     circuit_string = utils.get_file_to_str(path_cir)  
     # print("==circuit_string\n",circuit_string)
     circuit_string = utils.modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167
@@ -43,68 +91,40 @@ def test_make_cir_sim(cir_num):
     struc = add_sim_agent(netlist, category_str, cir_num)
     netlist = struc.netlist
     spec_sims = struc.spec_sims
-    print("==spec_sims", spec_sims)
+    is_differential_output = struc.is_diff
+    is_CMFB = struc.is_CMFB
+    for spec_sim in spec_sims:
+        print("==spec_sims", spec_sim)
     print("======sim netlist = ")
     print(netlist)
+    print(is_differential_output)
+    print("is CMFB:", is_CMFB)
     
+    # Simulate original netlist
+    results_original = sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, path_output_num)
+    
+    combined_results = {'original': results_original}
     utils.save_str_to_file(netlist, path_output_num + "final_netlist.cir")
     
-    counter = 0
-    error_msg=[]
-    # is_debug = False
-    while True:
-        sim_output = utils.run_ngspice_direct(netlist)
-        print("=====sim output",sim_output)
-        if sim_output["success"]: 
-            #check files
-            # gather all generated file paths; use a set to ensure uniqueness
-            struct_path_id ={}# id: path
-            for spec_sim in spec_sims:
-                path_file = path_output_num + spec_sim.sim_file_name
-                if os.path.exists(path_file):
-                    print(f"File {path_file} exists.")
-                    struct_path_id[spec_sim.spec_id] = path_file
-                    
-                else:
-                    print(f"File {path_file} does not exist.")
-                    raise RuntimeError(f"Expected output file {path_file} not found.")
-            print("=== struct path id",struct_path_id)
-            print("Simulation successful and output files verified!")
-            # now `paths` contains only unique file paths, in the order they were encountered
-            netlist_path = path_output_num + "final_netlist.cir"
-            with open(netlist_path, "w") as f:
-                f.write(netlist)
-            measurement_results = utils.measuremnt(struct_path_id)
-            # Run measurements using SpiceResult helpers
-            
-            print("Measurement results:", measurement_results)
-            # return the unique paths for callers that care
-            return measurement_results
-            
-
-        else:
-            print(f"==================bug found!!!!======={counter}===============")
-            error_msg.append(f"iteration{counter}:")
-            error_msg.append(sim_output["message"]+"")
-            error_msg_input = "\n".join(error_msg)
-            print(error_msg_input)
-            utils.test_delay(30)  # Wait 10 seconds before retrying
-            struct_debug = debug_agent.debug_agent(netlist, error_msg_input,cir_num)
-            netlist = struct_debug.netlist
-            spec_sims = struct_debug.spec_sims
-            error_msg.append("fixing info:\n"+struct_debug.fix_info)
-            
-            # is_debug = True
-        counter+=1
-        if counter > 5:
-            raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
-            # print("Too many iterations in debug-sim loop. Something might be wrong.")
+    if is_CMFB:
+        struct_cmfb = cmfb_agent.cmfb_agent(netlist,cir_num)
+        cmfb_netlist = struct_cmfb.netlist
+        cmfb_spec_sims = struct_cmfb.spec_sims
+        utils.save_str_to_file(cmfb_netlist, path_output_num + "cmfb_netlist.cir")
+        # Simulate CMFB netlist (assuming same spec_sims)
+        results_cmfb = sim_debug_measure_loop(cmfb_netlist, [cmfb_spec_sims], is_differential_output, cir_num, path_output_num)
+        combined_results['cmfb'] = results_cmfb
+    
+    
+    print("Combined measurement results:", combined_results)
+    return combined_results
     
     
 def add_sim_agent(netlist, category,cir_num=4):
+    line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs : {local_config.table_specs_id}, and a brief requirement about this type of circuit : {category}.
-Your goal is to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. You should output the complete netlist and the list of specifications and corresponding simulation files needed for measurement. The measurement will be done by following agents.
+Your goal is to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. You should output the complete netlist, tell whether it is differential output or not, a list of required specifications and corresponding simulation files for measurement. The measurement will be done by following agents.
 ### Here are some rules.
 0. Check whether the circuit needs a load. If the circuit does not have a load, add a capacitor load. Example: 
 .param Cload=10p 
@@ -119,7 +139,7 @@ Cload VOUT1 VSS {{Cload}}
 Example:
 * for gain
 ac dec 10 1 100G
-wrdata ./1genai/output/{cir_num}/ac_gain.csv v(VOUT1)
+{line_wrdata_path_num}/ac_gain.csv v(VOUT1)
 In this example, the VOUT1 is the output node.
 
 5. ONE COMMAND PER LINE: Every '.param', '.model', or component must start on a NEW line. 
@@ -130,22 +150,31 @@ In this example, the VOUT1 is the output node.
 6. You must provide exactly one noise reporting method. Do not combine them. NEVER write two wrdata lines for noise in the same netlist.
     6a. If equivalent input totoal integrated noise is needed: To get the single value of total noise, use:
     noise v(VOUT1) vin dec 10 1 100G
-    wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
+    {line_wrdata_path_num}/noise.csv inoise_total
 
     6b. If equivalent input noise spectrum is needed: To get the noise vs. frequency curve, use:
     noise v(VOUT1) vin dec 10 1 100G
-    wrdata ./1genai/output/{cir_num}/noise.csv inoise_spectrum 
+    setplot noise1
+    {line_wrdata_path_num}/noise.csv inoise_spectrum 
 
 8. If transient analysis is needed, there is an example:  
 vin VIN1 VSS dc=vcm ac=1.0 PULSE({{-VDD*0.5}} {{VDD*0.5}} trf trf trf {{0.5*period-trf}} period)
 tran 50n 30u
-wrdata ./1genai/output/{cir_num}/tran_SR.csv v(VOUT1)
+{line_wrdata_path_num}/tran_SR.csv v(VOUT1)
 
 9. For differential input, the input can be like this:
 Vinput aid VSS dc=0.0 ac=1.0 PULSE({{-VHIGH*0.5}} {{VHIGH*0.5}} trf trf trf {{0.5*period-trf}} period)
 ein1 net1 VCM aid 0 0.5
 ein2 net2 VCM aid 0 -0.5
- """
+
+10. If the circuit is differential output. Make sure the specification is correct.
+Use differential mode gain instead of AC gain (single port) for differential output circuits.
+Also, the simulation should simulate the output separately for CM gain and DM gain. This is the format for later measurement.
+Example:
+{line_wrdata_path_num}/ac_gain.csv v(VOUT1) v(VOUT2)
+
+11. Also, you should pay attention to whether there is CMFB stability specification check. The following agent will make a new netlist if the CMFB stability is needed.
+"""
     
 
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
@@ -191,27 +220,26 @@ ein2 net2 VCM aid 0 -0.5
 # def measuremnt(spice_result, path, files):
     
 
-test = local_config.num_class_7[:10]
-
-num = 155
-isLoop = True
+test = category_numbers.num_class_40[:10]
+test = [69, 182] # cmfb or without cmfb
+test = [9, 155, 69, 182] # try to have siso diso dido dido_cmfb
+num = 9
+isLoop = False
+# isLoop = True
 
 if isLoop:
     for i in test:
-        print("===========",i)
+        print("=====*======",i)
+        print("====*=======",i)
 
-        # Define the directory path
-        
-        output_dir = Path(f"./1genai/output/{i}")
+        output_dir = Path(f"{path_output}{i}")
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create the directory
-        # parents=True: creates ./1genai/output/ if they don't exist
-        # exist_ok=True: doesn't crash if the folder "9" already exists
         test_make_cir_sim(i)
         utils.test_delay(30)
 else:    
-    output_dir = Path(f"./1genai/output/{num}")
+        
+    output_dir = Path(f"{path_output}{num}")
     output_dir.mkdir(parents=True, exist_ok=True)
     unique_files = test_make_cir_sim(num)
     print("unique simulation files:", unique_files)
