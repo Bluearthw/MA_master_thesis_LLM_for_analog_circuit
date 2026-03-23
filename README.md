@@ -1,5 +1,5 @@
 git add .
-git commit -m "decide to put it at the workplace/ finally. Try to make it work later, Now it has figs and output netlist but there is no csv. I think it is because it does not see the ngspice.
+git commit -m "rename 1genai to genai. remember to update .gitignore!!!
 "
 git push
 

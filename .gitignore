@@ -1,9 +1,9 @@
 buildingAIagents
 googleFrame
-1genai/cir_response.cir
+genai/cir_response.cir
 *.pyc
-1genai/data
-1genai/output
-1genai/before2026_py_files/CAD/
+genai/data
+genai/output
+genai/before2026_py_files/CAD/
 no_backup
 output_figs
