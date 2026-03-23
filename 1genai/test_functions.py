@@ -357,22 +357,26 @@ start_time = time.perf_counter()
 # test_find_cir_without_mos()
 
 # test_modify_duplicate_component()
-# test_find_cir_without_vdd()
-# test_pyspice_sim(local_config.nl_mar02_total)
-# test_pycpice_op()
-# test_run_ngspice_direct(saved_netlist.nl_mar_17)
-# test_run_ngspice_direct(local_config.nl_2_stage_opamp)
-# test_run_ngspice_direct(local_config.nl_test_noise_spectrum)
-# test_check_output_files()
+# test_find_cir_without_vdd()# test_check_output_files()
 # test_measurement_spice_result("./1genai/output/ac_gain.csv")
 # test_debug_agent()
-# test_run_ngspice_direct_from_final_netlist(155)
 # test_find_cat_from_num(186)
 # test_clean_before_CMFB(saved_netlist.nl_182_diff_with_cmfb_before_cmfb_agent)
 
 end_time = time.perf_counter()
 
 # endregion
+
+#region run ngspice
+# test_pyspice_sim(local_config.nl_mar02_total)
+# test_pycpice_op()
+# test_run_ngspice_direct(saved_netlist.nl_182_diff_with_cmfb_before_cmfb_agent)
+# test_run_ngspice_direct(local_config.nl_2_stage_opamp)
+test_run_ngspice_direct(local_config.nl_feb25)
+
+# test_run_ngspice_direct_from_final_netlist(155)
+
+#end region
 
 #region find type nums
 # test_find_num_from_class(1)
@@ -395,8 +399,9 @@ end_time = time.perf_counter()
 
 #region agent test
 # test_cmfb_check_agent(saved_netlist.nl_182_diff_with_cmfb_not_for_sim, 182)
-test_cmfb_agent( saved_netlist.nl_182_before_cmfb_agent_cleaned)
+# test_cmfb_agent( saved_netlist.nl_182_before_cmfb_agent_cleaned)
 #endregion
+
 print(f"Execution time: {end_time - start_time:.6f} seconds")
 
 

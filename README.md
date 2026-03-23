@@ -1,5 +1,7 @@
 git add .
-git commit -m "structure is ready, the next step is finish the measure of CMFB
+git commit -m "it setplot but does not use noise1. In this way inoise_spectrum works
+setplot noise1
+wrdata ./1genai/output/{cir_num}/noise.csv inoise_spectrum 
 "
 git push
 

@@ -310,6 +310,7 @@ alter v_vdd acmag=0
 * 4. Noise analysis
 alter vid acmag=1
 noise v(VOUT1,VOUT2) vid dec 10 1 100G
+setplot noise1
 wrdata ./1genai/output/182/noise.csv inoise_spectrum
 
 * 5. Slew Rate and Settling Time

@@ -149,6 +149,7 @@ In this example, the VOUT1 is the output node.
 
     6b. If equivalent input noise spectrum is needed: To get the noise vs. frequency curve, use:
     noise v(VOUT1) vin dec 10 1 100G
+    setplot noise1
     wrdata ./1genai/output/{cir_num}/noise.csv inoise_spectrum 
 
 8. If transient analysis is needed, there is an example:  
@@ -215,7 +216,8 @@ wrdata ./1genai/output/69/ac_gain.csv v(VOUT1) v(VOUT2)
     
 
 test = category_numbers.num_class_40[:10]
-test = [69, 182]
+test = [69, 182] # cmfb or without cmfb
+test = [9, 155, 69, 182] # try to have siso diso dido dido_cmfb
 num = 182
 isLoop = True
 
