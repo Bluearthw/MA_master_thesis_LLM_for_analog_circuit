@@ -4,7 +4,7 @@ import yaml
 import random
 import string
 import time 
-
+from genai_agent import utils as genai_utils
 class NgspiceWrapper(object):
     
     def __init__(self, yaml_path):
@@ -117,11 +117,13 @@ class NgspiceWrapper(object):
 
     def simulate(self, netlist_path):
         info = 0 # this means no error occurred
-        command = "/users/micas/mahmadza/public/bin/ngspice -b %s >/dev/null 2>&1" %netlist_path
-        exit_code = os.system(command)
-        if (exit_code % 256):
+        nl = genai_utils.get_file_to_str(netlist_path)
+        sim_output = genai_utils.run_ngspice_direct(nl)
+        # print(sim_output)
+        if not sim_output["success"]:
             # raise RuntimeError('program {} failed!'.format(command))
             info = 1 # this means an error has occurred
+            print("ngspice_wrapper: ngspice sim error")
         return info
     
 

@@ -8,7 +8,7 @@ import shutil
 import utils.saving as saving
 from ngspice_interface import DUT as DUT_NGSpice
 from utils.plotting import plotLearning, plot_running_maximum, solutions2pareto
-
+from genai_agent import local_config
 
 class CircuitEnv(gym.Env):
     PER_LOW, PER_HIGH = -np.inf, +np.inf
@@ -42,6 +42,7 @@ class CircuitEnv(gym.Env):
             self.param_ranges[name] = {'min': value[0], 'max': value[1], 'step': value[2]}
         
         self.simulation_engine = DUT_NGSpice(circuit_yaml_path)
+        # self.simulation_engine.output_files_folder = local_config.path_output
 
         print(f"\n Initialized {circuit_name} with simulator {simulator} \n")
 

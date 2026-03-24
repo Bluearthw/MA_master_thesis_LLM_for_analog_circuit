@@ -14,7 +14,7 @@ from google import genai
 from scipy.integrate import trapezoid
 
 ##### local
-import local_config
+from . import local_config
 DEFAULT_W = "0.5u"
 DEFAULT_L = "90n"
 DEFAULT_M = "1"
@@ -97,7 +97,7 @@ def is_port_exist(path, target_ports=["VIN1"]):
             return True
     return False
     
-def delete_all_files_skip_dir(folder_path):
+def delete_all_files_except_dir(folder_path):
     """
     Deletes all files in the specified folder.
     Does not remove subdirectories or the folder itself.
@@ -793,7 +793,7 @@ def pyspice_op_sim(circuit, node="vout1"):
 
 def pyspice_op_sim_final(circuit):
     pyspice_op_sim_simple(circuit)
-    delete_all_files_skip_dir(local_config.path_output)
+    delete_all_files_except_dir(local_config.path_output)
     # Use a single string buffer for all stdout/stderr
     log_capture = io.StringIO()
     
@@ -830,7 +830,7 @@ def pyspice_op_sim_final(circuit):
     finally:
         log_capture.close()
 
-def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.path_output +  "4/final_netlist.cir"):
+def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.path_output +  "test_netlist.cir"):
     # 1. Save netlist to a temporary file
     if is_save:
         path_nl = f"{local_config.path_output}/temp_circuit.cir"

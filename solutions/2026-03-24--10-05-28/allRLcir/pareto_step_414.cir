@@ -2,14 +2,14 @@ TwoStage_opamp_netlist
 
 .include "ngspice_interface/files/spice_models/p045_TT.sp"
 
-.param wp1=0.5u lp1=90n mp1=10
-.param wn1=0.5u ln1=90n mn1=38
-.param wn3=0.5u ln3=90n mn3=9
-.param wp3=0.5u lp3=90n mp3=4
-.param wn4=0.5u ln4=90n mn4=20
-.param wn5=0.5u ln5=90n mn5=60
-.param cap=3p
-.param res=1k
+.param wp1=7.5947844e-07 lp1=2.1992965e-07 mp1=24
+.param wn1=2.7218368e-06 ln1=1.06369036e-07 mn1=18
+.param wn3=1.0401951e-06 ln3=1.11373424e-07 mn3=6
+.param wp3=9.979168e-07 lp3=1.1261223e-07 mp3=16
+.param wn4=2.8648983e-06 ln4=5.757431e-08 mn4=5
+.param wn5=2.9436533e-06 ln5=1.2850882e-07 mn5=15
+.param cap=6.7248464e-12
+.param res=2335.4373
 
 .param ibias=30u
 .param cload=10p
@@ -17,9 +17,9 @@ TwoStage_opamp_netlist
 
 .param VDD=1.2
 
-.param trf=0.5u ; for slew-rate calculation
-.param period=10u ; for slew-rate calculation
-.param vhigh=VDD ; for slew-rate calculation
+.param trf=0.5u
+.param period=10u
+.param vhigh=VDD
 
 *    D    G    S   B
 mp1 net4 net4 VDD VDD pmos w=wp1 l=lp1 m=mp1

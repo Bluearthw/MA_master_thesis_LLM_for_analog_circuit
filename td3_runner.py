@@ -8,7 +8,8 @@ from datetime import datetime
 import shutil
 from pathlib import Path
 
-
+from genai_agent import utils as utils_agent
+warmup_step = 100
 def readParser():
     parser = argparse.ArgumentParser(description='TD3-based RL for Circuit Sizing')
 
@@ -36,7 +37,7 @@ def readParser():
     parser.add_argument('--batch_size', type=int, default="256", metavar='N',# past experirence
                         help='hidden size')
     
-    parser.add_argument('--w', type=int, default="1000", metavar='N',
+    parser.add_argument('--w', type=int, default=f"{warmup_step}", metavar='N',
                         help='number of warmup steps')
     
     parser.add_argument('--T', type=int, default=5_000, metavar='N',
@@ -72,9 +73,11 @@ def train(args, env, agent, env_pool):
             obs = next_state
             train_policy(args, env_pool, agent, total_steps)
             total_steps += 1
+            print(f"==total_steps{total_steps}")
             # clean up the no_backup folder every 100 steps
             if total_steps % 100 == 0:
-                os.system('./clean.sh')
+                utils_agent.delete_all_files_except_dir("./no_backup/output_netlists/")
+                # os.system('./clean.sh')
 
 
 
@@ -89,6 +92,8 @@ def warmup_exploration(args, env, env_pool, agent):
             env_pool.push(obs, action, reward, next_state, done)
             obs = next_state
             step_counter += 1
+            print(f"===step_counter: {step_counter}")
+            
     return step_counter
 
 

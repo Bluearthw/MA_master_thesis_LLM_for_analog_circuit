@@ -2,14 +2,14 @@ TwoStage_opamp_netlist
 
 .include "ngspice_interface/files/spice_models/p045_TT.sp"
 
-.param wp1=0.5u lp1=90n mp1=10
-.param wn1=0.5u ln1=90n mn1=38
-.param wn3=0.5u ln3=90n mn3=9
-.param wp3=0.5u lp3=90n mp3=4
-.param wn4=0.5u ln4=90n mn4=20
-.param wn5=0.5u ln5=90n mn5=60
-.param cap=3p
-.param res=1k
+.param wp1=2.6248456643455516e-07 lp1=1.9127046108282132e-07 mp1=14
+.param wn1=3.7628034475254617e-07 ln1=1.9253735361005672e-07 mn1=13
+.param wn3=8.448535500483798e-07 ln3=1.6596763057191922e-07 mn3=16
+.param wp3=2.823755331897908e-06 lp3=8.830910012675025e-08 mp3=19
+.param wn4=1.3036696524437e-06 ln4=1.651172108422842e-07 mn4=15
+.param wn5=1.5252242089796605e-06 ln5=6.057186766598687e-08 mn5=24
+.param cap=1.3078677695654235e-12
+.param res=8348.475452571136
 
 .param ibias=30u
 .param cload=10p
@@ -17,9 +17,9 @@ TwoStage_opamp_netlist
 
 .param VDD=1.2
 
-.param trf=0.5u ; for slew-rate calculation
-.param period=10u ; for slew-rate calculation
-.param vhigh=VDD ; for slew-rate calculation
+.param trf=0.5u
+.param period=10u
+.param vhigh=VDD
 
 *    D    G    S   B
 mp1 net4 net4 VDD VDD pmos w=wp1 l=lp1 m=mp1
