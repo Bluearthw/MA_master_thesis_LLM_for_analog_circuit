@@ -841,22 +841,35 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
 
     #output log stdout is not useful
     try:
-        process = subprocess.run(
-            [path_ngspice, "-b", "-n", path_nl],
-            capture_output=True,
-            text=True,
-            shell=False,
-        )
-        
+        max_attempts = 2
+        for attempt in range(1, max_attempts + 1):
+            try:
+                process = subprocess.run(
+                    [path_ngspice, "-b", "-n", path_nl],
+                    capture_output=True,
+                    text=True,
+                    shell=False,
+                    timeout=30
+                )
+                break
+            except subprocess.TimeoutExpired:
+                if attempt < max_attempts:
+                    print(f"[run_ngspice_direct] Timeout on attempt {attempt}. Retrying...")
+                    continue
+                print(f"[run_ngspice_direct] Timeout on attempt {attempt}. Giving up.")
+                return {"success": False, "message": "Simulation timed out"}
+
+        if 'process' not in locals():
+            return {"success": False, "message": "Simulation did not run"}
+
         # Combine stdout and stderr for analysis
         logs = process.stderr if process.stderr and process.stderr.strip() else ""
-        
 
-        if logs:
-            print("--- Simulation Log (stderr) ---")
-            print(logs)
+        # if logs:
+        #     print("--- Simulation Log (stderr) ---")
+        #     print(logs)
         error_log_lower = logs.lower()
-        
+
         # Determine if this is a real error or just a warning
         # Check for fatal errors
         has_fatal_error = "fatal error" in   error_log_lower
@@ -875,7 +888,7 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
             # print(f"--- FATAL ERROR DETECTED ---")
             print(f"Error Details: {logs}")
             return {"success": False, "message": f"Simulation failed\n{logs}"}
-        
+
         print(f"=== Simulation Analysis ---{is_dc_value_warning}, fatal {has_fatal_error}")
         # If only a dc value warning (no fatal error), treat as success
         if has_error:
@@ -884,19 +897,18 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
         if is_dc_value_warning:
             # print("--- Simulation completed with warnings (non-fatal) ---")
             return {"success": True, "message": f"Simulation OK\n{logs}"}
-        
+
         # Check exit code for crash #????? never see 0
         if process.returncode != 0:
             print(f"--- CRASH DETECTED (Exit Code: {process.returncode}) ---")
             error_msg = logs if logs else "Segmentation Violation (Hard Crash)"
             print(f"Error Details: {error_msg}")
             return {"success": False, "message": f"Simulation failed (Exit Code: {process.returncode})\n{error_msg}"}
-        
+
         # Normal success case
         return {"success": True, "message": f"Simulation OK\n{logs}"}
-        
-    except subprocess.TimeoutExpired:
-        return {"success": False, "message": "Simulation timed out"}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
 
 # endregion pyspice
 

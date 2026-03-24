@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 
 from genai_agent import utils as utils_agent
-warmup_step = 100
+warmup_step = 1000
 def readParser():
     parser = argparse.ArgumentParser(description='TD3-based RL for Circuit Sizing')
 

@@ -1,5 +1,5 @@
 git add .
-git commit -m "Now the normal RL sizer can run on my laptop
+git commit -m "Now the normal RL sizer can run on my laptop completely 5000 samples. handling timeout problem and 
 "
 git push
 
