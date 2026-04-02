@@ -1,13 +1,13 @@
 import sys
 import numpy as np
 # local import
-sys.path.append("./1genai")
+sys.path.append("./genai_agent")
 import utils
-path_id = {0: './1genai/output/155/ac_gain.csv', 1: './1genai/output/155/ac_gain.csv', 15: './1genai/output/155/ac_gain.csv', 16: './1genai/output/155/ac_gain.csv', 5: './1genai/output/155/ac_gain.csv', 6: './1genai/output/155/ac_gain.csv', 3: './1genai/output/155/noise.csv', 4: './1genai/output/155/tran_SR.csv', 12: './1genai/output/155/tran_SR.csv', 10: './1genai/output/155/dc_swing.csv', 11: './1genai/output/155/dc_swing.csv', 13: './1genai/output/155/dc_icmr.csv', 14: './1genai/output/155/ac_cmrr.csv', 2: './1genai/output/155/ac_psrr.csv'}
-path_id2 = {15: './1genai/output/155/ac_gain.csv', 3: './1genai/output/155/noise.csv', 4: './1genai/output/155/tran_sr.csv', 13: './1genai/output/155/dc_icmr.csv', 0: './1genai/output/155/dc_sw.csv', 14: './1genai/output/155/ac_cmrr.csv', 2: './1genai/output/155/ac_psrr.csv'}
-path_id_69 = {0: './1genai/output/69/ac_gain.csv', 1: './1genai/output/69/ac_gain.csv', 15: './1genai/output/69/ac_gain.csv', 18: './1genai/output/69/ac_gain.csv', 19: './1genai/output/69/ac_balance.csv', 3: './1genai/output/69/noise.csv', 4: './1genai/output/69/tran_sr.csv', 12: './1genai/output/69/tran_sr.csv'}
-path_id_96 = {18: './1genai/output/96/ac_gain.csv', 17: './1genai/output/96/ac_cm.csv', 0: './1genai/output/96/ac_gain.csv', 1: './1genai/output/96/ac_gain.csv', 16: './1genai/output/96/ac_gain.csv', 6: './1genai/output/96/ac_gain.csv', 3: './1genai/output/96/noise.csv', 4: './1genai/output/96/tran_sr.csv', 10: './1genai/output/96/dc_sweep.csv', 11: './1genai/output/96/dc_sweep.csv'}
-path_id_182 = {20: './1genai/output/182/cmfb_stb.csv'}
+path_id = {0: './genai_agent/output/155/ac_gain.csv', 1: './genai_agent/output/155/ac_gain.csv', 15: './genai_agent/output/155/ac_gain.csv', 16: './genai_agent/output/155/ac_gain.csv', 5: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 3: './genai_agent/output/155/noise.csv', 4: './genai_agent/output/155/tran_SR.csv', 12: './genai_agent/output/155/tran_SR.csv', 10: './genai_agent/output/155/dc_swing.csv', 11: './genai_agent/output/155/dc_swing.csv', 13: './genai_agent/output/155/dc_icmr.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv'}
+path_id2 = {15: './genai_agent/output/155/ac_gain.csv', 3: './genai_agent/output/155/noise.csv', 4: './genai_agent/output/155/tran_sr.csv', 13: './genai_agent/output/155/dc_icmr.csv', 0: './genai_agent/output/155/dc_sw.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv'}
+path_id_69 = {0: './genai_agent/output/69/ac_gain.csv', 1: './genai_agent/output/69/ac_gain.csv', 15: './genai_agent/output/69/ac_gain.csv', 18: './genai_agent/output/69/ac_gain.csv', 19: './genai_agent/output/69/ac_balance.csv', 3: './genai_agent/output/69/noise.csv', 4: './genai_agent/output/69/tran_sr.csv', 12: './genai_agent/output/69/tran_sr.csv'}
+path_id_96 = {18: './genai_agent/output/96/ac_gain.csv', 17: './genai_agent/output/96/ac_cm.csv', 0: './genai_agent/output/96/ac_gain.csv', 1: './genai_agent/output/96/ac_gain.csv', 16: './genai_agent/output/96/ac_gain.csv', 6: './genai_agent/output/96/ac_gain.csv', 3: './genai_agent/output/96/noise.csv', 4: './genai_agent/output/96/tran_sr.csv', 10: './genai_agent/output/96/dc_sweep.csv', 11: './genai_agent/output/96/dc_sweep.csv'}
+path_id_182 = {20: './genai_agent/output/182/cmfb_stb.csv'}
 def test_phase_calculation():
     print("--- SPICE Phase Processing Test Bench ---")
     
@@ -28,11 +28,11 @@ def test_phase_calculation():
     print(unwrapped_phase_deg_180)
     print(unwrapped_phase_deg_default_period)
     
-def test_measurement_spice_result(path_gain = "./1genai/output/ac_gain.csv"):
+def test_measurement_spice_result(path_gain = "./genai_agent/output/ac_gain.csv"):
     # Example data (replace with actual data from your simulation)
-    path_psrr = "./1genai/output/psrr.csv"
-    path_noise = "./1genai/output/noise.csv"
-    path_trans = "./1genai/output/tran_SR.csv" #63
+    path_psrr = "./genai_agent/output/psrr.csv"
+    path_noise = "./genai_agent/output/noise.csv"
+    path_trans = "./genai_agent/output/tran_SR.csv" #63
     spice_result = utils.SpiceResult(path_gain, path_psrr, path_noise, path_trans)
     gain = spice_result.get_dc_gain()
     bandwidth = spice_result.get_bandwidth()
