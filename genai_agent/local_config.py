@@ -6,7 +6,7 @@ path_dataset = "../material/dataset/tb_dataset"# out of workplace
 path_classified_dataset = "../material/classified_dataset_from_mohsen/Dataset"
 path_category = "./genai_agent/data/categories/category"
 path_output = "./genai_agent/output/"
-
+path_yaml = "./ngspice_interface/files/yaml_files/" 
 agent_model25 = "gemini-2.5-flash"
 agent_model3 = "gemini-3-flash-preview"
 # netlist 9
@@ -41,13 +41,13 @@ table_specs_id = {0:    "DC Gain",
 }
 
 table_target_id = {
-    0: 'gain',
+    0: 'DCgain',
     1: 'bandwidth',
     2: 'psrr',
     3: 'noise',
     4: 'slew_rate',
-    5: 'gm',
-    6: 'phm',
+    5: 'gainMargin',
+    6: 'phaseMargin',
     7: 'noise_spectrum',
     8: 'input_impedance',
     9: 'output_impedance',
@@ -56,7 +56,7 @@ table_target_id = {
     12: 'settle_time',
     13: 'icmr',
     14: 'cmrr',
-    15: 'ac_gain',
+    15: 'ACgain',
     16: 'phase_response',
     17: 'cmg',
     18: 'dmg',

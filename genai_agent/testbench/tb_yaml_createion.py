@@ -43,7 +43,7 @@ def test_make_full_yaml():
 
 # it should work for both .params types
 # test_get_params("./genai_agent/output/9/final_netlist.cir")
-# test_get_params("D:\\1kulStudy\\8MA_Thesis\\workplace\\ngspice_interface\\files\\input_netlists\\TwoStage.cir")
+test_get_params("D:\\1kulStudy\\8MA_Thesis\\workplace\\ngspice_interface\\files\\input_netlists\\TwoStage.cir")
 
 # test_make_param_lines()
 
@@ -51,4 +51,4 @@ def test_make_full_yaml():
 # test_make_targets_lines()
 # test_make_spec_weights_lines()
 # test_make_circuit_multipliers()
-test_make_full_yaml()
+# test_make_full_yaml()

@@ -1,12 +1,42 @@
 import sys
 sys.path.append("./genai_agent")
 import local_config
-
+import utils
 
 def make_technology_line(tech = "45nm"):
     return f"technology: {tech}" 
 def make_cir_name_line(name = 9):
-    return f'circuit_name: "{name}"'
+    return f'circuit_name: "{name}"'  
+  
+def get_params(file_path):
+    """
+    Extract all parameter names from a .cir netlist file.
+    
+    Args:
+        file_path (str): Path to the .cir file
+        
+    Returns:
+        list: List of parameter names
+    """
+    params = set()  # use set to avoid duplicates
+    try:
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+        
+        for line in lines:
+            if line.strip().startswith('.param'):
+                parts = line.strip().split()
+                for part in parts[1:]:
+                    if '=' in part:
+                        name = part.split('=')[0]
+                        params.add(name)
+        params.remove("trf")
+        params.remove("period")
+    except Exception as e:
+        print(f"Error reading file {file_path}: {e}")
+        return []
+    return sorted(list(params))
+
 def make_param_lines(param_names, tech = "45nm"):
     
     # Define tech-specific constants
@@ -42,33 +72,6 @@ def make_param_lines(param_names, tech = "45nm"):
         lines.append(f"  {name}:  !!python/tuple {val_str}")# do not use \t or there will be error while reading
         
     return "\n".join(lines)
-    
-def get_params(file_path):
-    """
-    Extract all parameter names from a .cir netlist file.
-    
-    Args:
-        file_path (str): Path to the .cir file
-        
-    Returns:
-        list: List of parameter names
-    """
-    params = set()  # use set to avoid duplicates
-    try:
-        with open(file_path, 'r') as f:
-            lines = f.readlines()
-        
-        for line in lines:
-            if line.strip().startswith('.param'):
-                parts = line.strip().split()
-                for part in parts[1:]:
-                    if '=' in part:
-                        name = part.split('=')[0]
-                        params.add(name)
-    except Exception as e:
-        print(f"Error reading file {file_path}: {e}")
-        return []
-    return sorted(list(params))
 
 def get_targets(spec_ids):
     """
@@ -108,6 +111,16 @@ def get_targets(spec_ids):
     
     return targets
 
+def _format_value(value):# start with underline, this will not be imported
+    """Format a value for YAML: use scientific notation for very small/large, normal for rest."""
+    fval = float(value)
+    # Use scientific notation if very small (< 1e-5) or very large (> 1e6)
+    if abs(fval) < 1 or abs(fval) > 1e3:
+        return f"{fval:.1e}"
+    else:
+        # For normal range, use appropriate precision
+        return f"{fval:.2f}" 
+
 def make_targets_lines(targets_dict):
     """
     Create YAML text for the targets section.
@@ -123,11 +136,8 @@ def make_targets_lines(targets_dict):
     keys = []
     for key in sorted(targets_dict.keys()):
         value = targets_dict[key]
-        # Format value in scientific notation if very small
-        if isinstance(value, float):
-            lines.append(f"  {key}: !!float {value:.1e}")
-        else:
-            lines.append(f"  {key}: !!float {float(value):.1e}")
+        formatted_value = _format_value(value)
+        lines.append(f"  {key}: !!float {formatted_value}")
         keys.append(key)
     
     # Join keys with quotes and commas, no trailing comma
@@ -171,7 +181,7 @@ def make_circuit_multipliers(param_names, multiplier_value=2):
         lines.append(f"  {name}: !!int {multiplier_value}")
     return "\n".join(lines)
 
-def make_full_yaml(param_names, spec_ids=None, spec_weights=None, multiplier_value=2, tech='45nm'):
+def make_full_yaml(param_names, spec_ids=None, cir_name = 9, spec_weights=None, multiplier_value=2, tech='45nm'):
     """
     Build full YAML content and save to file from provided parameter list and target ids.
 
@@ -187,26 +197,20 @@ def make_full_yaml(param_names, spec_ids=None, spec_weights=None, multiplier_val
     """
 
     targets_dict = get_targets(spec_ids or [])
-    targets_section = make_targets_lines(targets_dict)
 
     if spec_weights is None:
         spec_weights = {k: 1.0 for k in targets_dict.keys()}
 
     yaml_sections = [
-        make_cir_name_line(),
+        make_cir_name_line(cir_name),
         make_technology_line(tech),
         make_param_lines(param_names, tech),
-        targets_section,
+        make_targets_lines(targets_dict),
         make_spec_weights_lines(spec_weights),
         make_circuit_multipliers(param_names, multiplier_value),
     ]
 
-    return "\n\n".join(yaml_sections)
+    content = "\n\n".join(yaml_sections)
+    path_yaml = local_config.path_yaml+f"{cir_name}.yaml"
+    utils.save_file_overwrite(path_yaml, content)
 
-
-def save_yaml(filename, param_names, spec_ids=None, spec_weights=None, multiplier_value=2, tech='45nm'):
-    """Write full YAML content into filename."""
-    content = make_full_yaml(param_names, spec_ids, spec_weights, multiplier_value, tech)
-    with open(filename, 'w') as f:
-        f.write(content)
-    return filename

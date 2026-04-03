@@ -12,9 +12,10 @@ from PySpice.Spice.NgSpice.Shared import NgSpiceShared
 import matplotlib.pyplot as plt
 from google import genai
 from scipy.integrate import trapezoid
-
+import sys
+sys.path.append("./genai_agent")
 ##### local
-from . import local_config
+import local_config
 DEFAULT_W = "0.5u"
 DEFAULT_L = "90n"
 DEFAULT_M = "1"
@@ -70,9 +71,9 @@ def get_file_to_lines(path, n_line, start_from_end = False):
             raise FileNotFoundError(" No File")            
     return []       
 
-def check_file_and_overwrite(path, msg):
+def save_file_overwrite(path, content):# the file type is defined in path
     with open(f"{path}", "w") as file:
-        file.write(f"{msg}")
+        file.write(f"{content}")
 
 def are_ports_all_exist(path, target_ports=["VIN1"]):
     if os.path.isfile(path):
