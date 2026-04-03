@@ -40,7 +40,52 @@ table_specs_id = {0:    "DC Gain",
                   14:   "Common-Mode Rejection Ratio (CMRR)",
 }
 
-
+table_target_id = {
+    0: 'gain',
+    1: 'bandwidth',
+    2: 'psrr',
+    3: 'noise',
+    4: 'slew_rate',
+    5: 'gm',
+    6: 'phm',
+    7: 'noise_spectrum',
+    8: 'input_impedance',
+    9: 'output_impedance',
+    10: 'input_swing',
+    11: 'output_swing',
+    12: 'settle_time',
+    13: 'icmr',
+    14: 'cmrr',
+    15: 'ac_gain',
+    16: 'phase_response',
+    17: 'cmg',
+    18: 'dmg',
+    19: 'output_balance',
+    20: 'cmfb_stability',
+}
+default_targets = {
+    0: 20,           # gain (dB)
+    1: 1.0e+6,        # bandwidth (Hz)
+    2: 60.0,          # psrr (dB)
+    3: 3.0e-2,        # noise (V)
+    4: 15.0,          # slew_rate (V/us)
+    5: 45.0,          # gm (dB)
+    6: 60.0,          # phm (degrees)
+    7: 1.0e-9,        # noise_spectrum (V/sqrt(Hz))
+    8: 1.0e+9,        # input_impedance (Ohms)
+    9: 1.0e+3,        # output_impedance (Ohms)
+    10: 0.6,          # input_swing (V)
+    11: 0.6,          # output_swing (V)
+    12: 10.0,         # settle_time (ns)
+    13: 0.5,          # icmr (V)
+    14: 60.0,         # cmrr (dB)
+    15: 200,          # ac_gain (dB)
+    16: 60.0,         # phase_response (degrees)
+    17: 0.01,         # cmg (dB)
+    18: 200,          # dmg (dB)
+    19: 0.1,          # output_balance (V)
+    20: 60.0,         # cmfb_stability (degrees)
+}
 netlist_with_load ="""*params
 
 .param VDD=1.2
