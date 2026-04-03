@@ -5,14 +5,17 @@ import os
 import scipy.interpolate as interp
 import scipy.optimize as sciopt
 from scipy.optimize import differential_evolution
-from .area_estimation import BPTM45nmAreaEstimator
-from .ngspice_wrapper import NgspiceWrapper
+
+# from .area_estimation import BPTM45nmAreaEstimator
+# from .ngspice_wrapper import NgspiceWrapper
+from area_estimation import BPTM45nmAreaEstimator
+from ngspice_wrapper import NgspiceWrapper
 
 
 class DUT(NgspiceWrapper):
     def measure_metrics(self):
         self.output_files_folder = "./no_backup/output_files"
-        self.random_name = "TwoStage"
+        self.random_name = self.circuit_name # this is for intermediate cir file for RL sizing
         self.parse_outputs()
         spec_dict = {}
         # post process raw data
@@ -195,45 +198,45 @@ class DUT(NgspiceWrapper):
 
 #  make a main to run this
 
-# if __name__ == "__main__":
-#     project_path = os.getcwd()
-#     yaml_path = os.path.join(project_path, 'ngspice_interface', 'files', 'yaml_files', 'TwoStage.yaml')
-#     parameters = {
-#         'mp1': 10,
-#         'wp1': 5.0e-07,
-#         'lp1': 100.0e-09,
-#         'mn1': 10,
-#         'wn1': 5.0e-07,
-#         'ln1': 100.0e-09,
-#         'mp3': 10,
-#         'wp3': 5.0e-07,
-#         'lp3': 100.0e-09,
-#         'mn3': 10,
-#         'wn3': 5.0e-07,
-#         'ln3': 100.0e-09,
-#         'mn4': 10,
-#         'wn4': 5.0e-07,
-#         'ln4': 100.0e-09,
-#         'mn5': 10,
-#         'wn5': 5.0e-07,
-#         'ln5': 100.0e-09,
-#         'cap': 5.0e-12,
-#         'res': 5.0e+3
-#     }
-#     process = "TT"
-#     temp_pvt = 27
-#     vdd = 1.2
-#     dut_tb = DUT(yaml_path)
+if __name__ == "__main__":
+    project_path = os.getcwd()
+    yaml_path = os.path.join(project_path, 'ngspice_interface', 'files', 'yaml_files', 'TwoStage.yaml')
+    parameters = {
+        'mp1': 10,
+        'wp1': 5.0e-07,
+        'lp1': 100.0e-09,
+        'mn1': 10,
+        'wn1': 5.0e-07,
+        'ln1': 100.0e-09,
+        'mp3': 10,
+        'wp3': 5.0e-07,
+        'lp3': 100.0e-09,
+        'mn3': 10,
+        'wn3': 5.0e-07,
+        'ln3': 100.0e-09,
+        'mn4': 10,
+        'wn4': 5.0e-07,
+        'ln4': 100.0e-09,
+        'mn5': 10,
+        'wn5': 5.0e-07,
+        'ln5': 100.0e-09,
+        'cap': 5.0e-12,
+        'res': 5.0e+3
+    }
+    process = "TT"
+    temp_pvt = 27
+    vdd = 1.2
+    dut_tb = DUT(yaml_path)
 
-#     dut_tb.output_files_folder = "./no_backup/output_files"
-#     dut_tb.random_name = "TwoStage"
+    dut_tb.output_files_folder = "./no_backup/output_files"
+    dut_tb.random_name = "TwoStage"
     
-#     new_netlist_path = dut_tb.create_new_netlist(parameters, process, temp_pvt, vdd)
-#     info = dut_tb.simulate(new_netlist_path)
-#     dut_tb.random_name = "TwoStage"
-#     print(f"New netlist created at: {new_netlist_path}")
-#     print("info:", info)
-#     print("trf:", dut_tb.trf)
-#     print("period:", dut_tb.period)
-#     print("VDD:", dut_tb.VDD)
-#     dut_tb.measure_metrics()
+    new_netlist_path = dut_tb.create_new_netlist(parameters, process, temp_pvt, vdd)
+    info = dut_tb.simulate(new_netlist_path)
+    dut_tb.random_name = "TwoStage"
+    print(f"New netlist created at: {new_netlist_path}")
+    print("info:", info)
+    print("trf:", dut_tb.trf)
+    print("period:", dut_tb.period)
+    print("VDD:", dut_tb.VDD)
+    dut_tb.measure_metrics()

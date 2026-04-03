@@ -1,5 +1,5 @@
 git add .
-git commit -m "Now the normal RL sizer can run on my laptop completely 5000 samples, with ok pareato front. handling timeout problem and 
+git commit -m "bug fixed like value format and remove some impossible params like trf
 "
 git push
 

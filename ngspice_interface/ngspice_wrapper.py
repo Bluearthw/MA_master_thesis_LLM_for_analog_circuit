@@ -4,7 +4,10 @@ import yaml
 import random
 import string
 import time 
-from genai_agent import utils as genai_utils
+import sys
+sys.path.append(".")
+from genai_agent import utils as utils_agent
+from genai_agent import local_config 
 class NgspiceWrapper(object):
     
     def __init__(self, yaml_path):
@@ -15,8 +18,8 @@ class NgspiceWrapper(object):
         self.technology = yaml_data['technology']
         project_path = os.getcwd()
         
-        # project_path = os.path.join(project_path_old, "1genai", "CAD_window")
-        self.netlist_path = os.path.join(project_path, 'ngspice_interface', 'files', 'input_netlists', f"{self.circuit_name}.cir")
+        # self.netlist_path = os.path.join(project_path, 'ngspice_interface', 'files', 'input_netlists', f"{self.circuit_name}.cir")
+        self.netlist_path = local_config.path_output + f"{self.circuit_name}/" + "final_netlist.cir"
         self.solutions_folder = os.path.join(project_path, 'no_backup', 'solutions')
         self.output_netlists_folder = os.path.join(project_path, 'no_backup', 'output_netlists')
         self.output_files_folder = os.path.join(project_path, 'no_backup', 'output_files')
@@ -117,8 +120,8 @@ class NgspiceWrapper(object):
 
     def simulate(self, netlist_path):
         info = 0 # this means no error occurred
-        nl = genai_utils.get_file_to_str(netlist_path)
-        sim_output = genai_utils.run_ngspice_direct(nl)
+        nl = utils_agent.get_file_to_str(netlist_path)
+        sim_output = utils_agent.run_ngspice_direct(nl)
         # print(sim_output)
         if not sim_output["success"]:
             # raise RuntimeError('program {} failed!'.format(command))
@@ -135,7 +138,7 @@ class NgspiceWrapper(object):
 
 if __name__ == "__main__":
     project_path = os.getcwd()
-    yaml_path = os.path.join(project_path, 'ngspice_interface', 'files', 'yaml_files', 'TwoStage.yaml')
+    yaml_path = os.path.join(project_path, 'ngspice_interface', 'files', 'yaml_files', '9.yaml')
     parameters = {
         'mp1': 10,
         'wp1': 5.0e-07,
