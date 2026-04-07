@@ -96,7 +96,7 @@ class CircuitEnv(gym.Env):
         return param_list
 
 
-    def simulate(self, params):
+    def simulate(self, params, path_id_two_stage= None):
         project_path = os.getcwd()
         yaml_path = os.path.join(project_path, 'ngspice_interface', 'files', 'yaml_files', 'TwoStage.yaml')
 
@@ -111,12 +111,14 @@ class CircuitEnv(gym.Env):
             new_netlist_path = dut.create_new_netlist(params, process, temp_pvt, vdd)
             dut.netlist_path = new_netlist_path   # <-- ADD THIS LINE
             info = dut.simulate(new_netlist_path) # True of false
+            
             dut.random_name = "TwoStage"
             print(f"New netlist created at: {new_netlist_path}")
             print("VDD:", dut.VDD)
-
+            path_id_two_stage = {0: '.\\no_backup\\output_files\\ac_TwoStage.csv', 3: '.\\no_backup\\output_files\\noise_TwoStage.csv', 4: '.\\no_backup\\output_files\\tran_TwoStage.csv', 6: '.\\no_backup\\output_files\\ac_TwoStage.csv'}
+    
             # Measure specs
-            spec_dict = dut.measure_metrics()
+            spec_dict = dut.measure_metrics(path_id_two_stage)
             self.last_netV = spec_dict.get('netV', None) #？？？？ it it none
 
             # Keep DUT and its unique netlist path
@@ -125,6 +127,7 @@ class CircuitEnv(gym.Env):
 
         except Exception as e:
             print(f"[Warning] Simulation failed: {e}")
+            print(f"Simulation info: {info}")
             spec_dict = {key: 0.0 for key in self.dict_targets.keys()}
 
         return spec_dict
@@ -156,7 +159,18 @@ class CircuitEnv(gym.Env):
         action = np.random.uniform(-1, 1, [self.n_actions])
         self.evaluate(action)
         self.score = 0.0
-        observation = np.concatenate([np.ravel(v) for v in self.cur_norm_specs.values()]).astype(np.float32)
+        
+        # Ensure observation has correct dimension by filling missing specs with 0.0
+        ob_list = []
+        for key in self.dict_targets.keys():
+            value = self.cur_norm_specs.get(key, 0.0)
+            # Handle case where value might be an array (flatten it)
+            if isinstance(value, (list, np.ndarray)):
+                ob_list.extend(np.ravel(value))
+            else:
+                ob_list.append(value)
+        observation = np.array(ob_list, dtype=np.float32)
+
         observation = np.nan_to_num(observation, nan=0.0, posinf=1e6, neginf=-1e6)
         """
          This method performs the following steps:
@@ -200,7 +214,15 @@ class CircuitEnv(gym.Env):
         """
         self.evaluate(action)
         reward, hard_satisfied = self.reward_computation(self.cur_norm_specs)
-        ob = np.array(list(self.cur_norm_specs.values()), dtype=np.float32)
+        
+        # Ensure observation has correct dimension by filling missing specs with 0.0
+        # ob_list = []
+        print("CIR ENV : self.dict_targets ",self.dict_targets)
+        print("CIR ENV : self.cur_norm_specs ",self.cur_norm_specs)
+        # for key in self.dict_targets.keys():
+        #     ob_list.append(self.cur_norm_specs.get(key, 0.0))
+        # ob = np.array(ob_list, dtype=np.float32)
+        observation = np.concatenate([np.ravel(v) for v in self.cur_norm_specs.values()]).astype(np.float32)
 
         self.reward_history.append(reward)
         self.score += reward
@@ -241,7 +263,7 @@ class CircuitEnv(gym.Env):
             self.score = 0.0
 
         info = {'goal_reached': hard_satisfied}
-        return ob, reward, done, info
+        return observation, reward, done, info
 
 
     def reward_computation(self, norm_specs):

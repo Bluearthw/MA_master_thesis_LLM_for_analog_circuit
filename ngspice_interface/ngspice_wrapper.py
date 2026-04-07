@@ -10,22 +10,51 @@ from genai_agent import utils as utils_agent
 from genai_agent import local_config 
 class NgspiceWrapper(object):
     
-    def __init__(self, yaml_path):
-        with open(yaml_path, 'r') as f:
-            yaml_data = yaml.load(f, Loader=yaml.Loader)
-        self.circuit_name = yaml_data['circuit_name']
-        self.circuit_multipliers = yaml_data['circuit_multipliers']
-        self.technology = yaml_data['technology']
-        project_path = os.getcwd()
+    def __init__(self, yaml_path = "" , is_differential = False):
+        self.with_yaml = False
+        if yaml_path != "":
+            self.with_yaml = True
+            with open(yaml_path, 'r') as f:
+                yaml_data = yaml.load(f, Loader=yaml.Loader)
+            self.circuit_name = yaml_data['circuit_name']
+            self.circuit_multipliers = yaml_data['circuit_multipliers']
+            self.technology = yaml_data['technology']
+            project_path = os.getcwd()
+            
+            # self.netlist_path = os.path.join(project_path, 'ngspice_interface', 'files', 'input_netlists', f"{self.circuit_name}.cir")
+            self.netlist_path = local_config.path_output + f"{self.circuit_name}/" + "final_netlist.cir"
+            self.solutions_folder = os.path.join(project_path, 'no_backup', 'solutions')
+            self.output_netlists_folder = os.path.join(project_path, 'no_backup', 'output_netlists')
+            self.output_files_folder = os.path.join(project_path, 'no_backup', 'output_files')
+            self.param_names = yaml_data['params'].keys()
+            self.parameters = {}
+            self.read_netlist()
         
-        # self.netlist_path = os.path.join(project_path, 'ngspice_interface', 'files', 'input_netlists', f"{self.circuit_name}.cir")
-        self.netlist_path = local_config.path_output + f"{self.circuit_name}/" + "final_netlist.cir"
-        self.solutions_folder = os.path.join(project_path, 'no_backup', 'solutions')
-        self.output_netlists_folder = os.path.join(project_path, 'no_backup', 'output_netlists')
-        self.output_files_folder = os.path.join(project_path, 'no_backup', 'output_files')
-        self.param_names = yaml_data['params'].keys()
-        self.parameters = {}
-        self.read_netlist()
+        self.is_diff = is_differential
+        # paths
+        self.path_ac_gain = None 
+        self.path_psrr = None
+        self.path_noise = None
+        self.path_trans = None
+
+        self.freq = None
+        # store gain as complex and compute magnitude/phase
+        self.vout_complex = None
+        self.vout_mag = None
+        self.mag_db = None
+        self.phase = None
+
+        self.psrr_db = 0
+
+        self.data_trans = None
+
+        #differential output
+        self.path_adm = None
+        self.path_acm = None
+        self.vout1_complex = None
+        self.vout2_complex = None
+        self.phase_v1 = None # for output balance
+        self.phase_v2 = None
         
     def read_netlist(self):
         with open(self.netlist_path, 'r') as f:
@@ -119,15 +148,15 @@ class NgspiceWrapper(object):
         return new_netlist_path
 
     def simulate(self, netlist_path):
-        info = 0 # this means no error occurred
+        succeed = 0 # this means no error occurred
         nl = utils_agent.get_file_to_str(netlist_path)
         sim_output = utils_agent.run_ngspice_direct(nl)
-        # print(sim_output)
+        print(sim_output)
         if not sim_output["success"]:
             # raise RuntimeError('program {} failed!'.format(command))
-            info = 1 # this means an error has occurred
+            succeed = sim_output["message"] # this means an error has occurred
             print("ngspice_wrapper: ngspice sim error")
-        return info
+        return succeed
     
 
     def measure_metrics(self):
@@ -167,9 +196,9 @@ if __name__ == "__main__":
     ngspice_wrapper = NgspiceWrapper(yaml_path)
     
     new_netlist_path = ngspice_wrapper.create_new_netlist(parameters, process, temp_pvt, vdd)
-    info = ngspice_wrapper.simulate(new_netlist_path)
+    succeed = ngspice_wrapper.simulate(new_netlist_path)
     print(f"New netlist created at: {new_netlist_path}")
-    print("info:", info)
+    print("succeed:", succeed)
     print("trf:", ngspice_wrapper.trf)
     print("period:", ngspice_wrapper.period)
     print("VDD:", ngspice_wrapper.VDD)

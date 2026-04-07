@@ -1,5 +1,5 @@
 git add .
-git commit -m "bug fixed like value format and remove some impossible params like trf
+git commit -m "now ngspice_wrapper works!
 "
 git push
 

@@ -26,13 +26,13 @@ params:
 targets:
   area: !!float 2.0e-9
   current: !!float 2.0e-4
-  gain: !!float 200
-  noise: !!float 3.0e-2
-  phm: !!float 60.0
-  slewRate: !!float 15.0
+  dc_gain: !!float 200
+  noise_total: !!float 3.0e-2
+  phase_margin: !!float 60.0
+  slew_rate: !!float 15.0
   ugbw: !!float 1.0e+6
 
-hard_constraints: !!python/tuple ['gain', 'noise', 'phm', 'slewRate', 'ugbw']
+hard_constraints: !!python/tuple ['dc_gain', 'noise_total', 'phase_margin', 'slew_rate', 'ugbw']
 optimization_targets: !!python/tuple ['area', 'current']
 
 spec_weights:
