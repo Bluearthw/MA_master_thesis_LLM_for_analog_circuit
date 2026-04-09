@@ -1,8 +1,7 @@
 ## entrance: root_agent_40!!
 
 git add .
-git commit -m "try to connect, now there will be warning in area estimation and the netlist creation needs to be changed
-yaml creation will be automatically done after netlist creation.
+git commit -m "change yaml creation.
 "
 git push
 

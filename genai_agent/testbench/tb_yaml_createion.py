@@ -35,7 +35,6 @@ def test_make_circuit_multipliers():
     print(result)
 
 def test_make_full_yaml(path, cir_name):
-    params = yaml_creation.get_params(path)
     path_id_9 =  {0: './genai_agent/output/9/ac_gain.csv', 1: './genai_agent/output/9/ac_gain.csv', 21: './genai_agent/output/9/ac_gain.csv', 6: './genai_agent/output/9/ac_gain.csv', 5: './genai_agent/output/9/ac_gain.csv', 16: './genai_agent/output/9/ac_gain.csv', 3: './genai_agent/output/9/noise.csv', 4: './genai_agent/output/9/tran_SR.csv', 2: './genai_agent/output/9/ac_psrr.csv'}
     # path_id = {0: './genai_agent/output/155/ac_gain.csv', 1: './genai_agent/output/155/ac_gain.csv', 15: './genai_agent/output/155/ac_gain.csv', 16: './genai_agent/output/155/ac_gain.csv', 5: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 3: './genai_agent/output/155/noise.csv', 4: './genai_agent/output/155/tran_SR.csv', 12: './genai_agent/output/155/tran_SR.csv', 10: './genai_agent/output/155/dc_swing.csv', 11: './genai_agent/output/155/dc_swing.csv', 13: './genai_agent/output/155/dc_icmr.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv'}
     path_id = path_id_9

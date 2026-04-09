@@ -57,7 +57,7 @@ def make_param_lines(param_names, tech = "45nm"):
     for name in param_names:
         # Determine if it's a multiplier (m), width (w), or length (l)
         prefix = name[0].lower()
-        
+        print(f"Processing parameter: {name}, prefix: {prefix}")
         if prefix == 'm':
             # Multipliers are usually integers
             val_str = "[1, 25, 1]"
@@ -65,12 +65,14 @@ def make_param_lines(param_names, tech = "45nm"):
             val_str = f"[{w_min}, {w_max}, {w_step}]"
         elif prefix == 'l':
             val_str = f"[{l_min}, {l_max}, {l_step}]"
+        elif prefix == 'v':
+            continue
         else:
             # Fallback for things like 'cap' or 'res'
             val_str = "[!!float 0.1e-12, !!float 10.0e-12, !!float 0.1e-12]"
             
         lines.append(f"  {name}:  !!python/tuple {val_str}")# do not use \t or there will be error while reading
-        
+        print(lines[-1])
     return "\n".join(lines)
 
 def get_targets(spec_ids):

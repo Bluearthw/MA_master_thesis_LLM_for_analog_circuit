@@ -18,7 +18,6 @@ import debug_agent
 from memory import category_numbers
 from workflows import cmfb_agent
 from gen_utils import yaml_creation
-import
 
 path_output = local_config.path_output
 
@@ -119,8 +118,7 @@ def test_make_cir_sim(cir_num):
         combined_results['cmfb'] = results_cmfb
     
     
-    params = yaml_creation.get_params(path_netlist)
-    result = yaml_creation.make_full_yaml(params, path_ids=struct_path_id, cir_name=cir_num)
+    result = yaml_creation.make_full_yaml(path_netlist, path_ids=struct_path_id, cir_name=cir_num)
     print("yaml path = ", result)
 
     print("Combined measurement results:", combined_results)
