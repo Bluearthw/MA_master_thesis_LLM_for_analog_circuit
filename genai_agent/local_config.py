@@ -1,4 +1,4 @@
-
+import os
 GOOGLE_API_KEY_yong="AIzaSyAjfde8WMNQ7keQvhI1uheBW_mMczV1uYA"
 GOOGLE_API_KEY_zhiyong="AIzaSyBCCHDhKIabEjdhfFI0vyXBM6Fc_AhhKQY"
 
@@ -7,6 +7,10 @@ path_classified_dataset = "../material/classified_dataset_from_mohsen/Dataset"
 path_category = "./genai_agent/data/categories/category"
 path_output = "./genai_agent/output/"
 path_yaml = "./ngspice_interface/files/yaml_files/" 
+
+path_project = os.getcwd()
+path_yaml_two_stage = os.path.join(path_project, 'ngspice_interface', 'files', 'yaml_files', 'TwoStage.yaml')
+
 agent_model25 = "gemini-2.5-flash"
 agent_model3 = "gemini-3-flash-preview"
 # netlist 9
@@ -29,7 +33,8 @@ table_specs_id = {0:    "DC Gain",
                   
                   8:    "input impedance",
                   9:    "output impedance",
-                  
+                  22:   "current",
+
                   4:    "slew rate", 
                   12:   "settle time",
 
@@ -64,6 +69,7 @@ table_target_id = {
     19: 'output_balance',
     20: 'cmfb_stability',
     21: 'ugbw',
+    22: 'current',
 }
 default_targets = {
     0: 20,           # gain (dB)

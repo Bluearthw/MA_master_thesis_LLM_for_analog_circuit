@@ -17,6 +17,8 @@ import tools
 import debug_agent
 from memory import category_numbers
 from workflows import cmfb_agent
+from gen_utils import yaml_creation
+import
 
 path_output = local_config.path_output
 
@@ -48,7 +50,7 @@ def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, 
             measurement_results = utils.measure(struct_path_id, is_differential_output)
             for mr in measurement_results:
                 print("Measurement results:", mr)
-            return measurement_results
+            return measurement_results, struct_path_id
         else:
             print(f"==================bug found!!!!======={counter}===============")
             error_msg.append(f"iteration{counter}:")
@@ -101,10 +103,11 @@ def test_make_cir_sim(cir_num):
     print("is CMFB:", is_CMFB)
     
     # Simulate original netlist
-    results_original = sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, path_output_num)
+    results_original, struct_path_id = sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, path_output_num)
     
     combined_results = {'original': results_original}
-    utils.save_str_to_file(netlist, path_output_num + "final_netlist.cir")
+    path_netlist = path_output_num + "final_netlist.cir"
+    utils.save_str_to_file(netlist, path_netlist)
     
     if is_CMFB:
         struct_cmfb = cmfb_agent.cmfb_agent(netlist,cir_num)
@@ -116,6 +119,10 @@ def test_make_cir_sim(cir_num):
         combined_results['cmfb'] = results_cmfb
     
     
+    params = yaml_creation.get_params(path_netlist)
+    result = yaml_creation.make_full_yaml(params, path_ids=struct_path_id, cir_name=cir_num)
+    print("yaml path = ", result)
+
     print("Combined measurement results:", combined_results)
     return combined_results
     
@@ -223,23 +230,15 @@ Example:
 test = category_numbers.num_class_40[:10]
 test = [69, 182] # cmfb or without cmfb
 test = [9, 155, 69, 182] # try to have siso diso dido dido_cmfb
-num = 9
-isLoop = False
+test = [9]
 # isLoop = True
 
-if isLoop:
-    for i in test:
-        print("=====*======",i)
-        print("====*=======",i)
+for i in test:
+    print("=====*======",i)
+    print("====*=======",i)
 
-        output_dir = Path(f"{path_output}{i}")
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        test_make_cir_sim(i)
-        utils.test_delay(30)
-else:    
-        
-    output_dir = Path(f"{path_output}{num}")
+    output_dir = Path(f"{path_output}{i}")
     output_dir.mkdir(parents=True, exist_ok=True)
-    unique_files = test_make_cir_sim(num)
-    print("unique simulation files:", unique_files)
+
+    test_make_cir_sim(i)
+    utils.test_delay(30)

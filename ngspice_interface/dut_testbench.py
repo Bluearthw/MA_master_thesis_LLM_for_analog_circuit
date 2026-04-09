@@ -30,6 +30,7 @@ class DUT(NgspiceWrapper):
             # spec_dict['netV'] = self.netV
 
         for spec_id, path in struct_path_id.items():
+            print(spec_id)
             if spec_id == 0:  # DC gain 
                 a = self.get_dc_gain(path)
                 print(f"DC gain: {a}")
@@ -53,13 +54,17 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[12]] = float(self.get_settle_time(path))
             
             elif spec_id == 5:  # gain margin
-                spec_dict[table_target_id[5]] = float(self.get_gain_margin(path))
+                spec_dict[table_target_id[5]] = float(self.get_gain_margin(path)) 
+
+            elif spec_id == 16:  # gain margin
+                spec_dict[table_target_id[16]] = self.get_phase_response(path)# it is an list
             
             elif spec_id == 6:  # phase margin
                 spec_dict[table_target_id[6]] = float(self.get_phase_margin(path))
-            
+            elif spec_id == 11:  # outputswing, it is a tuple(vrange, v_min, v_max)
+                spec_dict[table_target_id[11]] = self.get_output_swing(path)[0]
             elif spec_id == 13:  # icmr, it is a tuple(vrange, vcm, v_min, v_max)
-                spec_dict[table_target_id[13]] = self.get_icmr(path)
+                spec_dict[table_target_id[13]] = self.get_icmr(path)[0]
             
             elif spec_id == 14:  # cmrr, it is a list
                 spec_dict[table_target_id[14]] = self.get_cmrr(path)
@@ -75,6 +80,10 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[19]] = self.get_output_balance(path)
             elif spec_id == 20:
                 spec_dict[table_target_id[20]] = self.get_cmfb_stb(path)
+            elif spec_id == 21:
+                spec_dict[table_target_id[21]] = self.get_ugbw_unity_gain_bandwidth(path)
+            elif spec_id == 22:
+                spec_dict[table_target_id[22]] = self.get_current(path) # it is 0 now
 
 
             else:
@@ -164,6 +173,8 @@ class DUT(NgspiceWrapper):
         
         return phm
     
+    def get_current(self, path_i =""):
+        return 0
 
     def load_ac_gain_data(self, path_gain=""):
         if self. is_diff == False:
@@ -514,8 +525,8 @@ class DUT(NgspiceWrapper):
         out_swing_min = v_out[valid_indices[-1]] # Usually lower Vout
         out_swing_max = v_out[valid_indices[0]]  # Usually higher Vout
         
-        useful_swing = out_swing_max - out_swing_min
-        return useful_swing, out_swing_min, out_swing_max
+        useful_swing_range = out_swing_max - out_swing_min
+        return useful_swing_range, out_swing_min, out_swing_max
 
     #2 Power Supply Rejection Ratio (PSRR)
     def get_psrr(self, path_psrr): # maybe it can be interpolated to get more precise value

@@ -181,12 +181,31 @@ def make_circuit_multipliers(param_names, multiplier_value=2):
         lines.append(f"  {name}: !!int {multiplier_value}")
     return "\n".join(lines)
 
-def make_full_yaml(param_names, spec_ids=None, cir_name = 9, spec_weights=None, multiplier_value=2, tech='45nm'):
+def make_path_id(path_id_dict, root_name='path_id'):
+    """
+    Convert a path ID dictionary into YAML text.
+
+    Args:
+        path_id_dict (dict): Dictionary of IDs to path strings.
+                             e.g. {18: './genai_agent/output/96/ac_dm.csv'}
+        root_name (str): Top-level YAML key name.
+
+    Returns:
+        str: YAML formatted path_id section.
+    """
+    lines = [f"{root_name}:"]
+    for key in sorted(path_id_dict.keys()):
+        value = path_id_dict[key]
+        # Quote the path value for YAML safety
+        lines.append(f"  {key}: \"{value}\"")
+    return "\n".join(lines)
+
+def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multiplier_value=2, tech='45nm' ):
     """
     Build full YAML content and save to file from provided parameter list and target ids.
 
     Args:
-        param_names (list): parameter names from .cir netlist (e.g., ['wp1','lp1','mp1',...])
+        params (list): parameter names from .cir netlist (e.g., ['wp1','lp1','mp1',...])
         spec_ids (list): list of specification IDs (e.g., [0,3,4,6])
         spec_weights (dict): optional per-target weights (default 1.0 each)
         multiplier_value (int): multiplier value for m* elements in circuit_multipliers
@@ -195,8 +214,9 @@ def make_full_yaml(param_names, spec_ids=None, cir_name = 9, spec_weights=None, 
     Returns:
         str: combined YAML content
     """
-
-    targets_dict = get_targets(spec_ids or [])
+    params = get_params(path)
+    
+    targets_dict = get_targets(path_ids or [])
 
     if spec_weights is None:
         spec_weights = {k: 1.0 for k in targets_dict.keys()}
@@ -204,13 +224,15 @@ def make_full_yaml(param_names, spec_ids=None, cir_name = 9, spec_weights=None, 
     yaml_sections = [
         make_cir_name_line(cir_name),
         make_technology_line(tech),
-        make_param_lines(param_names, tech),
+        make_param_lines(params, tech),
         make_targets_lines(targets_dict),
         make_spec_weights_lines(spec_weights),
-        make_circuit_multipliers(param_names, multiplier_value),
+        make_circuit_multipliers(params, multiplier_value),
+        make_path_id(path_ids),
     ]
 
     content = "\n\n".join(yaml_sections)
     path_yaml = local_config.path_yaml+f"{cir_name}.yaml"
     utils.save_file_overwrite(path_yaml, content)
+    return path_yaml
 

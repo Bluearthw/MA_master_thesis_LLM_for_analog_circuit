@@ -8,7 +8,7 @@ import shutil
 import utils.saving as saving
 from ngspice_interface import DUT as DUT_NGSpice
 from utils.plotting import plotLearning, plot_running_maximum, solutions2pareto
-from genai_agent import local_config
+from genai_agent.local_config import path_yaml_two_stage
 
 class CircuitEnv(gym.Env):
     PER_LOW, PER_HIGH = -np.inf, +np.inf
@@ -25,14 +25,16 @@ class CircuitEnv(gym.Env):
         project_path = os.getcwd()
         yaml_directory = os.path.join(project_path, f"{simulator}_interface", 'files', 'yaml_files')
         circuit_yaml_path = os.path.join(yaml_directory, f'{circuit_name}.yaml')
+        
         with open(circuit_yaml_path, 'r') as f:
             yaml_data = yaml.load(f, Loader=yaml.Loader)
+            self.path_circuit_yaml = circuit_yaml_path
         
         self.dict_params = yaml_data['params']
         self.dict_targets = yaml_data['targets']
         self.hard_constraints = yaml_data['hard_constraints']
         self.optimization_targets = yaml_data['optimization_targets']
-
+        self.path_ids = yaml_data['path_id']
         self.n_actions = len(self.dict_params)
         self.obs_dim = len(self.dict_targets)
 
@@ -96,10 +98,8 @@ class CircuitEnv(gym.Env):
         return param_list
 
 
-    def simulate(self, params, path_id_two_stage= None):
-        project_path = os.getcwd()
-        yaml_path = os.path.join(project_path, 'ngspice_interface', 'files', 'yaml_files', 'TwoStage.yaml')
-
+    def simulate(self, params):
+        yaml_path = self.path_circuit_yaml
         try:
             dut = DUT_NGSpice(yaml_path)
             dut.output_files_folder = "./no_backup/output_files"
@@ -112,13 +112,12 @@ class CircuitEnv(gym.Env):
             dut.netlist_path = new_netlist_path   # <-- ADD THIS LINE
             info = dut.simulate(new_netlist_path) # True of false
             
-            dut.random_name = "TwoStage"
+            dut.random_name = self.circuit_name
             print(f"New netlist created at: {new_netlist_path}")
             print("VDD:", dut.VDD)
-            path_id_two_stage = {0: '.\\no_backup\\output_files\\ac_TwoStage.csv', 3: '.\\no_backup\\output_files\\noise_TwoStage.csv', 4: '.\\no_backup\\output_files\\tran_TwoStage.csv', 6: '.\\no_backup\\output_files\\ac_TwoStage.csv'}
-    
+            
             # Measure specs
-            spec_dict = dut.measure_metrics(path_id_two_stage)
+            spec_dict = dut.measure_metrics(self.path_ids)
             self.last_netV = spec_dict.get('netV', None) #？？？？ it it none
 
             # Keep DUT and its unique netlist path
@@ -140,6 +139,7 @@ class CircuitEnv(gym.Env):
             if isinstance(value, (dict, list, np.ndarray)):
                 continue
             goal = self.dict_targets[key]
+            print("CE: value",value)
             if not np.isfinite(value) or not np.isfinite(goal):
                 norm_dict[key] = 0.0# maybe we can treat it better like larger than goal set it inf 1 and --inf -1 
             else:
@@ -150,6 +150,10 @@ class CircuitEnv(gym.Env):
 
     def evaluate(self, action):
         self.param_values = self.action_refine(action)
+        # path_id_two_stage = {0: '.\\no_backup\\output_files\\ac_TwoStage.csv', 3: '.\\no_backup\\output_files\\noise_TwoStage.csv', 4: '.\\no_backup\\output_files\\tran_TwoStage.csv', 6: '.\\no_backup\\output_files\\ac_TwoStage.csv', 21: '.\\no_backup\\output_files\\ac_TwoStage.csv', 22: '.\\no_backup\\output_files\\dc_TwoStage.csv'}
+        #96
+        # path_id = {18: './genai_agent/output/96/ac_dm.csv', 17: './genai_agent/output/96/ac_cm.csv', 0: './genai_agent/output/96/ac_gain.csv', 1: './genai_agent/output/96/ac_gain.csv', 16: './genai_agent/output/96/ac_gain.csv', 6: './genai_agent/output/96/ac_gain.csv', 3: './genai_agent/output/96/noise.csv', 4: './genai_agent/output/96/tran_sr.csv', 10: './genai_agent/output/96/dc_sweep.csv', 11: './genai_agent/output/96/dc_sweep.csv'}
+
         self.real_specs = self.simulate(self.param_values)
         self.cur_norm_specs = self.normalize_specs(self.real_specs)
 
@@ -216,12 +220,9 @@ class CircuitEnv(gym.Env):
         reward, hard_satisfied = self.reward_computation(self.cur_norm_specs)
         
         # Ensure observation has correct dimension by filling missing specs with 0.0
-        # ob_list = []
-        print("CIR ENV : self.dict_targets ",self.dict_targets)
-        print("CIR ENV : self.cur_norm_specs ",self.cur_norm_specs)
-        # for key in self.dict_targets.keys():
-        #     ob_list.append(self.cur_norm_specs.get(key, 0.0))
-        # ob = np.array(ob_list, dtype=np.float32)
+        # print("CIR ENV : self.dict_targets ",self.dict_targets)
+        # print("CIR ENV : self.cur_norm_specs ",self.cur_norm_specs)
+        # if the returned spec_dict is not corresponded to the requriement in yaml, it will tells error(dimension problem)
         observation = np.concatenate([np.ravel(v) for v in self.cur_norm_specs.values()]).astype(np.float32)
 
         self.reward_history.append(reward)

@@ -423,7 +423,7 @@ nl_182_after_cmfb_agent = """* Fully Differential Amplifier 182 - CMFB Stability
 .param m2=1
 .param trf=0.5u
 .param period=10u
-.include "1genai/data/p045_TT.sp"
+.include "genai_agent/data/p045_TT.sp"
 
 * Core Circuit
 * M5 and M4 are NMOS Cascodes
@@ -482,3 +482,50 @@ wrdata ./1genai/output/182/cmfb_stb.csv v(net29)/v(gate_fb)
 .endc
 .end
 """
+
+nl_timeout = """
+* title line
+.param VB1=0.6
+.param VDD=1
+.param vcm=0.6
+.param w0=1.2757836193589348e-06
+.param l0=2.065025743856232e-07
+.param m0=9
+.param w1=1.4819912678863445e-06
+.param l1=1.1281494891414084e-07
+.param m1=11
+.param trf=1.3187112284561464e-12
+.param period=8.418525324287674e-12
+.param Cload=1.3570013470771993e-12
+.include "genai_agent/data/p045_TT.sp"
+M0 VOUT1 VB1 VDD VDD pmos w=w0 l=l0 m=m0
+M1 VOUT1 VIN1 VSS VSS nmos w=w1 l=l1 m=m1
+CLOAD VOUT1 VSS {Cload}
+vdd VDD 0 dc=VDD
+vb1 VB1 0 dc=VB1
+vss VSS 0 dc=0
+vin VIN1 0 dc=vcm ac=1.0 PULSE(0.5 0.7 {trf} {trf} {trf} {0.5*period-trf} {period})
+.control
+option numdgt=7
+set temp=25
+set units=degrees
+set wr_vecnames
+ac dec 10 1 100G
+wrdata ./genai_agent/output/9/ac_gain.csv v(VOUT1)
+noise v(VOUT1) vin dec 10 1 100G
+
+wrdata ./genai_agent/output/9/noise.csv inoise_total
+tran 1u 20u
+wrdata ./genai_agent/output/9/tran_SR.csv v(VOUT1)
+.endc
+.end
+"""
+
+"""
+
+
+
+alter vdd ac=1.0
+alter vin ac=0
+ac dec 10 1 100G
+wrdata ./genai_agent/output/9/psrr.csv v(VOUT1)"""

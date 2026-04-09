@@ -103,7 +103,7 @@ def train_policy(args, env_pool, agent, total_steps):
     agent.update_parameters(memory_batch=batch, update=total_steps)
 
 
-def td3_start(args=None):
+def td3_start(args=None, circuit_name=None):
     import time  
     if args is None:
         args = readParser()
@@ -112,12 +112,15 @@ def td3_start(args=None):
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
     # Initial environment
-    env = CircuitEnv(run_id=args.run_id)
+    # env = CircuitEnv(run_id=args.run_id, circuit_name='TwoStage')
+    env = CircuitEnv(run_id=args.run_id, circuit_name = circuit_name)
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
     # Intial agent
     agent = TD3(state_dim, env.action_space, args)
     # Initial pool for env
+    print("observation_space",env.observation_space)
+    print("action_space",env.action_space)
     env_pool = ReplayBuffer(state_dim, action_dim, max_size=args.replay_size)
     # Training
     train(args, env, agent, env_pool)
@@ -151,4 +154,4 @@ def td3_start(args=None):
     except Exception as e:
         print(f"[Warning] Failed to save best netlist: {e}")
 
-td3_start()
+td3_start(circuit_name='9')

@@ -333,10 +333,18 @@ def match_transistor(match):
             # Fallback if no number is found (e.g., if ID is M_core)
             num_id = transistor_id.replace("M", "_")
 
+        # --- Detect transistor type (NMOS or PMOS) ---
+        if "nmos" in nodes_and_model.lower():
+            prefix = "n"  # e.g., wn1, ln1, mn1
+        elif "pmos" in nodes_and_model.lower():
+            prefix = "p"  # e.g., wp1, lp1, mp1
+        else:
+            prefix = ""   # Fallback to original w1, l1, m1
+
         # --- Generate Parameter Names ---
-        w_param = f"w{num_id}"
-        l_param = f"l{num_id}"
-        m_param = f"m{num_id}"
+        w_param = f"w{prefix}{num_id}"
+        l_param = f"l{prefix}{num_id}"
+        m_param = f"m{prefix}{num_id}"
 
         # --- Create .param statement ---
         param_line = (
@@ -350,8 +358,9 @@ def match_transistor(match):
         #     transistor_ids.append(num_id)
 
         # --- Create modified M-line ---
+        new_transistor_id = f"m{prefix}{num_id}"
         new_m_line = (
-            f"{transistor_id} {nodes_and_model} w={w_param} l={l_param} m={m_param}"
+            f"{new_transistor_id} {nodes_and_model} w={w_param} l={l_param} m={m_param}"
         )
         return new_m_line, num_id, param_line
 
@@ -406,7 +415,7 @@ def add_params(netlist):  # input should be lines here
     transistor_ids = []
     resistor_ids_processed = set()
     capacitor_ids_processed = set()
-    m_line_pattern = re.compile(r"^(M\S+)\s+(.+?)$", re.IGNORECASE)
+    m_line_pattern = re.compile(r"^(M\S+)\s+(.+?)$", re.IGNORECASE) # ^ start of line
     #[RC], either 'R' or 'C'    \Rs+, match 1 more which is not white space
     rc_line_pattern = re.compile(r"^([RC]\S+)\s+(\S+)\s+(\S+)$", re.IGNORECASE)
     digit_extractor = re.compile(r"\d+")
@@ -850,7 +859,7 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
                     capture_output=True,
                     text=True,
                     shell=False,
-                    timeout=30
+                    timeout=15
                 )
                 break
             except subprocess.TimeoutExpired:

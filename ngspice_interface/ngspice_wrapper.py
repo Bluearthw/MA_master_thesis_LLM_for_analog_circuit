@@ -10,11 +10,12 @@ from genai_agent import utils as utils_agent
 from genai_agent import local_config 
 class NgspiceWrapper(object):
     
-    def __init__(self, yaml_path = "" , is_differential = False):
+    def __init__(self, path_yaml = "" , is_differential = False):
         self.with_yaml = False
-        if yaml_path != "":
+        if path_yaml != "":
             self.with_yaml = True
-            with open(yaml_path, 'r') as f:
+            self.path_yaml = path_yaml
+            with open(path_yaml, 'r') as f:
                 yaml_data = yaml.load(f, Loader=yaml.Loader)
             self.circuit_name = yaml_data['circuit_name']
             self.circuit_multipliers = yaml_data['circuit_multipliers']
@@ -150,7 +151,8 @@ class NgspiceWrapper(object):
     def simulate(self, netlist_path):
         succeed = 0 # this means no error occurred
         nl = utils_agent.get_file_to_str(netlist_path)
-        sim_output = utils_agent.run_ngspice_direct(nl)
+        print(netlist_path)
+        sim_output = utils_agent.run_ngspice_direct(nl, False, netlist_path)
         print(sim_output)
         if not sim_output["success"]:
             # raise RuntimeError('program {} failed!'.format(command))
@@ -167,7 +169,7 @@ class NgspiceWrapper(object):
 
 if __name__ == "__main__":
     project_path = os.getcwd()
-    yaml_path = os.path.join(project_path, 'ngspice_interface', 'files', 'yaml_files', '9.yaml')
+    path_yaml = os.path.join(project_path, 'ngspice_interface', 'files', 'yaml_files', '9.yaml')
     parameters = {
         'mp1': 10,
         'wp1': 5.0e-07,
@@ -193,7 +195,7 @@ if __name__ == "__main__":
     process = "TT"
     temp_pvt = 27
     vdd = 1.2
-    ngspice_wrapper = NgspiceWrapper(yaml_path)
+    ngspice_wrapper = NgspiceWrapper(path_yaml)
     
     new_netlist_path = ngspice_wrapper.create_new_netlist(parameters, process, temp_pvt, vdd)
     succeed = ngspice_wrapper.simulate(new_netlist_path)

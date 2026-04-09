@@ -1,9 +1,9 @@
 from google import genai
 from google.genai import types
 
-from . import local_config
-from . import utils
-from . import tools
+import local_config
+import utils
+import tools
 def debug_agent(netlist, error_message, cir_num, spec_sims):
     print("==netlist in debug agent\n", netlist)
     print("==error_message\n", error_message)

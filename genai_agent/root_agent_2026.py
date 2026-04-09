@@ -243,18 +243,18 @@ test4 = test_all[101:-1]
 # test = test1[test1.index(63):-1]
 test = test2[0:1]
 print("test circuits", test)
-loop = True
-if loop:
-    for i in test:
-        print("===========",i)
 
-        # Define the directory path
-        
-        output_dir = Path(f"./1genai/output/{i}")
+test = [9]
+for i in test:
+    print("===========",i)
 
-        # Create the directory
-        # parents=True: creates ./1genai/output/ if they don't exist
-        # exist_ok=True: doesn't crash if the folder "9" already exists
-        output_dir.mkdir(parents=True, exist_ok=True)
-        test_make_cir_sim(i)
-        utils.test_delay(60)
+    # Define the directory path
+    
+    output_dir = Path(f"./1genai/output/{i}")
+
+    # Create the directory
+    # parents=True: creates ./1genai/output/ if they don't exist
+    # exist_ok=True: doesn't crash if the folder "9" already exists
+    output_dir.mkdir(parents=True, exist_ok=True)
+    test_make_cir_sim(i)
+    utils.test_delay(60)

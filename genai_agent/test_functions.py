@@ -269,7 +269,7 @@ def test_pyspice_sim(nl = local_config.nl_feb24):
 
 def test_run_ngspice_direct(nl = local_config.nl_feb24):
     # Write the netlist to a temporary file
-    utils.pyspice_op_sim_simple(nl)
+    # utils.pyspice_op_sim_simple(nl)
     print("===direct::")
     success = utils.run_ngspice_direct(nl)
     print("===success::", success["success"])
@@ -372,9 +372,10 @@ end_time = time.perf_counter()
 # test_pycpice_op()
 # test_run_ngspice_direct(saved_netlist.nl_182_diff_with_cmfb_before_cmfb_agent)
 # test_run_ngspice_direct(local_config.nl_2_stage_opamp)
-test_run_ngspice_direct(local_config.nl_feb25)
-
+# test_run_ngspice_direct(local_config.nl_feb25)
+# test_run_ngspice_direct(saved_netlist.nl_timeout)
 # test_run_ngspice_direct_from_final_netlist(155)
+test_run_ngspice_direct_from_final_netlist(9)
 
 #end region
 

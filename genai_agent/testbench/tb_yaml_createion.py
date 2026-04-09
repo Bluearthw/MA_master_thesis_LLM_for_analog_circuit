@@ -34,21 +34,22 @@ def test_make_circuit_multipliers():
     result = yaml_creation.make_circuit_multipliers(params)
     print(result)
 
-def test_make_full_yaml():
-    params = ['Cload', 'VB1', 'VDD', 'l0', 'l1', 'm0', 'm1', 'period', 'trf', 'vcm', 'w0', 'w1']
-    path_id = {0: './genai_agent/output/155/ac_gain.csv', 1: './genai_agent/output/155/ac_gain.csv', 15: './genai_agent/output/155/ac_gain.csv', 16: './genai_agent/output/155/ac_gain.csv', 5: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 3: './genai_agent/output/155/noise.csv', 4: './genai_agent/output/155/tran_SR.csv', 12: './genai_agent/output/155/tran_SR.csv', 10: './genai_agent/output/155/dc_swing.csv', 11: './genai_agent/output/155/dc_swing.csv', 13: './genai_agent/output/155/dc_icmr.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv'}
-    
-    result = yaml_creation.make_full_yaml(params, spec_ids=path_id)
+def test_make_full_yaml(path, cir_name):
+    params = yaml_creation.get_params(path)
+    path_id_9 =  {0: './genai_agent/output/9/ac_gain.csv', 1: './genai_agent/output/9/ac_gain.csv', 21: './genai_agent/output/9/ac_gain.csv', 6: './genai_agent/output/9/ac_gain.csv', 5: './genai_agent/output/9/ac_gain.csv', 16: './genai_agent/output/9/ac_gain.csv', 3: './genai_agent/output/9/noise.csv', 4: './genai_agent/output/9/tran_SR.csv', 2: './genai_agent/output/9/ac_psrr.csv'}
+    # path_id = {0: './genai_agent/output/155/ac_gain.csv', 1: './genai_agent/output/155/ac_gain.csv', 15: './genai_agent/output/155/ac_gain.csv', 16: './genai_agent/output/155/ac_gain.csv', 5: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 3: './genai_agent/output/155/noise.csv', 4: './genai_agent/output/155/tran_SR.csv', 12: './genai_agent/output/155/tran_SR.csv', 10: './genai_agent/output/155/dc_swing.csv', 11: './genai_agent/output/155/dc_swing.csv', 13: './genai_agent/output/155/dc_icmr.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv'}
+    path_id = path_id_9
+    result = yaml_creation.make_full_yaml(path, path_ids=path_id, cir_name=cir_name)
     print(result)
-
 # it should work for both .params types
 # test_get_params("./genai_agent/output/9/final_netlist.cir")
-test_get_params("D:\\1kulStudy\\8MA_Thesis\\workplace\\ngspice_interface\\files\\input_netlists\\TwoStage.cir")
-
+# test_get_params("D:\\1kulStudy\\8MA_Thesis\\workplace\\ngspice_interface\\files\\input_netlists\\TwoStage.cir")
+# test_get_params("D:\\1kulStudy\\8MA_Thesis\\workplace\\genai_agent\\output\\9\\final_netlist.cir")
 # test_make_param_lines()
 
 # test_get_targets()
 # test_make_targets_lines()
 # test_make_spec_weights_lines()
 # test_make_circuit_multipliers()
-# test_make_full_yaml()
+cir_name = 9
+test_make_full_yaml(f"./genai_agent/output/{cir_name}/final_netlist.cir", cir_name)
