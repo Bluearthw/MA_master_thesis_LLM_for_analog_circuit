@@ -2,7 +2,19 @@ import sys
 sys.path.append("./genai_agent")
 
 from gen_utils import yaml_creation
-
+"""9 target
+targets:
+  area: !!float 2.0e-06
+  bandwidth: !!float 1.0e+01
+  current: !!float 2.0e-01
+  dc_gain: !!float 2.00
+  gain_margin: !!float 4.00
+  noise_total: !!float 3.0e-01
+  phase_margin: !!float 60.00
+  psrr: !!float 6.00
+  slew_rate: !!float 1.00
+  ugbw: !!float 1.0e+01
+"""
 def test_get_params(path):
     result = yaml_creation.get_params(path)
     print( result)
@@ -35,9 +47,10 @@ def test_make_circuit_multipliers():
     print(result)
 
 def test_make_full_yaml(path, cir_name):
-    path_id_9 =  {0: './genai_agent/output/9/ac_gain.csv', 1: './genai_agent/output/9/ac_gain.csv', 21: './genai_agent/output/9/ac_gain.csv', 6: './genai_agent/output/9/ac_gain.csv', 5: './genai_agent/output/9/ac_gain.csv', 16: './genai_agent/output/9/ac_gain.csv', 3: './genai_agent/output/9/noise.csv', 4: './genai_agent/output/9/tran_SR.csv', 2: './genai_agent/output/9/ac_psrr.csv'}
+    path_id_9 ={0: './genai_agent/output/9/ac_gain.csv', 1: './genai_agent/output/9/ac_gain.csv', 15: './genai_agent/output/9/ac_gain.csv', 16: './genai_agent/output/9/ac_gain.csv', 21: './genai_agent/output/9/ac_gain.csv', 5: './genai_agent/output/9/ac_gain.csv', 6: './genai_agent/output/9/ac_gain.csv', 3: './genai_agent/output/9/noise.csv', 2: './genai_agent/output/9/psrr.csv', 4: './genai_agent/output/9/tran_SR.csv', 12: './genai_agent/output/9/tran_SR.csv', 22: './genai_agent/output/9/current.csv'}
     # path_id = {0: './genai_agent/output/155/ac_gain.csv', 1: './genai_agent/output/155/ac_gain.csv', 15: './genai_agent/output/155/ac_gain.csv', 16: './genai_agent/output/155/ac_gain.csv', 5: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 3: './genai_agent/output/155/noise.csv', 4: './genai_agent/output/155/tran_SR.csv', 12: './genai_agent/output/155/tran_SR.csv', 10: './genai_agent/output/155/dc_swing.csv', 11: './genai_agent/output/155/dc_swing.csv', 13: './genai_agent/output/155/dc_icmr.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv'}
     path_id = path_id_9
+    path_id = {k: v for k, v in path_id.items() if k != 16}
     result = yaml_creation.make_full_yaml(path, path_ids=path_id, cir_name=cir_name)
     print(result)
 # it should work for both .params types

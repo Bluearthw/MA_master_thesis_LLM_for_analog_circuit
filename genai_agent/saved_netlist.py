@@ -529,3 +529,45 @@ alter vdd ac=1.0
 alter vin ac=0
 ac dec 10 1 100G
 wrdata ./genai_agent/output/9/psrr.csv v(VOUT1)"""
+
+nl_april_sim_failed_warning = """* title line
+.param VB1=0.7
+.param VDD=1.2
+.param VCM=0.6
+.param wp0=2.0582877e-06
+.param lp0=1.0085766e-07
+.param mp0=23
+.param wn1=8.9782213e-07
+.param ln1=1.7089069e-07
+.param mn1=11
+.param trf=0.5u
+.param period=10u
+.param Cload=7.985418e-13
+.include "genai_agent/data/p045_TT.sp"
+mp0 VOUT1 VB1 VDD VDD pmos w=wp0 l=lp0 m=mp0
+mn1 VOUT1 VIN1 VSS VSS nmos w=wn1 l=ln1 m=mn1
+Cload VOUT1 VSS {Cload}
+vdd VDD 0 dc=VDD ac=0
+vss VSS 0 dc=0
+vb1 VB1 0 dc=VB1
+vin VIN1 VSS dc=VCM ac=1.0 PULSE(0 1.2 0.5u 0.5u 0.5u 4.5u 10u)
+.control
+option numdgt=7
+set temp=25
+set units=degrees
+set wr_vecnames
+ac dec 10 1 100G
+wrdata ./genai_agent/output/9/ac_gain.csv v(VOUT1)
+noise v(VOUT1) vin dec 10 1 100G
+setplot noise1
+wrdata ./genai_agent/output/9/noise.csv inoise_spectrum
+alter vdd ac=1
+alter vin ac=0
+ac dec 10 1 100G
+wrdata ./genai_agent/output/9/psrr.csv v(VOUT1)
+dc vdd 1.2 1.2 1
+wrdata ./genai_agent/output/9/dc_current.csv i(vdd)
+tran 50n 30u
+wrdata ./genai_agent/output/9/tran_SR.csv v(VOUT1)
+.endc
+.end"""

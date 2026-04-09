@@ -154,5 +154,5 @@ def td3_start(args=None, circuit_name=None):
     except Exception as e:
         print(f"[Warning] Failed to save best netlist: {e}")
 
-td3_start(circuit_name='TwoStage')
-# td3_start(circuit_name='9')
+# td3_start(circuit_name='TwoStage')
+td3_start(circuit_name='9')

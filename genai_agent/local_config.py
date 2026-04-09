@@ -63,7 +63,7 @@ table_target_id = {
     13: 'icmr',
     14: 'cmrr',
     15: 'ac_gain',
-    16: 'phase_response',
+    16: 'phase_response', # array return result
     17: 'cm_gain',
     18: 'dm_gain',
     19: 'output_balance',
@@ -72,27 +72,29 @@ table_target_id = {
     22: 'current',
 }
 default_targets = {
-    0: 20,           # gain (dB)
-    1: 1.0e+6,        # bandwidth (Hz)
-    2: 60.0,          # psrr (dB)
-    3: 3.0e-2,        # noise (V)
+    0: 10,           # gain (dB)
+    1: 1.0e+2,        # bandwidth (Hz)
+    2: 10.0,          # psrr (dB)
+    3: 3.0e-1,        # noise_total (V)
     4: 15.0,          # slew_rate (V/us)
     5: 45.0,          # gm (dB)
     6: 60.0,          # phm (degrees)
-    7: 1.0e-9,        # noise_spectrum (V/sqrt(Hz))
+    7: 1.0e-9,        # noise_spectrum (V/sqrt(Hz))??????
     8: 1.0e+9,        # input_impedance (Ohms)
     9: 1.0e+3,        # output_impedance (Ohms)
-    10: 0.6,          # input_swing (V)
-    11: 0.6,          # output_swing (V)
+    10: 0.1,          # input_swing (V)
+    11: 0.1,          # output_swing (V)
     12: 10.0,         # settle_time (ns)
     13: 0.5,          # icmr (V)
-    14: 60.0,         # cmrr (dB)
-    15: 200,          # ac_gain (dB)
-    16: 60.0,         # phase_response (degrees)
+    14: 10.0,         # cmrr (dB)
+    15: 10.0,          # ac_gain (dB)
+    16: 60.0,         # phase_response (array)?????
     17: 0.01,         # cmg (dB)
-    18: 200,          # dmg (dB)
+    18: 10.0,          # dmg (dB)
     19: 0.1,          # output_balance (V)
     20: 60.0,         # cmfb_stability (degrees)
+    21: 1.0e+1,       # ugbw (Hz)
+    22: 2.0e-1,       # current (A)
 }
 netlist_with_load ="""*params
 

@@ -899,7 +899,7 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
             print(f"Error Details: {logs}")
             return {"success": False, "message": f"Simulation failed\n{logs}"}
 
-        print(f"=== Simulation Analysis ---{is_dc_value_warning}, fatal {has_fatal_error}")
+        # print(f"=== Simulation Analysis ---{is_dc_value_warning}, fatal {has_fatal_error}")
         # If only a dc value warning (no fatal error), treat as success
         if has_error:
             # print("--- Simulation completed with warnings (non-fatal) ---")

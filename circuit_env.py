@@ -139,7 +139,7 @@ class CircuitEnv(gym.Env):
             if isinstance(value, (dict, list, np.ndarray)):
                 continue
             goal = self.dict_targets[key]
-            print("CE: value",value)
+            # print("CE: value",value)
             if not np.isfinite(value) or not np.isfinite(goal):
                 norm_dict[key] = 0.0# maybe we can treat it better like larger than goal set it inf 1 and --inf -1 
             else:

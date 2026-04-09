@@ -11,6 +11,7 @@ from .ngspice_wrapper import NgspiceWrapper
 # from area_estimation import BPTM45nmAreaEstimator
 # from ngspice_wrapper import NgspiceWrapper
 import sys
+from scipy.integrate import trapezoid
 sys.path.append(".")
 from genai_agent.local_config import table_target_id 
 class DUT(NgspiceWrapper):
@@ -44,34 +45,38 @@ class DUT(NgspiceWrapper):
             
             elif spec_id == 3:  # input noise
                 spec_dict[table_target_id[3]] = float(self.get_in_equivalent_total_noise(path))
-            
-            elif spec_id == 7:  # input equivalent total noise from spectrum
-                spec_dict[table_target_id[7]] = self.get_in_equivalent_total_noise_from_spectrum(path)
             #Trans
             elif spec_id == 4:  # slew rate
                 spec_dict[table_target_id[4]] = float(self.get_slew_rate(path))
-            elif spec_id == 12:  # settle time
-                spec_dict[table_target_id[12]] = float(self.get_settle_time(path))
             
             elif spec_id == 5:  # gain margin
                 spec_dict[table_target_id[5]] = float(self.get_gain_margin(path)) 
+            elif spec_id == 6:  # phase margin
+                spec_dict[table_target_id[6]] = float(self.get_phase_margin(path))
+            elif spec_id == 7:  # input equivalent total noise from spectrum
+                spec_dict[table_target_id[7]] = self.get_in_equivalent_total_noise_from_spectrum(path)
+            
+            elif spec_id == 10:
+                spec_dict[table_target_id[10]] = 0# to be done
+            
+            elif spec_id == 11:  # outputswing, it is a tuple(vrange, v_min, v_max)
+                spec_dict[table_target_id[11]] = self.get_output_swing(path)[0]
+            
+            elif spec_id == 12:  # settle time
+                spec_dict[table_target_id[12]] = float(self.get_settle_time(path))
+            
+            elif spec_id == 13:  # icmr, it is a tuple(vrange, vcm, v_min, v_max)
+                spec_dict[table_target_id[13]] = self.get_icmr(path)[0]
+
+            elif spec_id == 14:  # cmrr, it is a list
+                spec_dict[table_target_id[14]] = self.get_cmrr(path)
+
+            elif spec_id == 15:
+                spec_dict[table_target_id[15]] = self.get_ac_gain(path)
 
             elif spec_id == 16:  # gain margin
                 spec_dict[table_target_id[16]] = self.get_phase_response(path)# it is an list
             
-            elif spec_id == 6:  # phase margin
-                spec_dict[table_target_id[6]] = float(self.get_phase_margin(path))
-            elif spec_id == 11:  # outputswing, it is a tuple(vrange, v_min, v_max)
-                spec_dict[table_target_id[11]] = self.get_output_swing(path)[0]
-            elif spec_id == 13:  # icmr, it is a tuple(vrange, vcm, v_min, v_max)
-                spec_dict[table_target_id[13]] = self.get_icmr(path)[0]
-            
-            elif spec_id == 14:  # cmrr, it is a list
-                spec_dict[table_target_id[14]] = self.get_cmrr(path)
-            elif spec_id == 15:
-                spec_dict[table_target_id[15]] = self.get_ac_gain(path)
-            elif spec_id == 10:
-                spec_dict[table_target_id[10]] = 0# to be done
             elif spec_id == 17:
                 spec_dict[table_target_id[17]] = self.get_common_mode_gain(path)
             elif spec_id == 18:
@@ -403,7 +408,10 @@ class DUT(NgspiceWrapper):
         
         data_noise = np.genfromtxt(path, autostrip=True, skip_header=1)
         # this is total so just skip output, and head is skipped.
-        return data_noise[1] 
+        if np.size(data_noise) > 50:
+            return self.get_in_equivalent_total_noise_from_spectrum(path)
+        else:
+            return data_noise[1] 
 
     #7 input equivalent noise spectrum
     def get_in_equivalent_total_noise_from_spectrum(self, path): # there is another vector that might calculate the integrated noise, 
@@ -443,7 +451,7 @@ class DUT(NgspiceWrapper):
 
         vmin = np.min(vout_tran)
         vmax = np.max(vout_tran)
-        print(f"vmin: {vmin}, vmax: {vmax}")
+        # print(f"vmin: {vmin}, vmax: {vmax}")
         vlo = vmin + threshold_low*(vmax-vmin)
         vhi = vmin + threshold_high*(vmax-vmin)
 

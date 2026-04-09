@@ -98,18 +98,20 @@ def get_targets(spec_ids):
     targets = {}
     
     for spec_id in spec_ids:
-        if spec_id in local_config.table_target_id:
+        if spec_id == 16:
+            continue
+        elif spec_id in local_config.table_target_id:
             metric_name = local_config.table_target_id[spec_id]
             metric_value = default_targets.get(spec_id, 0.0)
             targets[metric_name] = metric_value
     
     # Always include area (fixed)
     if 'area' not in targets:
-        targets['area'] = 2.0e-9
+        targets['area'] = 2.0e-6
     
     # Always include current (fixed)
     if 'current' not in targets:
-        targets['current'] = 2.0e-4
+        targets['current'] = 2.0e-1
     
     return targets
 

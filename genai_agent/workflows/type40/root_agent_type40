@@ -117,7 +117,7 @@ def test_make_cir_sim(cir_num):
         results_cmfb = sim_debug_measure_loop(cmfb_netlist, [cmfb_spec_sims], is_differential_output, cir_num, path_output_num)
         combined_results['cmfb'] = results_cmfb
     
-    
+    struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16}
     result = yaml_creation.make_full_yaml(path_netlist, path_ids=struct_path_id, cir_name=cir_num)
     print("yaml path = ", result)
 

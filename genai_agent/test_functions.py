@@ -267,14 +267,7 @@ def test_pyspice_sim(nl = local_config.nl_feb24):
     else:
         print("Simulation failed with message:", success["message"])
 
-def test_run_ngspice_direct(nl = local_config.nl_feb24):
-    # Write the netlist to a temporary file
-    # utils.pyspice_op_sim_simple(nl)
-    print("===direct::")
-    success = utils.run_ngspice_direct(nl)
-    print("===success::", success["success"])
-    print("===success::", success["message"])
-    
+
 def test_check_output_files():
     output_files = ["ac_gain.csv", "noise.csv"]
     for file in output_files:
@@ -305,17 +298,7 @@ def test_find_cat_from_num(num = 4):
     
     cat = utils.find_cat_from_num(num)
     print("==cat\n",cat)
-def test_run_ngspice_direct_from_final_netlist(num = 4):
-    netlist = utils.get_file_to_str(local_config.path_output +  f"{num}/final_netlist.cir")
-    path_nl = local_config.path_output +  f"{num}/final_netlist.cir"
-    # utils.delete_all_files_skip_dir(local_config.path_output) # delete all previous output to avoid confusion
-    
-    success = utils.run_ngspice_direct(netlist, False,path_nl)
-    print("==netlist",netlist)
-    if success["success"]:
-        print("Simulation successful!")
-    else:
-        print("Simulation failed with message:", success["message"])
+
 def test_cmfb_check_agent(netlist, cir_num=4):
     category_num = utils.find_cat_from_num(cir_num) # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
     path_category = local_config.path_category + f"{category_num}.md"
@@ -370,12 +353,8 @@ end_time = time.perf_counter()
 #region run ngspice
 # test_pyspice_sim(local_config.nl_mar02_total)
 # test_pycpice_op()
-# test_run_ngspice_direct(saved_netlist.nl_182_diff_with_cmfb_before_cmfb_agent)
-# test_run_ngspice_direct(local_config.nl_2_stage_opamp)
-# test_run_ngspice_direct(local_config.nl_feb25)
-# test_run_ngspice_direct(saved_netlist.nl_timeout)
-# test_run_ngspice_direct_from_final_netlist(155)
-test_run_ngspice_direct_from_final_netlist(9)
+
+
 
 #end region
 
