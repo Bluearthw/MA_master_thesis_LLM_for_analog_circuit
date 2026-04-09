@@ -53,3 +53,11 @@ circuit_multipliers:
   mn5: !!int 1
   cap: !!int 1
   res: !!int 1
+
+path_id:
+  0: '.\\no_backup\\output_files\\ac_TwoStage.csv'
+  3: '.\\no_backup\\output_files\\noise_TwoStage.csv'
+  4: '.\\no_backup\\output_files\\tran_TwoStage.csv'
+  6: '.\\no_backup\\output_files\\ac_TwoStage.csv'
+  21: '.\\no_backup\\output_files\\ac_TwoStage.csv'
+  22: '.\\no_backup\\output_files\\dc_TwoStage.csv'

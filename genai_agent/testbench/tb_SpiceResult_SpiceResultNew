@@ -12,7 +12,15 @@ path_id_69 = {0: './genai_agent/output/69/ac_gain.csv', 1: './genai_agent/output
 path_id_96 = {18: './genai_agent/output/96/ac_dm.csv', 17: './genai_agent/output/96/ac_cm.csv', 0: './genai_agent/output/96/ac_gain.csv', 1: './genai_agent/output/96/ac_gain.csv', 16: './genai_agent/output/96/ac_gain.csv', 6: './genai_agent/output/96/ac_gain.csv', 3: './genai_agent/output/96/noise.csv', 4: './genai_agent/output/96/tran_sr.csv', 10: './genai_agent/output/96/dc_sweep.csv', 11: './genai_agent/output/96/dc_sweep.csv'}
 path_id_182 = {20: './genai_agent/output/182/cmfb_stb.csv'}
 path_id_two_stage = {0: '.\\no_backup\\output_files\\ac_TwoStage.csv', 3: '.\\no_backup\\output_files\\noise_TwoStage.csv', 4: '.\\no_backup\\output_files\\tran_TwoStage.csv', 6: '.\\no_backup\\output_files\\ac_TwoStage.csv', 21: '.\\no_backup\\output_files\\ac_TwoStage.csv', 22: '.\\no_backup\\output_files\\dc_TwoStage.csv'}
-
+""" in yaml:
+path_id:
+  0: '.\\no_backup\\output_files\\ac_TwoStage.csv'
+  3: '.\\no_backup\\output_files\\noise_TwoStage.csv'
+  4: '.\\no_backup\\output_files\\tran_TwoStage.csv'
+  6: '.\\no_backup\\output_files\\ac_TwoStage.csv'
+  21: '.\\no_backup\\output_files\\ac_TwoStage.csv'
+  22: '.\\no_backup\\output_files\\dc_TwoStage.csv'
+  """
 def test_phase_calculation():
     print("--- SPICE Phase Processing Test Bench ---")
     
