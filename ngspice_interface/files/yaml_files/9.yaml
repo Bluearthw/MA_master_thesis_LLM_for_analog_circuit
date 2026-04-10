@@ -12,13 +12,13 @@ params:
   wp0:  !!python/tuple [2.50e-07, 30.0e-07, 2.50e-07]
 
 targets:
-  area: !!float 2.0e-06
-  bandwidth: !!float 100.00
+  area: !!float 2.0e-03
+  bandwidth: !!float 10.00
   current: !!float 2.0e-01
-  dc_gain: !!float 10.00
-  gain_margin: !!float 45.00
-  noise_total: !!float 3.0e-01
-  phase_margin: !!float 60.00
+  dc_gain: !!float 1.00
+  gain_margin: !!float 4.00
+  noise_total: !!float 3.0
+  phase_margin: !!float 0.00
   slew_rate: !!float 15.00
   ugbw: !!float 10.00
 hard_constraints: !!python/tuple ['bandwidth', 'dc_gain', 'gain_margin', 'noise_total', 'phase_margin', 'slew_rate', 'ugbw']

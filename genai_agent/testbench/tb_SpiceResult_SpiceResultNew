@@ -1,6 +1,7 @@
 import os
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
 # local import
 sys.path.append(".")
 from ngspice_interface import dut_testbench
@@ -12,6 +13,8 @@ path_id_69 = {0: './genai_agent/output/69/ac_gain.csv', 1: './genai_agent/output
 path_id_96 = {18: './genai_agent/output/96/ac_dm.csv', 17: './genai_agent/output/96/ac_cm.csv', 0: './genai_agent/output/96/ac_gain.csv', 1: './genai_agent/output/96/ac_gain.csv', 16: './genai_agent/output/96/ac_gain.csv', 6: './genai_agent/output/96/ac_gain.csv', 3: './genai_agent/output/96/noise.csv', 4: './genai_agent/output/96/tran_sr.csv', 10: './genai_agent/output/96/dc_sweep.csv', 11: './genai_agent/output/96/dc_sweep.csv'}
 path_id_182 = {20: './genai_agent/output/182/cmfb_stb.csv'}
 path_id_two_stage = {0: '.\\no_backup\\output_files\\ac_TwoStage.csv', 3: '.\\no_backup\\output_files\\noise_TwoStage.csv', 4: '.\\no_backup\\output_files\\tran_TwoStage.csv', 6: '.\\no_backup\\output_files\\ac_TwoStage.csv', 21: '.\\no_backup\\output_files\\ac_TwoStage.csv', 22: '.\\no_backup\\output_files\\dc_TwoStage.csv'}
+path_id_9_phase = {5: './genai_agent/output/9/ac_gain.csv', 6: './genai_agent/output/9/ac_gain.csv'}
+
 """ in yaml:
 path_id:
   0: '.\\no_backup\\output_files\\ac_TwoStage.csv'
@@ -41,30 +44,6 @@ def test_phase_calculation():
     print(unwrapped_phase_deg_180)
     print(unwrapped_phase_deg_default_period)
     
-def test_measurement_spice_result(path_gain = "./genai_agent/output/ac_gain.csv"):
-    # Example data (replace with actual data from your simulation)
-    path_psrr = "./genai_agent/output/psrr.csv"
-    path_noise = "./genai_agent/output/noise.csv"
-    path_trans = "./genai_agent/output/tran_SR.csv" #63
-    spice_result = utils.SpiceResult(path_gain, path_psrr, path_noise, path_trans)
-    gain = spice_result.get_dc_gain()
-    bandwidth = spice_result.get_bandwidth()
-    pm = spice_result.get_gain_margin()
-    gm = spice_result.get_phm()
-    psrr = spice_result.get_psrr()
-    # inoise = spice_result.get_in_equivalent_noise_from_total()
-    inoise = spice_result.get_in_equivalent_noise_from_spectrum()
-    slew_rate = spice_result.get_slew_rate()
-    # print("==freq", spice_result.mag_db[0])
-    # print("==freq", spice_result.mag_db[-1])
-    print(f"DC Gain: {gain} dB")
-    print(f"Bandwidth: {bandwidth} Hz")
-    print(f"Phase Margin: {pm} degrees")
-    print(f"Gain Margin: {gm} dB")
-    print(f"PSRR: {psrr} dB")
-    print(f"Input Equivalent total Noise: {inoise} V")
-    print(f"Slew Rate: {slew_rate} V/s")
-
 def test_measurement_spice_result_new(path_id):
     result = utils.measure(path_id)
     print(result)
@@ -75,7 +54,7 @@ def test_DUT(p_id, name):
     dut.circuit_name = str(name)
     result = dut.measure_metrics(p_id)
     print (result)
-    
+ 
 def test_DUT_with_yaml():
     project_path = os.getcwd()
     # yaml_path = os.path.join(project_path, 'ngspice_interface', 'files', 'yaml_files', '9.yaml')
@@ -123,7 +102,27 @@ def test_DUT_with_yaml():
     path_id_two_stage = {0: '.\\no_backup\\output_files\\ac_TwoStage.csv', 3: '.\\no_backup\\output_files\\noise_TwoStage.csv', 4: '.\\no_backup\\output_files\\tran_TwoStage.csv', 6: '.\\no_backup\\output_files\\ac_TwoStage.csv'}
      
     dut_tb.measure_metrics(path_id_two_stage)
-# test_measurement_spice_result_new(path_id_182)
-# test_DUT(path_id_96, 96)
-test_DUT_with_yaml()
+
+def test_DUT_180_phase_problem(p_id, name):
+    dut = dut_testbench.DUT()
+    dut.circuit_name = str(name)
+    result = dut.measure_metrics(p_id)
+    print (result)
+    phase_deg = dut.get_phase_response()
+    plt.figure(figsize=(8, 5))
+    plt.semilogx(dut.freq, phase_deg)
+    plt.title("Phase Response")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Phase (Degrees)")
+    plt.grid(True, which="both", linestyle="--")
+    plt.axhline(y=-180, color='r', linestyle=':', label='-180° Limit')
+    plt.legend()
+    plt.show()
+#region test entrance
 # test_phase_calculation()
+# test_DUT(path_id_96, 96)
+test_DUT_180_phase_problem(path_id_9_phase, 9)
+
+# test_DUT_with_yaml()
+
+#endregion test entrance

@@ -4,16 +4,15 @@ sys.path.append("./genai_agent")
 from gen_utils import yaml_creation
 """9 target
 targets:
-  area: !!float 2.0e-06
-  bandwidth: !!float 1.0e+01
+  area: !!float 2.0e-03
+  bandwidth: !!float 10.00
   current: !!float 2.0e-01
-  dc_gain: !!float 2.00
+  dc_gain: !!float 1.00
   gain_margin: !!float 4.00
-  noise_total: !!float 3.0e-01
-  phase_margin: !!float 60.00
-  psrr: !!float 6.00
-  slew_rate: !!float 1.00
-  ugbw: !!float 1.0e+01
+  noise_total: !!float 3.0
+  phase_margin: !!float 0.00
+  slew_rate: !!float 15.00
+  ugbw: !!float 10.00
 """
 def test_get_params(path):
     result = yaml_creation.get_params(path)

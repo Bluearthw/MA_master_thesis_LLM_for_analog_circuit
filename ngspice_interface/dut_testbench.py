@@ -94,7 +94,7 @@ class DUT(NgspiceWrapper):
 
             else:
                 continue
-        print(spec_dict)
+        # print(spec_dict)
         return spec_dict
     
     def parse_outputs(self):

@@ -144,7 +144,7 @@ Cload VOUT1 VSS {{Cload}}
 4. The netlist file should also write the required data to a file. The path should include the circuit number! Also, for ac_gain, use v(VOUT1) since the following measurement agent will use this format.. Using vdb(VOUT1) or vp(VOUT1) is bad 
 Example:
 * for gain
-ac dec 10 1 100G
+ac dec 10 1 1T
 {line_wrdata_path_num}/ac_gain.csv v(VOUT1)
 In this example, the VOUT1 is the output node.
 
