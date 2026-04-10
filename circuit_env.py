@@ -37,7 +37,8 @@ class CircuitEnv(gym.Env):
         self.path_ids = yaml_data['path_id']
         self.n_actions = len(self.dict_params)
         self.obs_dim = len(self.dict_targets)
-
+        print(self.dict_params)
+        print(self.hard_constraints)
         # build param range dictionary
         self.param_ranges = {}
         for name, value in self.dict_params.items():

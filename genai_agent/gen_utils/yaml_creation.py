@@ -145,7 +145,7 @@ def make_targets_lines(targets_dict):
         keys.append(key)
     
     # Join keys with quotes and commas, no trailing comma
-    str_keys = ", ".join(f"'{key}'" for key in keys)
+    str_keys = ", ".join(f"'{key}'" for key in keys if key != 'area' and key != 'current')
     
     line_hard_constraints = f"hard_constraints: !!python/tuple [{str_keys}]"
     lines.append(line_hard_constraints)

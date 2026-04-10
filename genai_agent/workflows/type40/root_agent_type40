@@ -18,7 +18,8 @@ import debug_agent
 from memory import category_numbers
 from workflows import cmfb_agent
 from gen_utils import yaml_creation
-
+sys.path.append(".")
+from ngspice_interface import dut_testbench
 path_output = local_config.path_output
 
 def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, path_output_num):
@@ -46,7 +47,7 @@ def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, 
             netlist_path = path_output_num + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
-            measurement_results = utils.measure(struct_path_id, is_differential_output)
+            measurement_results = dut_testbench.DUT(is_differential=is_differential_output).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
             for mr in measurement_results:
                 print("Measurement results:", mr)
             return measurement_results, struct_path_id
@@ -117,7 +118,7 @@ def test_make_cir_sim(cir_num):
         results_cmfb = sim_debug_measure_loop(cmfb_netlist, [cmfb_spec_sims], is_differential_output, cir_num, path_output_num)
         combined_results['cmfb'] = results_cmfb
     
-    struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16}
+    struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 2 and k != 15}
     result = yaml_creation.make_full_yaml(path_netlist, path_ids=struct_path_id, cir_name=cir_num)
     print("yaml path = ", result)
 

@@ -2,6 +2,7 @@
 
 git add .
 git commit -m "2stage is still working, let's see whether num 9 is strange, 1, lower down all target in the yaml file. 
+now the noise will detect whether it is spectrum or noise total. it will switch to spectrum calculation if total is required
 "
 git push
 

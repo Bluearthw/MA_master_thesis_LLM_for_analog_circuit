@@ -15,9 +15,10 @@ from scipy.integrate import trapezoid
 sys.path.append(".")
 from genai_agent.local_config import table_target_id 
 class DUT(NgspiceWrapper):
-    def measure_metrics(self, struct_path_id):
+    def measure_metrics(self, struct_path_id, is_init = True):
         self.output_files_folder = "./no_backup/output_files"
-        self.random_name = self.circuit_name # this is for intermediate cir file for RL sizing
+        if is_init:
+            self.random_name = self.circuit_name # this is for intermediate cir file for RL sizing
         # self.parse_outputs()
         spec_dict = {}
         # post process raw data
@@ -31,7 +32,7 @@ class DUT(NgspiceWrapper):
             # spec_dict['netV'] = self.netV
 
         for spec_id, path in struct_path_id.items():
-            print(spec_id)
+            # print(spec_id)
             if spec_id == 0:  # DC gain 
                 a = self.get_dc_gain(path)
                 print(f"DC gain: {a}")
@@ -54,7 +55,7 @@ class DUT(NgspiceWrapper):
             elif spec_id == 6:  # phase margin
                 spec_dict[table_target_id[6]] = float(self.get_phase_margin(path))
             elif spec_id == 7:  # input equivalent total noise from spectrum
-                spec_dict[table_target_id[7]] = self.get_in_equivalent_total_noise_from_spectrum(path)
+                spec_dict[table_target_id[7]] = self.get_in_equivalent_total_noise(path)
             
             elif spec_id == 10:
                 spec_dict[table_target_id[10]] = 0# to be done
@@ -93,7 +94,7 @@ class DUT(NgspiceWrapper):
 
             else:
                 continue
-        
+        print(spec_dict)
         return spec_dict
     
     def parse_outputs(self):
