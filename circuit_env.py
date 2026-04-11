@@ -8,7 +8,7 @@ import shutil
 import utils.saving as saving
 from ngspice_interface import DUT as DUT_NGSpice
 from utils.plotting import plotLearning, plot_running_maximum, solutions2pareto
-from genai_agent.local_config import path_yaml_two_stage
+from genai_agent.local_config import list_targets_to_min
 
 class CircuitEnv(gym.Env):
     PER_LOW, PER_HIGH = -np.inf, +np.inf
@@ -115,7 +115,7 @@ class CircuitEnv(gym.Env):
             
             dut.random_name = self.circuit_name
             print(f"New netlist created at: {new_netlist_path}")
-            print("VDD:", dut.VDD)
+            # print("VDD:", dut.VDD)
             
             # Measure specs
             spec_dict = dut.measure_metrics(self.path_ids)
@@ -269,20 +269,23 @@ class CircuitEnv(gym.Env):
 
 
     def reward_computation(self, norm_specs):
+        
         reward = 0.0
         rH = 0.0
         hard_satisfied = False
-
+        # this part is hard
         for key in self.hard_constraints:
             val = norm_specs.get(key, 0.0)
             target = self.dict_targets.get(key, 0.0)
-            if key in ["noise", "current", "area"]: # actually, only noise
+            if key in list_targets_to_min : 
                 ry = -max(val, 0.0)
                 rH += ry
             else:
                 ry = min(val, 0.0)
                 rH += ry
-
+            # print(f"{key}: {val}")
+            # print("CE:", rH)
+        # this part is foft
         rT = 0
         for key in self.optimization_targets:
             val = norm_specs.get(key, 0.0)

@@ -743,6 +743,46 @@ def modify_DC_bias(netlist, V_name, isVincrease):
             break
     return netlist, new_V, old_V
 
+def modify_ac_range_1T(netlist):
+    """
+    Modify AC sweep range to extend upper frequency to 1T (1 THz).
+    
+    Looks for lines starting with 'ac' (case-insensitive) followed by 'ac_gain' in wrdata line.
+    Replaces any upper frequency value (e.g., 100G, 10G, 1G) with 1T.
+    
+    Args:
+        netlist (str): The SPICE netlist content as a string.
+        
+    Returns:
+        str: Modified netlist with extended AC ranges to 1T.
+    """
+    lines = netlist.strip().split('\n')
+    modified_lines = []
+    i = 0
+    
+    while i < len(lines):
+        line = lines[i].strip()
+        
+        # Check if current line starts with 'ac' (case-insensitive)
+        if line.lower().startswith('ac '):
+            # Check if next line contains 'ac_gain' in wrdata
+            if i + 1 < len(lines):
+                next_line = lines[i + 1].strip()
+                if 'ac_gain' in next_line.lower() and 'wrdata' in next_line.lower():
+                    # Replace upper frequency with 1T using regex
+                    # Pattern: ac dec 10 1 <frequency>
+                    # Match any frequency value (e.g., 100G, 10G, 1G, 1000M, etc.)
+                    match = re.search(r'ac\s+\w+\s+\d+\s+\d+\s+(\d+[GMK]?)', line, re.IGNORECASE)
+                    if match:
+                        old_freq = match.group(1)
+                        if old_freq.upper() != '1T':
+                            line = re.sub(r'\d+[GMK]?$', '1T', line, flags=re.IGNORECASE)
+                            print(f"[modify_ac_range_1T] Extended AC range from {old_freq} to 1T: {line}")
+        
+        modified_lines.append(line)
+        i += 1
+    
+    return '\n'.join(modified_lines)
 
 # endregion modify
 

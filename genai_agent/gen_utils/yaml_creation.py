@@ -89,7 +89,6 @@ def get_targets(spec_ids):
     """
     
     # Default target values for each specification ID
-    default_targets = local_config.default_targets
     
     # Convert to list if dict
     if isinstance(spec_ids, dict):
@@ -102,7 +101,7 @@ def get_targets(spec_ids):
             continue
         elif spec_id in local_config.table_target_id:
             metric_name = local_config.table_target_id[spec_id]
-            metric_value = default_targets.get(spec_id, 0.0)
+            metric_value = local_config.table_targets_default_values.get(spec_id, 0.0)
             targets[metric_name] = metric_value
     
     # Always include area (fixed)
@@ -110,8 +109,8 @@ def get_targets(spec_ids):
         targets['area'] = 2.0e-6
     
     # Always include current (fixed)
-    if 'current' not in targets:
-        targets['current'] = 2.0e-1
+    # if 'current' not in targets:
+    #     targets['current'] = 2.0e-1
     
     return targets
 
@@ -138,18 +137,25 @@ def make_targets_lines(targets_dict):
     """
     lines = ["targets:"]
     keys = []
+    has_current = False
     for key in sorted(targets_dict.keys()):
         value = targets_dict[key]
         formatted_value = _format_value(value)
         lines.append(f"  {key}: !!float {formatted_value}")
+        if key == 'current':
+            has_current = True
         keys.append(key)
     
     # Join keys with quotes and commas, no trailing comma
-    str_keys = ", ".join(f"'{key}'" for key in keys if key != 'area' and key != 'current')
+    str_keys_hard = ", ".join(f"'{key}'" for key in keys if key != 'area' and key != 'current')
     
-    line_hard_constraints = f"hard_constraints: !!python/tuple [{str_keys}]"
+    line_hard_constraints = f"hard_constraints: !!python/tuple [{str_keys_hard}]"
     lines.append(line_hard_constraints)
-    lines.append("optimization_targets: !!python/tuple ['area', 'current']")
+    if has_current:
+        lines.append("optimization_targets: !!python/tuple ['area', 'current']")
+    else:
+        lines.append("optimization_targets: !!python/tuple ['area']")
+
     return "\n".join(lines)
 
 def make_spec_weights_lines(spec_weights_dict):

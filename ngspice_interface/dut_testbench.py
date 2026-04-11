@@ -25,17 +25,13 @@ class DUT(NgspiceWrapper):
         if self.with_yaml:
             area_estimator = BPTM45nmAreaEstimator(self.circuit_params, self.circuit_multipliers)
             spec_dict['area'] = area_estimator.find_area()
-            # spec_dict['current'] = self.current
-        #   nt(f"area: {spec_dict['area']}")
-            # spec_dict['phm'] = self.find_phm(self.freq, self.vout_complex)
-            # spec_dict['ugbw'] = self.get_ugbw_unity_gain_bandwidth(path)
-            # spec_dict['netV'] = self.netV
+
 
         for spec_id, path in struct_path_id.items():
             # print(spec_id)
             if spec_id == 0:  # DC gain 
                 a = self.get_dc_gain(path)
-                print(f"DC gain: {a}")
+                # print(f"DC gain: {a}")
                 name = table_target_id[0]# you should not use '0' but 0 since the key is int
                 spec_dict[name] = float(a) # this is the magnitude you do not the whether it is inverted.
             elif spec_id == 1:  # Bandwidth (if separate from gain) or other AC sim
@@ -153,32 +149,7 @@ class DUT(NgspiceWrapper):
         # plt.tight_layout()
         # plt.show()
     
-    def find_phm(self, freq, vout):
-        """
-        TODO: Implement the phase margin (PHM) calculation
-        
-        Hints:
-        1. Calculate gain array and phase array from vout
-        2. Find the unity gain frequency (UGBW)
-        3. Interpolate to find the phase at UGBW (you can use interp.interp1d quadratic interpolation)
-        4. Calculate phase margin (watch out for radians/degrees units and phase wrap around)
-        5. Handle edge cases (e.g., when gain is always < 1) --> hint: you can think in RL terms; worst case reward ...
-        """
-        # pass
-        gain = self.find_dc_gain(vout) # or use self? idk, if bug fix here
-        ugbw = self.find_ugbw(self.freq,self.vout_complex)
-        if ugbw <= np.min(self.freq) or ugbw >= np.max(self.freq) or ugbw == 0:
-            print("Warning: UGBW out of interpolation range or not found")
-            return 0
-        phi_deg = np.unwrap(np.angle(self.vout_complex))*180/np.pi
-        phi_interpolate = interp.interp1d(self.freq,phi_deg)
-        phi_ugbw = phi_interpolate(ugbw)
 
-        phm = 180 + phi_ugbw
-        # print(f"phm: {phm}\n")
-        
-        return phm
-    
     def get_current(self, path_i =""):
         return 0
 
@@ -192,7 +163,11 @@ class DUT(NgspiceWrapper):
             self.vout_complex = self._complex_from_cols(data_gain, 1, 2)
             self.vout_mag = np.abs(self.vout_complex)
             self.mag_db = 20 * np.log10(self.vout_mag)
-            self.phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
+            phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
+            if np.average(phase) > 0 and phase[0] > 175:
+                self.phase = phase - 180
+            else:
+                self.phase = phase
         else:
             raise ("why dif goes to load_ac_gain_data()")
     
@@ -292,12 +267,14 @@ class DUT(NgspiceWrapper):
         """
         if self.path_ac_gain is None:
             self.load_ac_gain_data(path_gain)
-            
-            
-        phi_deg = np.unwrap(np.angle(self.vout_complex)) * 180 / np.pi
+        phi_deg = self.phase
         
-        # Find the frequency where phase crosses -180 degrees
-        target_phase = -180
+        # print(phi_deg[-1])
+        # print(phi_deg[0])
+        if phi_deg[0] < 1 :
+            target_phase = -180
+        else:
+            target_phase = 0
         
         try:
             phi_interpolate = interp.interp1d(self.freq, phi_deg)
@@ -321,23 +298,27 @@ class DUT(NgspiceWrapper):
         except ValueError:
             # Phase never crosses -180 degrees
             print("Warning: Phase does not cross -180 degrees in the frequency range")
-            return 0
+            if (phi_deg[-1] < 10 and phi_deg[0] > 1) or (phi_deg[-1] < -170 and phi_deg[0] < 1):
+                return self.freq[-1]
+            else:
+                return 0
 
     #6 phase margin # assumed LP!!!
     def get_phase_margin(self, path_gain=""): 
-        if self.path_ac_gain is None:
+        if self.path_ac_gain is None or self.phase is None:
             self.load_ac_gain_data(path_gain)
             
         ugbw = self.get_ugbw_unity_gain_bandwidth()
+        print("ugbw",ugbw)
         if ugbw <= np.min(self.freq) or ugbw >= np.max(self.freq) or ugbw == 0:
-            print("Warning: UGBW out of interpolation range or not found")
+            print("Warning: UGBW out of interpolation range or not found yet")
             return 0
-        phi_deg = np.unwrap(np.angle(self.vout_complex))*180/np.pi
+        phi_deg = self.phase
         phi_interpolate = interp.interp1d(self.freq,phi_deg)
         phi_ugbw = phi_interpolate(ugbw)
 
         phm = 180 + phi_ugbw
-        # print(f"phm: {phm}\n")
+        print(f"phm: {phm}\n")
         
         return phm
     
@@ -596,8 +577,14 @@ class DUT(NgspiceWrapper):
         """Finds the frequency where gain is 0dB."""
         if self.path_ac_gain is None:
             self.load_ac_gain_data(path)
+        # print("ugbw:",
+        # self.mag_db[0],
+        # self.mag_db[-1],
+        # max(self.mag_db),
+        # min(self.mag_db))
+
         ugbw, found = self._get_best_crossing(self.freq, self.mag_db, 0)
-        return ugbw if found else -1
+        return ugbw if found else 0
         
 
     def _get_best_crossing(cls, xvec, yvec, val):

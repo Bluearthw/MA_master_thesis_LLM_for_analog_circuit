@@ -60,7 +60,6 @@ def readParser():
     
     return parser.parse_args()
 
-
 def train(args, env, agent, env_pool):
     total_steps = warmup_exploration(args, env, env_pool, agent)
     while total_steps < args.T:
@@ -69,6 +68,9 @@ def train(args, env, agent, env_pool):
         while not done:
             action = agent.select_action(obs)
             next_state, reward, done, info = env.step(action)
+            # if done:
+            #     print("is done? :",done)
+            #     utils_agent.test_delay(30)
             env_pool.push(obs, action, reward, next_state, done)
             obs = next_state
             train_policy(args, env_pool, agent, total_steps)
@@ -78,8 +80,6 @@ def train(args, env, agent, env_pool):
             if total_steps % 100 == 0:
                 utils_agent.delete_all_files_except_dir("./no_backup/output_netlists/")
                 # os.system('./clean.sh')
-
-
 
 def warmup_exploration(args, env, env_pool, agent):
     step_counter = 0
@@ -96,12 +96,10 @@ def warmup_exploration(args, env, env_pool, agent):
             
     return step_counter
 
-
 def train_policy(args, env_pool, agent, total_steps):
     state, action, reward, next_state, done = env_pool.sample(args.batch_size)
     batch = (state, action, reward, next_state, done)
     agent.update_parameters(memory_batch=batch, update=total_steps)
-
 
 def td3_start(args=None, circuit_name=None):
     import time  

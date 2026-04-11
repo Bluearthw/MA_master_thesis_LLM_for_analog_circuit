@@ -1,7 +1,8 @@
 ## entrance: root_agent_40!!
 
 git add .
-git commit -m "now the measurement is done with dut, not utils.spiceResultNew any more. fix the noise measurement problem that the agent is always looking at a wrong method
+git commit -m "change the code so that current is not always there in yaml
+
 "
 git push
 

@@ -92,6 +92,7 @@ def test_make_cir_sim(cir_num):
     
     struc = add_sim_agent(netlist, category_str, cir_num)
     netlist = struc.netlist
+    netlist = utils.modify_ac_range_1T(netlist)
     spec_sims = struc.spec_sims
     is_differential_output = struc.is_diff
     is_CMFB = struc.is_CMFB
@@ -240,4 +241,5 @@ for i in test:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     test_make_cir_sim(i)
+    print("====done=======",i)
     utils.test_delay(30)

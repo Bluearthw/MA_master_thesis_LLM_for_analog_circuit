@@ -25,8 +25,8 @@ class ReplayBuffer(object):
 		# if isinstance(next_state, tuple):
 		# 	next_state = next_state[0]
 		self.state[self.ptr] = state
-		print(self.next_state[self.ptr])
-		print(next_state)
+		# print(self.next_state[self.ptr])
+		# print(next_state)
 		self.next_state[self.ptr] = next_state
 		# use flattened to fix "ValueError: setting an array element with a sequence. The requested array would exceed the maximum number of dimension of 1."
 		# self.state[self.ptr] = np.array(state).flatten()
