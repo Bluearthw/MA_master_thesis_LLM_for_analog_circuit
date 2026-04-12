@@ -1,12 +1,7 @@
 from google import genai
-from google.genai import types
 
 import os
 import sys
-
-from pydantic import BaseModel, Field
-from typing import List # after python 3.9. before it is List
-from pathlib import Path
 
 ######################
 # local import
@@ -15,7 +10,7 @@ import local_config
 import utils
 import tools
 import debug_agent
-from memory import category_numbers
+
 from workflows import cmfb_agent
 from gen_utils import yaml_creation
 sys.path.append(".")
@@ -126,7 +121,6 @@ def test_make_cir_sim(cir_num):
     print("Combined measurement results:", combined_results)
     return combined_results
     
-    
 def add_sim_agent(netlist, category,cir_num=4):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
@@ -227,19 +221,4 @@ Example:
 # def measuremnt(spice_result, path, files):
     
 
-test = category_numbers.num_class_40[:10]
-test = [69, 182] # cmfb or without cmfb
-test = [9, 155, 69, 182] # try to have siso diso dido dido_cmfb
-test = [9]
-# isLoop = True
 
-for i in test:
-    print("=====*======",i)
-    print("====*=======",i)
-
-    output_dir = Path(f"{path_output}{i}")
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    test_make_cir_sim(i)
-    print("====done=======",i)
-    utils.test_delay(30)

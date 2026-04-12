@@ -2,7 +2,8 @@
 
 git add .
 git commit -m "change the code so that current is not always there in yaml
-
+make the phase start from 0 to -180
+now 9 works for RL sizer
 "
 git push
 
