@@ -1,9 +1,8 @@
 from google import genai
-from google.genai import types
 
-import local_config
-import utils
-import tools
+from genai_agent import local_config
+from genai_agent import tools
+from utils import gen_utils
 def debug_agent(netlist, error_message, cir_num, spec_sims):
     print("==netlist in debug agent\n", netlist)
     print("==error_message\n", error_message)
@@ -57,12 +56,12 @@ wrdata ./1genai/output/{cir_num}/noise.csv inoise_spectrum
                 retry_count += 1
                 wait_sec = 60*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
                 print(f"Model busy (503). Retry #{retry_count}. ")
-                utils.test_delay(wait_sec)  # Wait before retrying
+                gen_utils.test_delay(wait_sec)  # Wait before retrying
             elif "429" in error_msg or "TooManyRequests" in error_msg:
                 retry_count += 1
                 wait_sec = 120*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
                 print(f"Rate limit exceeded (429). Retry #{retry_count}. ")
-                utils.test_delay(wait_sec)  # Wait before retrying
+                gen_utils.test_delay(wait_sec)  # Wait before retrying
             else:
                 # If it's a different error (like a syntax error in your code), 
                 # we want to see it immediately rather than looping.

@@ -1,7 +1,7 @@
 import sys
-sys.path.append("./genai_agent")
-import local_config
-import utils
+sys.path.append(".")
+from genai_agent import local_config
+from utils import gen_utils
 
 def make_technology_line(tech = "45nm"):
     return f"technology: {tech}" 
@@ -243,6 +243,6 @@ def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multipl
 
     content = "\n\n".join(yaml_sections)
     path_yaml = local_config.path_yaml+f"{cir_name}.yaml"
-    utils.save_file_overwrite(path_yaml, content)
+    gen_utils.save_file_overwrite(path_yaml, content)
     return path_yaml
 

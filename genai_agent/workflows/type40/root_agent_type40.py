@@ -5,16 +5,14 @@ import sys
 
 ######################
 # local import
-sys.path.append("./genai_agent")
-import local_config
-import utils
-import tools
-import debug_agent
+from genai_agent import local_config
+from genai_agent import tools
+from genai_agent import debug_agent
+from genai_agent.workflows import cmfb_agent
 
-from workflows import cmfb_agent
-from gen_utils import yaml_creation
-sys.path.append(".")
+from utils import gen_utils as gen_utils
 from ngspice_interface import dut_testbench
+
 path_output = local_config.path_output
 
 def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, path_output_num):
@@ -22,7 +20,7 @@ def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, 
     counter = 0
     error_msg = []
     while True:
-        sim_output = utils.run_ngspice_direct(netlist)
+        sim_output = gen_utils.run_ngspice_direct(netlist)
         print("=====sim output", sim_output)
         if sim_output["success"]: 
             # check files
@@ -52,7 +50,7 @@ def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, 
             error_msg.append(sim_output["message"] + "")
             error_msg_input = "\n".join(error_msg)
             print(error_msg_input)
-            utils.test_delay(30)  # Wait 10 seconds before retrying
+            gen_utils.test_delay(30)  # Wait 10 seconds before retrying
             struct_debug = debug_agent.debug_agent(netlist, error_msg_input, cir_num, spec_sims)
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims
@@ -67,27 +65,27 @@ def test_make_cir_sim(cir_num):
     print("==cir_path\n", path_cir)
     
     path_output_num = path_output + f"{cir_num}/"
-    circuit_string = utils.get_file_to_str(path_cir)  
+    circuit_string = gen_utils.get_file_to_str(path_cir)  
     # print("==circuit_string\n",circuit_string)
-    circuit_string = utils.modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167
-    circuit_string = utils.clean_netlist(circuit_string)# ADD .include here. remove (). nmos4' to 'nmos' and 'pmos4' to 'pmos'. REMOVE 'resistor' and 'capacitor'
-    circuit_string = utils.add_params(circuit_string) #ADD .param. ADD w,l,m to mos. ADD {value} for R and C
-    circuit_string = utils.add_DC_source(circuit_string)
+    circuit_string = gen_utils.modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167
+    circuit_string = gen_utils.clean_netlist(circuit_string)# ADD .include here. remove (). nmos4' to 'nmos' and 'pmos4' to 'pmos'. REMOVE 'resistor' and 'capacitor'
+    circuit_string = gen_utils.add_params(circuit_string) #ADD .param. ADD w,l,m to mos. ADD {value} for R and C
+    circuit_string = gen_utils.add_DC_source(circuit_string)
     # print("==cir_str\n", circuit_string)
 
-    # circuit_string = utils.add_C_load(circuit_string)# some does not need to add C load.
-    # netlist = utils.add_OP_simulation(circuit_string)
-    netlist = utils.add_control(circuit_string)
+    # circuit_string = gen_utils.add_C_load(circuit_string)# some does not need to add C load.
+    # netlist = gen_utils.add_OP_simulation(circuit_string)
+    netlist = gen_utils.add_control(circuit_string)
     print("==cir_str\n", netlist)
     
-    category_num = utils.find_cat_from_num(cir_num) # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
+    category_num = gen_utils.find_cat_from_num(cir_num) # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
     path_category = local_config.path_category + f"{category_num}.md"
     # or the cat_num is already known, so just +"4.md"
-    category_str = utils.get_file_to_str(path_category)
+    category_str = gen_utils.get_file_to_str(path_category)
     
     struc = add_sim_agent(netlist, category_str, cir_num)
     netlist = struc.netlist
-    netlist = utils.modify_ac_range_1T(netlist)
+    netlist = gen_utils.modify_ac_range_1T(netlist)
     spec_sims = struc.spec_sims
     is_differential_output = struc.is_diff
     is_CMFB = struc.is_CMFB
@@ -103,23 +101,22 @@ def test_make_cir_sim(cir_num):
     
     combined_results = {'original': results_original}
     path_netlist = path_output_num + "final_netlist.cir"
-    utils.save_str_to_file(netlist, path_netlist)
+    gen_utils.save_str_to_file(netlist, path_netlist)
     
     if is_CMFB:
         struct_cmfb = cmfb_agent.cmfb_agent(netlist,cir_num)
         cmfb_netlist = struct_cmfb.netlist
         cmfb_spec_sims = struct_cmfb.spec_sims
-        utils.save_str_to_file(cmfb_netlist, path_output_num + "cmfb_netlist.cir")
+        gen_utils.save_str_to_file(cmfb_netlist, path_output_num + "cmfb_netlist.cir")
         # Simulate CMFB netlist (assuming same spec_sims)
         results_cmfb = sim_debug_measure_loop(cmfb_netlist, [cmfb_spec_sims], is_differential_output, cir_num, path_output_num)
         combined_results['cmfb'] = results_cmfb
     
-    struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 2 and k != 15}
-    result = yaml_creation.make_full_yaml(path_netlist, path_ids=struct_path_id, cir_name=cir_num)
-    print("yaml path = ", result)
+    
+    
 
     print("Combined measurement results:", combined_results)
-    return combined_results
+    return combined_results, struct_path_id, path_netlist
     
 def add_sim_agent(netlist, category,cir_num=4):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
@@ -203,12 +200,12 @@ Example:
                 retry_count += 1
                 wait_sec = 30*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
                 print(f"Model busy (503). Retry #{retry_count}. ")
-                utils.test_delay(wait_sec)  # Wait before retrying
+                gen_utils.test_delay(wait_sec)  # Wait before retrying
             elif "429" in error_msg or "TooManyRequests" in error_msg:
                 retry_count += 1
                 wait_sec = 120*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
                 print(f"Rate limit exceeded (429). Retry #{retry_count}. ")
-                utils.test_delay(wait_sec)  # Wait before retrying
+                gen_utils.test_delay(wait_sec)  # Wait before retrying
             else:
                 # If it's a different error (like a syntax error in your code), 
                 # we want to see it immediately rather than looping.

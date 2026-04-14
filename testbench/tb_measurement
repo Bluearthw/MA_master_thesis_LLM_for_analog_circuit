@@ -14,7 +14,7 @@ path_id_96 = {18: './genai_agent/output/96/ac_dm.csv', 17: './genai_agent/output
 path_id_182 = {20: './genai_agent/output/182/cmfb_stb.csv'}
 path_id_two_stage = {0: '.\\no_backup\\output_files\\ac_TwoStage.csv', 3: '.\\no_backup\\output_files\\noise_TwoStage.csv', 4: '.\\no_backup\\output_files\\tran_TwoStage.csv', 6: '.\\no_backup\\output_files\\ac_TwoStage.csv', 21: '.\\no_backup\\output_files\\ac_TwoStage.csv', 22: '.\\no_backup\\output_files\\dc_TwoStage.csv'}
 path_id_9_phase = {5: './genai_agent/output/9/ac_gain.csv', 6: './genai_agent/output/9/ac_gain.csv'}
-
+path_id_9_psrr = {0: './genai_agent/output/9/ac_gain.csv', 2: './genai_agent/output/155/ac_psrr.csv'}
 """ in yaml:
 path_id:
   0: '.\\no_backup\\output_files\\ac_TwoStage.csv'
@@ -137,11 +137,17 @@ def test_DUT_ugbw(p_id, name):
     # plt.axhline(y=-180, color='r', linestyle=':', label='-180° Limit')
     # plt.legend()
     # plt.show()
+
+def test_DUT_psrr_len_problem(p_id, name):
+    dut = dut_testbench.DUT()
+    dut.circuit_name = str(name)
+    result = dut.measure_metrics(p_id)
+    print (result)
 #region test entrance
 # test_phase_calculation()
 # test_DUT(path_id_96, 96)
-test_DUT_180_phase_problem(path_id_9_phase, 9)
-
+# test_DUT_180_phase_problem(path_id_9_phase, 9)
+test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
 
 #endregion test entrance

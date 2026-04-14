@@ -1,7 +1,7 @@
 import sys
-sys.path.append("./genai_agent")
+sys.path.append(".")
+from utils import yaml_creation
 
-from gen_utils import yaml_creation
 """9 target
 targets:
   area: !!float 2.0e-03
@@ -62,5 +62,5 @@ def test_make_full_yaml(path, cir_name):
 # test_make_targets_lines()
 # test_make_spec_weights_lines()
 # test_make_circuit_multipliers()
-cir_name = 9
+cir_name = "test"
 test_make_full_yaml(f"./genai_agent/output/{cir_name}/final_netlist.cir", cir_name)

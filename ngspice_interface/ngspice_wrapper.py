@@ -6,7 +6,7 @@ import string
 import time 
 import sys
 sys.path.append(".")
-from genai_agent import utils as utils_agent
+from utils import gen_utils as utils_agent
 from genai_agent import local_config 
 class NgspiceWrapper(object):
     

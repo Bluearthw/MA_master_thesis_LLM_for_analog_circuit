@@ -526,8 +526,18 @@ class DUT(NgspiceWrapper):
             data_psrr = np.genfromtxt(path_psrr, autostrip=True, skip_header=1)
             psrr_gain_complex = data_psrr[:, 1] + 1j * data_psrr[:, 2]
             psrr_gain_mag = np.abs(psrr_gain_complex)
-            psrr = self.vout_mag / psrr_gain_mag            
-        return psrr
+            
+            len_psrr = len(data_psrr[:, 0])
+            len_gain = len(self.vout_mag)
+            if len_psrr < len_gain:
+                psrr_db = self.vout_mag[0: len_psrr] - psrr_gain_mag # should use subtraction since they are dBs
+                freq = data_psrr[:, 0]
+            else: #psrr >= ac gain
+                psrr_db = self.vout_mag - psrr_gain_mag[0: len_gain]
+                freq = self.freq
+
+            
+            return psrr_db, freq
 
     #13 Input Common-Mode Range (ICMR)
     def get_icmr(self, path_icmr, error = 0.05): # Input Common-Mode Range

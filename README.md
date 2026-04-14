@@ -1,9 +1,8 @@
 ## entrance: root_agent_40!!
 
 git add .
-git commit -m "change the code so that current is not always there in yaml
-make the phase start from 0 to -180
-now 9 works for RL sizer
+git commit -m "Now it is a workflow that you can choose which part to run
+why it does not import? it loses .py!!!!
 "
 git push
 
