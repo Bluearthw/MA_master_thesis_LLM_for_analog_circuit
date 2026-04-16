@@ -1057,10 +1057,20 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
 # endregion pyspice
 
 
-# region for class
+# region functions
+def make_path_id(spec_sims, path_output_num):
+    struct_path_id = {}  # id: path
+    for spec_sim in spec_sims:
+        path_file = path_output_num + spec_sim.sim_file_name
+        if os.path.exists(path_file):
+            print(f"File {path_file} exists.")
+            struct_path_id[spec_sim.spec_id] = path_file
+        else:
+            print(f"File {path_file} does not exist.")
+            raise RuntimeError(f"Expected output file {path_file} not found.")
 
+# endregion functions
 
-# endregion for class
 def test_delay(sec):
     time.sleep(sec)
     print(f"Waited for {sec} seconds")

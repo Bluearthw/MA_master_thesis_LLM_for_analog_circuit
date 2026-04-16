@@ -298,13 +298,9 @@ def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multipl
     return path_yaml
 
 #region save temp
-def save_temp(path, path_ids=None, cir_name = 9):
-    data = {
-        'cir_name': cir_name,
-        'path_nl': path,
-        'path_ids': path_ids    
-        }
-    path_temp = '.\\genai_agent\\output\\temp.yaml'
+def save_temp(data):
+    i = data['cir_name']
+    path_temp = f'.\\genai_agent\\output\\{i}\\temp.yaml'
     with open(path_temp, 'w') as f:
         yaml.dump(data, f)
 #endregion save temp

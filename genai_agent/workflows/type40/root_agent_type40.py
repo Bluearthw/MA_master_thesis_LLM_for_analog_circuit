@@ -25,15 +25,7 @@ def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, 
         if sim_output["success"]: 
             # check files
             # gather all generated file paths; use a set to ensure uniqueness
-            struct_path_id = {}  # id: path
-            for spec_sim in spec_sims:
-                path_file = path_output_num + spec_sim.sim_file_name
-                if os.path.exists(path_file):
-                    print(f"File {path_file} exists.")
-                    struct_path_id[spec_sim.spec_id] = path_file
-                else:
-                    print(f"File {path_file} does not exist.")
-                    raise RuntimeError(f"Expected output file {path_file} not found.")
+            struct_path_id = gen_utils.make_path_id(spec_sims, path_output_num)
             print(f"===  path_id_{cir_num} = ", struct_path_id)
             print("Simulation successful and output files verified!")
             # save the netlist
@@ -116,7 +108,7 @@ def test_make_cir_sim(cir_num):
     
 
     print("Combined measurement results:", combined_results)
-    return combined_results, struct_path_id, path_netlist
+    return combined_results, struct_path_id, path_netlist, spec_sims
     
 def add_sim_agent(netlist, category,cir_num=4):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
@@ -173,6 +165,11 @@ Example:
 {line_wrdata_path_num}/ac_gain.csv v(VOUT1) v(VOUT2)
 
 11. Also, you should pay attention to whether there is CMFB stability specification check. The following agent will make a new netlist if the CMFB stability is needed.
+
+12. You must always add current simlation.
+Example:
+op
+{line_wrdata_path_num}/dc_current.csv i(vdd)
 """
     
 

@@ -28,7 +28,7 @@ def test_run_ngspice_direct(nl = local_config.nl_2_stage_opamp):
 # test_run_ngspice_direct(local_config.nl_feb25)
 # test_run_ngspice_direct(saved_netlist.nl_timeout)
 # test_run_ngspice_direct(saved_netlist.nl_april_sim_failed_warning)
-test_run_ngspice_direct(saved_netlist.nl_155_failed)
+# test_run_ngspice_direct(saved_netlist.nl_155_failed)
 
 # test_run_ngspice_direct_from_final_netlist(155)
-# test_run_ngspice_direct_from_final_netlist(9)
+test_run_ngspice_direct_from_final_netlist(9)

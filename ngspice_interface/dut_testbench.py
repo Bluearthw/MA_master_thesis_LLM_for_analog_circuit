@@ -85,7 +85,7 @@ class DUT(NgspiceWrapper):
             elif spec_id == 21:
                 spec_dict[table_target_id[21]] = self.get_ugbw_unity_gain_bandwidth(path)
             elif spec_id == 22:
-                spec_dict[table_target_id[22]] = self.get_current(path) # it is 0 now
+                spec_dict[table_target_id[22]] = self.get_current(path) 
 
 
             else:
@@ -151,7 +151,17 @@ class DUT(NgspiceWrapper):
     
 
     def get_current(self, path_i =""):
-        return 0
+        if path_i == "" and self.current is not None:
+            return self.current
+        elif path_i != "":
+            data_op = np.genfromtxt(path_i, autostrip=True, skip_header=1)
+
+            current = abs(data_op[1]) # if op is used, the first col is always vout
+            self.current = current
+            return current
+        else:
+            raise ValueError("Current data not available and no path provided")
+        
 
     def load_ac_gain_data(self, path_gain=""):
         if self. is_diff == False:
@@ -619,5 +629,6 @@ class DUT(NgspiceWrapper):
         if real_col < data.shape[1] and imag_col < data.shape[1]:
             return data[:, real_col] + 1j * data[:, imag_col]
         raise ("form is not correct while getting complex data ")
+
 
     

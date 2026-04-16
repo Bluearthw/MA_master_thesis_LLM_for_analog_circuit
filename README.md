@@ -1,5 +1,6 @@
 git add .
-git commit -m "changing the structure of the project and fix psrr length problem by trucation
+git commit -m "add a function for path_id making in genutils
+add get_current in dut_tb
 "
 git push
 

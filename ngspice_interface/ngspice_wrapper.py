@@ -39,6 +39,8 @@ class NgspiceWrapper(object):
         self.path_trans = None
 
         self.freq = None
+        self.current = None
+
         # store gain as complex and compute magnitude/phase
         self.vout_complex = None
         self.vout_mag = None

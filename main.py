@@ -42,10 +42,17 @@ else:
         output_dir = Path(f"{path_output}{i}")
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        combined_results, struct_path_id, path_netlist = root_agent_type40.test_make_cir_sim(i)
+        combined_results, struct_path_id, path_netlist, spec_sims = root_agent_type40.test_make_cir_sim(i)
         struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 2 and k != 15 and k != 14} # remove some array results
         print("====netlist generation done=======",i)
-        yaml_creation.save_temp(path_netlist, struct_path_id, i)
+        
+        data = {
+        'cir_name': i,
+        'path_nl': path_netlist,
+        'path_ids': struct_path_id,
+        'spec_sims': spec_sims
+        }
+        yaml_creation.save_temp(data)
         
         path_yaml = yaml_creation.make_full_yaml(path_netlist, path_ids=struct_path_id, cir_name=i)
         print("yaml path = ", path_yaml)
