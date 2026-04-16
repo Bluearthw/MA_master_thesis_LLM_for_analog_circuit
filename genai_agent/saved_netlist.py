@@ -571,3 +571,77 @@ tran 50n 30u
 wrdata ./genai_agent/output/9/tran_SR.csv v(VOUT1)
 .endc
 .end"""
+
+nl_155_failed = """* title line
+
+*params
+.param IB1=0.01
+.param wp1=2.5060679985787825e-06 lp1=1.0551991398020154e-07 mp1=14
+.param wp0=2.6146664430949156e-06 lp0=1.1281494891414084e-07 mp0=3
+.param wn3=6.059618692231604e-07 ln3=2.065025743856232e-07 mn3=21
+.param wn2=1.4819912678863445e-06 ln2=9.1885681055841e-08 mn2=11
+.param r0=1k
+.param trf=0.5u
+.param period=10u
+.param VDD=1.2
+.param VCM=0.6
+.param Cload=1.3570013470771993e-12
+
+.include "genai_agent/data/p045_TT.sp"
+
+* Circuit Components
+mp1 VOUT1 net10 VDD VDD pmos w=wp1 l=lp1 m=mp1
+mp0 net10 net10 VDD VDD pmos w=wp0 l=lp0 m=mp0
+mn3 VOUT1 VIN2 IB1 VSS nmos w=wn3 l=ln3 m=mn3
+mn2 net10 VIN1 IB1 VSS nmos w=wn2 l=ln2 m=mn2
+R0 net10 IB1 {r0}
+
+ib1 IB1 0 dc=IB1
+vdd VDD 0 dc=VDD
+vss VSS 0 dc=0
+Cload VOUT1 VSS {Cload}
+
+* Signal Sources
+Vdiff aid 0 dc=0 ac=1.0 PULSE({-VDD*0.5} {VDD*0.5} 0.1u 0.1u 0.1u {0.5*period} {period})
+VVCM VCM 0 dc=VCM
+ein1 VIN1 VCM aid 0 0.5
+ein2 VIN2 VCM aid 0 -0.5
+
+.control
+option numdgt=7
+set temp=25
+set units=degrees
+set wr_vecnames
+
+* 1. DC Gain, Bandwidth, Phase Margin
+alter vdiff ac=1.0
+alter VVCM ac=0.0
+alter vdd ac=0.0
+ac dec 10 1 1T
+wrdata ./genai_agent/output/155/ac_gain.csv v(VOUT1)
+
+* 2. CMRR (Common Mode Gain)
+alter vdiff ac=0.0
+alter VVCM ac=1.0
+alter vdd ac=0.0
+ac dec 10 1 1T
+wrdata ./genai_agent/output/155/ac_cmrr.csv v(VOUT1)
+
+* 3. PSRR
+alter vdiff ac=0.0
+alter VVCM ac=0.0
+alter vdd ac=1.0
+ac dec 10 1 1T
+wrdata ./genai_agent/output/155/ac_psrr.csv v(VOUT1)
+
+* 4. Slew Rate / Transient
+alter vdiff dc=0
+tran 10n 20u
+wrdata ./genai_agent/output/155/tran_SR.csv v(VOUT1)
+
+* 5. Noise
+noise v(VOUT1) Vdiff dec 10 1 1T
+wrdata ./genai_agent/output/155/noise.csv inoise_total
+
+.endc
+.end"""

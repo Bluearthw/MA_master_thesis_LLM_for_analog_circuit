@@ -15,7 +15,7 @@ from scipy.integrate import trapezoid
 import sys
 sys.path.append("./genai_agent")
 ##### local
-import local_config
+from genai_agent import local_config
 DEFAULT_W = "0.5u"
 DEFAULT_L = "90n"
 DEFAULT_M = "1"
@@ -783,6 +783,100 @@ def modify_ac_range_1T(netlist):
         i += 1
     
     return '\n'.join(modified_lines)
+
+def modify_tran_step(netlist, min_step="50n"):
+    """
+    Modify transient simulation step time to be at least the specified minimum.
+    
+    Looks for lines starting with 'tran' (case-insensitive) and ensures the step time
+    is at least the minimum value (default 50n).
+    
+    Args:
+        netlist (str): The SPICE netlist content as a string.
+        min_step (str): Minimum step time (default "50n").
+        
+    Returns:
+        str: Modified netlist with adjusted transient step times.
+    """
+    lines = netlist.strip().split('\n')
+    modified_lines = []
+    
+    for line in lines:
+        original_line = line.strip()
+        
+        # Check if current line starts with 'tran' (case-insensitive)
+        if original_line.lower().startswith('tran '):
+            # Parse the line: tran <step> <stop>
+            parts = original_line.split()
+            if len(parts) >= 3:  # tran <step> <stop> [other options]
+                current_step = parts[1]
+                
+                # Convert step times to comparable values
+                current_value = _parse_time_value(current_step)
+                min_value = _parse_time_value(min_step)
+                
+                if current_value < min_value:
+                    # Replace the step time
+                    parts[1] = min_step
+                    new_line = ' '.join(parts)
+                    print(f"[modify_tran_step] Increased step time from {current_step} to {min_step}: {new_line}")
+                    modified_lines.append(new_line)
+                else:
+                    modified_lines.append(original_line)
+            else:
+                modified_lines.append(original_line)
+        else:
+            modified_lines.append(original_line)
+    
+    return '\n'.join(modified_lines)
+
+def _parse_time_value(time_str):
+    """
+    Parse SPICE time string (e.g., '10n', '1u', '100p') to numeric value in seconds.
+    
+    Args:
+        time_str (str): Time string with unit suffix
+        
+    Returns:
+        float: Time value in seconds
+    """
+    # Unit multipliers (case insensitive)
+    unit_multipliers = {
+        'p': 1e-12,  # picoseconds
+        'n': 1e-9,   # nanoseconds  
+        'u': 1e-6,   # microseconds
+        'm': 1e-3,   # milliseconds
+        'k': 1e3,    # kiloseconds (uncommon but possible)
+        'meg': 1e6,  # megaseconds (uncommon)
+        'g': 1e9,    # gigaseconds (uncommon)
+        't': 1e12,   # teraseconds (uncommon)
+    }
+    
+    # Default to seconds if no unit
+    if time_str[-1].isdigit():
+        return float(time_str)
+    
+    # Extract number and unit
+    match = re.match(r'(\d+(?:\.\d+)?)([a-zA-Z]+)', time_str)
+    if match:
+        value = float(match.group(1))
+        unit = match.group(2).lower()
+        
+        # Handle common unit abbreviations
+        if unit in unit_multipliers:
+            return value * unit_multipliers[unit]
+        elif unit == 's':
+            return value  # seconds
+        else:
+            print(f"Warning: Unknown time unit '{unit}' in '{time_str}', treating as seconds")
+            return value
+    else:
+        # Fallback: try to parse as plain number
+        try:
+            return float(time_str)
+        except ValueError:
+            print(f"Warning: Could not parse time value '{time_str}', using 0")
+            return 0.0
 
 # endregion modify
 

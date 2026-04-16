@@ -37,8 +37,8 @@ class CircuitEnv(gym.Env):
         self.path_ids = yaml_data['path_id']
         self.n_actions = len(self.dict_params)
         self.obs_dim = len(self.dict_targets)
-        print(self.dict_params)
-        print(self.hard_constraints)
+        # print(self.dict_params)
+        # print(self.hard_constraints)
         # build param range dictionary
         self.param_ranges = {}
         for name, value in self.dict_params.items():
@@ -110,11 +110,11 @@ class CircuitEnv(gym.Env):
 
             # Create and simulate new netlist
             new_netlist_path = dut.create_new_netlist(params, process, temp_pvt, vdd)
+            print(f"New netlist created at: {new_netlist_path}")
             dut.netlist_path = new_netlist_path   # <-- ADD THIS LINE
             info = dut.simulate(new_netlist_path) # True of false
             
             dut.random_name = self.circuit_name
-            print(f"New netlist created at: {new_netlist_path}")
             # print("VDD:", dut.VDD)
             
             # Measure specs

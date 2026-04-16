@@ -4,59 +4,50 @@ technology: 45nm
 
 params:
   Cload:  !!python/tuple [!!float 0.1e-12, !!float 10.0e-12, !!float 0.1e-12]
-  VB1:  !!python/tuple [!!float 0.1e-12, !!float 10.0e-12, !!float 0.1e-12]
-  VDD:  !!python/tuple [!!float 0.1e-12, !!float 10.0e-12, !!float 0.1e-12]
-  l0:  !!python/tuple [45.0e-09, 225.0e-09, 45.0e-09]
-  l1:  !!python/tuple [45.0e-09, 225.0e-09, 45.0e-09]
-  m0:  !!python/tuple [1, 25, 1]
-  m1:  !!python/tuple [1, 25, 1]
-  vcm:  !!python/tuple [!!float 0.1e-12, !!float 10.0e-12, !!float 0.1e-12]
-  w0:  !!python/tuple [2.50e-07, 30.0e-07, 2.50e-07]
-  w1:  !!python/tuple [2.50e-07, 30.0e-07, 2.50e-07]
+  ln2:  !!python/tuple [45.0e-09, 225.0e-09, 45.0e-09]
+  ln3:  !!python/tuple [45.0e-09, 225.0e-09, 45.0e-09]
+  lp0:  !!python/tuple [45.0e-09, 225.0e-09, 45.0e-09]
+  lp1:  !!python/tuple [45.0e-09, 225.0e-09, 45.0e-09]
+  mn2:  !!python/tuple [1, 25, 1]
+  mn3:  !!python/tuple [1, 25, 1]
+  mp0:  !!python/tuple [1, 25, 1]
+  mp1:  !!python/tuple [1, 25, 1]
+  r0:  !!python/tuple [!!float 0, !!float 9.9e+3, !!float 100]
+  wn2:  !!python/tuple [2.50e-07, 30.0e-07, 2.50e-07]
+  wn3:  !!python/tuple [2.50e-07, 30.0e-07, 2.50e-07]
+  wp0:  !!python/tuple [2.50e-07, 30.0e-07, 2.50e-07]
+  wp1:  !!python/tuple [2.50e-07, 30.0e-07, 2.50e-07]
 
 targets:
-  ac_gain: !!float 200.00
-  area: !!float 2.0e-09
-  bandwidth: !!float 1.0e+06
-  current: !!float 0.0e+00
-  dc_gain: !!float 20.00
-  gain_margin: !!float 45.00
-  noise_total: !!float 3.0e-02
+  area: !!float 2.0e-06
+  bandwidth: !!float 100.00
+  dc_gain: !!float 11.00
+  noise_total: !!float 3.0e-01
   phase_margin: !!float 60.00
-  phase_response: !!float 60.00
-  psrr: !!float 60.00
-  slew_rate: !!float 15.00
-  ugbw: !!float 0.0e+00
-hard_constraints: !!python/tuple ['ac_gain', 'area', 'bandwidth', 'current', 'dc_gain', 'gain_margin', 'noise_total', 'phase_margin', 'phase_response', 'psrr', 'slew_rate', 'ugbw']
-optimization_targets: !!python/tuple ['area', 'current']
+  slew_rate: !!float 1.00
+  ugbw: !!float 10.00
+hard_constraints: !!python/tuple ['bandwidth', 'dc_gain', 'noise_total', 'phase_margin', 'slew_rate', 'ugbw']
+optimization_targets: !!python/tuple ['area']
 
 spec_weights:
-  ac_gain: !!float 1.0
   area: !!float 1.0
   bandwidth: !!float 1.0
-  current: !!float 1.0
   dc_gain: !!float 1.0
-  gain_margin: !!float 1.0
   noise_total: !!float 1.0
   phase_margin: !!float 1.0
-  phase_response: !!float 1.0
-  psrr: !!float 1.0
   slew_rate: !!float 1.0
   ugbw: !!float 1.0
 
 circuit_multipliers:
-  m0: !!int 2
-  m1: !!int 2
+  mn2: !!int 2
+  mn3: !!int 2
+  mp0: !!int 2
+  mp1: !!int 2
 
 path_id:
-  0: "./genai_agent/output/9/ac_gain.csv"
-  1: "./genai_agent/output/9/ac_gain.csv"
-  2: "./genai_agent/output/9/psrr.csv"
-  3: "./genai_agent/output/9/noise.csv"
-  4: "./genai_agent/output/9/tran_SR.csv"
-  5: "./genai_agent/output/9/ac_gain.csv"
-  6: "./genai_agent/output/9/ac_gain.csv"
-  15: "./genai_agent/output/9/ac_gain.csv"
-  16: "./genai_agent/output/9/ac_gain.csv"
-  21: "./genai_agent/output/9/ac_gain.csv"
-  22: "./genai_agent/output/9/current.csv"
+  0: "./genai_agent/output/155/ac_gain.csv"
+  1: "./genai_agent/output/155/ac_gain.csv"
+  3: "./genai_agent/output/155/noise.csv"
+  4: "./genai_agent/output/155/tran_SR.csv"
+  6: "./genai_agent/output/155/ac_gain.csv"
+  21: "./genai_agent/output/155/ac_gain.csv"

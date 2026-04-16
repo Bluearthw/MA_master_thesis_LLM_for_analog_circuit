@@ -1,9 +1,9 @@
-## entrance: root_agent_40!!
-
 git add .
 git commit -m "changing the structure of the project and fix psrr length problem by trucation
 "
 git push
+
+## entrance: main.py!!
 
 venv\Scripts\Activate.ps1
 # MA_master_thesis_LLM_for_analog_circuit

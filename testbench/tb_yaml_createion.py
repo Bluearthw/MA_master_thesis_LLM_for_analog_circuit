@@ -52,15 +52,21 @@ def test_make_full_yaml(path, cir_name):
     path_id = {k: v for k, v in path_id.items() if k != 16}
     result = yaml_creation.make_full_yaml(path, path_ids=path_id, cir_name=cir_name)
     print(result)
+def test_save_yaml():
+    yaml_creation.save_temp("./genai_agent/output/155/final_netlist.cir", 
+                            {0: './genai_agent/output/155/ac_gain.csv', 1: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv', 4: './genai_agent/output/155/tran_SR.csv', 3: './genai_agent/output/155/noise.csv'},
+                            9)
 # it should work for both .params types
 # test_get_params("./genai_agent/output/9/final_netlist.cir")
 # test_get_params("D:\\1kulStudy\\8MA_Thesis\\workplace\\ngspice_interface\\files\\input_netlists\\TwoStage.cir")
 # test_get_params("D:\\1kulStudy\\8MA_Thesis\\workplace\\genai_agent\\output\\9\\final_netlist.cir")
+# test_get_params("D:\\1kulStudy\\8MA_Thesis\\workplace\\no_backup\\output_netlists\\155_1776165248_rvmtswqsvi.cir")
 # test_make_param_lines()
-
+test_save_yaml()
 # test_get_targets()
 # test_make_targets_lines()
 # test_make_spec_weights_lines()
 # test_make_circuit_multipliers()
 cir_name = "test"
-test_make_full_yaml(f"./genai_agent/output/{cir_name}/final_netlist.cir", cir_name)
+# test_make_full_yaml("./genai_agent/output/9/final_netlist.cir", cir_name)
+# test_make_full_yaml(f"./genai_agent/output/{cir_name}/final_netlist.cir", cir_name)

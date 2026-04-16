@@ -1,4 +1,6 @@
 import sys
+
+import yaml
 sys.path.append(".")
 from genai_agent import local_config
 from utils import gen_utils
@@ -35,6 +37,7 @@ def get_params(file_path):
     except Exception as e:
         print(f"Error reading file {file_path}: {e}")
         return []
+    print(params)
     return sorted(list(params))
 
 def make_param_lines(param_names, tech = "45nm"):
@@ -65,10 +68,13 @@ def make_param_lines(param_names, tech = "45nm"):
             val_str = f"[{w_min}, {w_max}, {w_step}]"
         elif prefix == 'l':
             val_str = f"[{l_min}, {l_max}, {l_step}]"
-        elif prefix == 'v':
+        elif prefix == 'v' or prefix == 'i':
             continue
+        elif prefix == 'r':
+            val_str = "[!!float 0, !!float 9.9e+3, !!float 100]"
+            
         else:
-            # Fallback for things like 'cap' or 'res'
+            # Fallback for things like 'cap' 
             val_str = "[!!float 0.1e-12, !!float 10.0e-12, !!float 0.1e-12]"
             
         lines.append(f"  {name}:  !!python/tuple {val_str}")# do not use \t or there will be error while reading
@@ -97,23 +103,68 @@ def get_targets(spec_ids):
     targets = {}
     
     for spec_id in spec_ids:
-        if spec_id == 16:
-            continue
-        elif spec_id in local_config.table_target_id:
+        if spec_id in local_config.table_target_id:
             metric_name = local_config.table_target_id[spec_id]
-            metric_value = local_config.table_targets_default_values.get(spec_id, 0.0)
-            targets[metric_name] = metric_value
-    
+            metric_default_value = local_config.table_targets_default_values.get(spec_id, 0.0)
+            
+            targets[metric_name] = metric_default_value
+        else:
+            raise ValueError(f"Specification ID {spec_id} is not recognized.")
     # Always include area (fixed)
     if 'area' not in targets:
         targets['area'] = 2.0e-6
+
+    targets = user_target_interface(targets)
     
-    # Always include current (fixed)
+    # Not Always include current 
     # if 'current' not in targets:
     #     targets['current'] = 2.0e-1
     
     return targets
 
+def user_target_interface(targets):
+    """
+    Interactive interface for user to review and modify target values.
+    
+    Args:
+        targets (dict): Dictionary of target metrics with default values
+        
+    Returns:
+        dict: Updated targets dictionary with user modifications
+    """
+    print("\n=== Target Values Review ===")
+    print("Current target values:")
+    sorted_targets = sorted(targets.items())
+    for i, (key, value) in enumerate(sorted_targets, 1):
+        print(f"  {i}. {key}: {value}")
+    
+    while True:
+        modify = input("\nDo you want to modify any target values? (y/n): ").strip().lower()
+        if modify not in ['y', 'yes']:
+            break
+            
+        try:
+            target_num = int(input(f"Enter the number of the target to modify (1-{len(sorted_targets)}): ").strip())
+            if target_num < 1 or target_num > len(sorted_targets):
+                print(f"Error: Please enter a number between 1 and {len(sorted_targets)}.")
+                continue
+            target_name = sorted_targets[target_num - 1][0]
+        except ValueError:
+            print("Error: Please enter a valid number.")
+            continue
+            
+        try:
+            new_value = float(input(f"Enter new value for '{target_name}' (current: {targets[target_name]}): ").strip())
+            targets[target_name] = new_value
+            print(f"Updated {target_name} to {new_value}")
+        except ValueError:
+            print("Error: Please enter a valid number.")
+    
+    print("\nFinal target values:")
+    for i, (key, value) in enumerate(sorted_targets, 1):
+        print(f"  {i}. {key}: {value}")
+    
+    return targets
 def _format_value(value):# start with underline, this will not be imported
     """Format a value for YAML: use scientific notation for very small/large, normal for rest."""
     fval = float(value)
@@ -246,3 +297,14 @@ def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multipl
     gen_utils.save_file_overwrite(path_yaml, content)
     return path_yaml
 
+#region save temp
+def save_temp(path, path_ids=None, cir_name = 9):
+    data = {
+        'cir_name': cir_name,
+        'path_nl': path,
+        'path_ids': path_ids    
+        }
+    path_temp = '.\\genai_agent\\output\\temp.yaml'
+    with open(path_temp, 'w') as f:
+        yaml.dump(data, f)
+#endregion save temp

@@ -13,25 +13,25 @@ params:
 
 targets:
   area: !!float 2.0e-06
-  bandwidth: !!float 5.00
-  current: !!float 2.0e-01
-  dc_gain: !!float 2.00
+  bandwidth: !!float 100.00
+  dc_gain: !!float 10.00
+  gain_margin: !!float 45.00
   noise_total: !!float 3.0e-01
   phase_margin: !!float 60.00
   slew_rate: !!float 15.00
   ugbw: !!float 10.00
-hard_constraints: !!python/tuple ['bandwidth', 'dc_gain', 'noise_total', 'phase_margin', 'slew_rate', 'ugbw']
-optimization_targets: !!python/tuple ['area', 'current']
+hard_constraints: !!python/tuple ['bandwidth', 'dc_gain', 'gain_margin', 'noise_total', 'phase_margin', 'slew_rate', 'ugbw']
+optimization_targets: !!python/tuple ['area']
 
 spec_weights:
   area: !!float 1.0
   bandwidth: !!float 1.0
-  current: !!float 1.0
   dc_gain: !!float 1.0
+  gain_margin: !!float 1.0
   noise_total: !!float 1.0
-  phase_margin: !!float 20.0
+  phase_margin: !!float 1.0
   slew_rate: !!float 1.0
-  ugbw: !!float 100.0
+  ugbw: !!float 1.0
 
 circuit_multipliers:
   mn1: !!int 2
@@ -42,6 +42,6 @@ path_id:
   1: "./genai_agent/output/9/ac_gain.csv"
   3: "./genai_agent/output/9/noise.csv"
   4: "./genai_agent/output/9/tran_SR.csv"
+  5: "./genai_agent/output/9/ac_gain.csv"
   6: "./genai_agent/output/9/ac_gain.csv"
   21: "./genai_agent/output/9/ac_gain.csv"
-  22: "./genai_agent/output/9/current.csv"

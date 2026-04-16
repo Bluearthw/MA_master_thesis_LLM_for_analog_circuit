@@ -121,6 +121,7 @@ def test_make_cir_sim(cir_num):
 def add_sim_agent(netlist, category,cir_num=4):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
+    f_end= "1T"
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs : {local_config.table_specs_id}, and a brief requirement about this type of circuit : {category}.
 Your goal is to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. You should output the complete netlist, tell whether it is differential output or not, a list of required specifications and corresponding simulation files for measurement. The measurement will be done by following agents.
 ### Here are some rules.
@@ -136,7 +137,7 @@ Cload VOUT1 VSS {{Cload}}
 4. The netlist file should also write the required data to a file. The path should include the circuit number! Also, for ac_gain, use v(VOUT1) since the following measurement agent will use this format.. Using vdb(VOUT1) or vp(VOUT1) is bad 
 Example:
 * for gain
-ac dec 10 1 1T
+ac dec 10 1 {f_end}
 {line_wrdata_path_num}/ac_gain.csv v(VOUT1)
 In this example, the VOUT1 is the output node.
 
@@ -147,11 +148,11 @@ In this example, the VOUT1 is the output node.
      .param W=1u
 6. You must provide exactly one noise reporting method. Do not combine them. NEVER write two wrdata lines for noise in the same netlist.
     6a. If equivalent input totoal integrated noise is needed: To get the single value of total noise, use:
-    noise v(VOUT1) vin dec 10 1 100G
+    noise v(VOUT1) vin dec 10 1 {f_end}
     {line_wrdata_path_num}/noise.csv inoise_total
 
     6b. If equivalent input noise spectrum is needed: To get the noise vs. frequency curve, use:
-    noise v(VOUT1) vin dec 10 1 100G
+    noise v(VOUT1) vin dec 10 1 {f_end}
     setplot noise1
     {line_wrdata_path_num}/noise.csv inoise_spectrum 
 

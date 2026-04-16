@@ -38,7 +38,7 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[1]] = float(self.get_bandwidth(path))
             
             elif spec_id == 2:  # PSRR
-                spec_dict[table_target_id[2]] = self.get_psrr(path)
+                spec_dict[table_target_id[2]] = self.get_psrr(path)[0] #[1] is freq
             
             elif spec_id == 3:  # input noise
                 spec_dict[table_target_id[3]] = float(self.get_in_equivalent_total_noise(path))
@@ -66,7 +66,7 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[13]] = self.get_icmr(path)[0]
 
             elif spec_id == 14:  # cmrr, it is a list
-                spec_dict[table_target_id[14]] = self.get_cmrr(path)
+                spec_dict[table_target_id[14]] = self.get_cmrr(path)[0]
 
             elif spec_id == 15:
                 spec_dict[table_target_id[15]] = self.get_ac_gain(path)
@@ -538,7 +538,7 @@ class DUT(NgspiceWrapper):
 
             
             return psrr_db, freq
-
+    
     #13 Input Common-Mode Range (ICMR)
     def get_icmr(self, path_icmr, error = 0.05): # Input Common-Mode Range
         data = np.genfromtxt(path_icmr, autostrip=True, skip_header=1)
@@ -566,7 +566,6 @@ class DUT(NgspiceWrapper):
     #14 Common-Mode Rejection Ratio (CMRR)
     def get_cmrr(self, path_acm):
         data_cm = np.genfromtxt(path_acm, skip_header=1)
-        
         # Column 0: Freq, Column 1: Real, Column 2: Imag (or Mag depending on wrdata)
         # If using default wrdata, it's usually Real/Imag pairs
         if self.mag_db is None:
@@ -577,10 +576,17 @@ class DUT(NgspiceWrapper):
         vcm_complex = data_cm[:, 1] + 1j * data_cm[:, 2]
         acm_mag = np.abs(vcm_complex)
 
-        cmrr = adm_mag / acm_mag
+        len_dm = len(adm_mag)
+        len_cm = len(acm_mag)
+        if len_dm < len_cm:
+            cmrr = adm_mag / acm_mag[0: len_dm]
+            freq = data_cm[:, 0]
+        else: #psrr >= ac gain
+            cmrr = adm_mag[0: len_cm] / acm_mag
+            freq = self.freq
+
         cmrr_db = 20 * np.log10(cmrr)
-        
-        return  cmrr_db # Return freq and CMRR in dB
+        return  cmrr_db, freq # Return freq and CMRR in dB
 
     # Helper methods
     def get_ugbw_unity_gain_bandwidth(self, path = ""):

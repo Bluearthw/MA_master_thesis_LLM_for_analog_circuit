@@ -7,8 +7,7 @@ sys.path.append(".")
 from ngspice_interface import dut_testbench
 sys.path.append("./genai_agent")
 import utils
-path_id_155 = {0: './genai_agent/output/155/ac_gain.csv', 1: './genai_agent/output/155/ac_gain.csv', 15: './genai_agent/output/155/ac_gain.csv', 16: './genai_agent/output/155/ac_gain.csv', 5: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 3: './genai_agent/output/155/noise.csv', 4: './genai_agent/output/155/tran_SR.csv', 12: './genai_agent/output/155/tran_SR.csv', 10: './genai_agent/output/155/dc_swing.csv', 11: './genai_agent/output/155/dc_swing.csv', 13: './genai_agent/output/155/dc_icmr.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv'}
-path_id_155_2 = {15: './genai_agent/output/155/ac_gain.csv', 3: './genai_agent/output/155/noise.csv', 4: './genai_agent/output/155/tran_sr.csv', 13: './genai_agent/output/155/dc_icmr.csv', 0: './genai_agent/output/155/dc_sw.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv'}
+path_id_155 =  {0: './genai_agent/output/155/ac_gain.csv', 1: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv', 4: './genai_agent/output/155/tran_SR.csv', 3: './genai_agent/output/155/noise.csv'}
 path_id_69 = {0: './genai_agent/output/69/ac_gain.csv', 1: './genai_agent/output/69/ac_gain.csv', 15: './genai_agent/output/69/ac_gain.csv', 18: './genai_agent/output/69/ac_gain.csv', 19: './genai_agent/output/69/ac_balance.csv', 3: './genai_agent/output/69/noise.csv', 4: './genai_agent/output/69/tran_sr.csv', 12: './genai_agent/output/69/tran_sr.csv'}
 path_id_96 = {18: './genai_agent/output/96/ac_dm.csv', 17: './genai_agent/output/96/ac_cm.csv', 0: './genai_agent/output/96/ac_gain.csv', 1: './genai_agent/output/96/ac_gain.csv', 16: './genai_agent/output/96/ac_gain.csv', 6: './genai_agent/output/96/ac_gain.csv', 3: './genai_agent/output/96/noise.csv', 4: './genai_agent/output/96/tran_sr.csv', 10: './genai_agent/output/96/dc_sweep.csv', 11: './genai_agent/output/96/dc_sweep.csv'}
 path_id_182 = {20: './genai_agent/output/182/cmfb_stb.csv'}
@@ -145,9 +144,9 @@ def test_DUT_psrr_len_problem(p_id, name):
     print (result)
 #region test entrance
 # test_phase_calculation()
-# test_DUT(path_id_96, 96)
+test_DUT(path_id_155, 155)
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
-test_DUT_psrr_len_problem(path_id_9_psrr, 9)
+# test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
 
 #endregion test entrance

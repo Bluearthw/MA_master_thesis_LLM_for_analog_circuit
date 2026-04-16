@@ -117,8 +117,8 @@ def td3_start(args=None, circuit_name=None):
     # Intial agent
     agent = TD3(state_dim, env.action_space, args)
     # Initial pool for env
-    print("observation_space",env.observation_space)
-    print("action_space",env.action_space)
+    # print("observation_space",env.observation_space)
+    # print("action_space",env.action_space)
     env_pool = ReplayBuffer(state_dim, action_dim, max_size=args.replay_size)
     # Training
     train(args, env, agent, env_pool)
