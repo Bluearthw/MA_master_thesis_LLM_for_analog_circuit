@@ -1,6 +1,7 @@
 git add .
 git commit -m "add a function for path_id making in genutils
 add get_current in dut_tb
+yaml temp creation in each cir folder now
 "
 git push
 

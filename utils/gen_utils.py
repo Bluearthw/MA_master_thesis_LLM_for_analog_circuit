@@ -1065,10 +1065,11 @@ def make_path_id(spec_sims, path_output_num):
         if os.path.exists(path_file):
             print(f"File {path_file} exists.")
             struct_path_id[spec_sim.spec_id] = path_file
+        
         else:
             print(f"File {path_file} does not exist.")
             raise RuntimeError(f"Expected output file {path_file} not found.")
-
+    return struct_path_id
 # endregion functions
 
 def test_delay(sec):

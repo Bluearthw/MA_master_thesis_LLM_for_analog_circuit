@@ -29,7 +29,7 @@ table_specs_id = {0:    "DC Gain",
                   20:   "CMFB Loop Stability",
 
                   3:    "input equivalent integrated total noise", 
-                  7:    "input equivalent noise spectrum",
+                #   7:    "input equivalent noise spectrum",
                   
                   8:    "input impedance",
                   9:    "output impedance",
@@ -54,7 +54,7 @@ table_target_id = {
     4: 'slew_rate',
     5: 'gain_margin',
     6: 'phase_margin',
-    7: 'noise_spectrum',
+    # 7: 'noise_spectrum',
     8: 'input_impedance',
     9: 'output_impedance',
     10: 'input_swing',
@@ -80,7 +80,7 @@ table_targets_default_values = {
     4: 15.0,          # slew_rate (V/us)
     5: 45.0,          # gm (dB)
     6: 60.0,          # phm (degrees)
-    7: 1.0e-9,        # noise_spectrum (V/sqrt(Hz))??????
+    # 7: 1.0e-9,        # noise_spectrum (V/sqrt(Hz))??????
     8: 1.0e+9,        # input_impedance (Ohms)
     9: 1.0e+3,        # output_impedance (Ohms)
     10: 0.1,          # input_swing (V)

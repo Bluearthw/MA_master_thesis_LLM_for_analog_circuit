@@ -1,15 +1,16 @@
-import saved_netlist
 from google import genai
 from google.genai import types
 import os
 import sys
-import utils
 from pydantic import BaseModel, Field
 import time
 import numpy as np
 import pandas as pd
 ## local imports
-import local_config
+import saved_netlist
+sys.path.append('.')
+from utils import gen_utils
+from genai_agent import local_config
 import debug_agent
 from workflows import cmfb_agent
 def test_clean():
@@ -19,12 +20,12 @@ def test_clean():
         # print("cir_path",cir_path)
         if not os.path.isfile(cir_path):
             continue
-        circuit_string = utils.get_file_to_str(
+        circuit_string = gen_utils.get_file_to_str(
             cir_path,
             ""
             
         )
-        circuit_string = utils.clean_netlist(circuit_string)
+        circuit_string = gen_utils.clean_netlist(circuit_string)
         print("==clean\n", circuit_string)
     return circuit_string
 
@@ -71,7 +72,7 @@ R0 VDD VOUT2 {r0}
     """
     # lines = netlist # does not work, need to split first
     # print(netlist)
-    nl = utils.add_DC_source(netlist)  # input should be string here
+    nl = gen_utils.add_DC_source(netlist)  # input should be string here
     print("==add_DC", nl)
 
 def test_add_C_load(netlist=""):
@@ -90,7 +91,7 @@ vb1 VB1 0 dc=VB1
 Vss VSS 0 dc=0
 """
     node = "VOUT1" # should be from the LLM
-    nl = utils.add_C_load(netlist, node)  # input should be string here
+    nl = gen_utils.add_C_load(netlist, node)  # input should be string here
     print("==add_Cload", nl)
 
 def test_add_add_OP_simulation(netlist=""):
@@ -113,12 +114,12 @@ Vss VSS 0 dc=0
 Cload VOUT1 VSS {Cload}
 """
     node = "VIN1" # should be from the LLM
-    nl = utils.add_OP_simulation(netlist, node)  # input should be string here
+    nl = gen_utils.add_OP_simulation(netlist, node)  # input should be string here
     print("==add_Cload", nl)
 
 def test_pycpice_op_sim():
     netlist = local_config.netlist_14
-    result = utils.pyspice_op_sim(netlist, "vout1")  # input should be string here
+    result = gen_utils.pyspice_op_sim(netlist, "vout1")  # input should be string here
     print("==pyspice_op_sim", result)
 
 def test_modify_DC_bias():
@@ -154,7 +155,7 @@ set temp=25
 op
 .endc
 .end"""
-    netlist, new_V, old_V= utils.modify_DC_bias(netlist,"VB1",False)
+    netlist, new_V, old_V= gen_utils.modify_DC_bias(netlist,"VB1",False)
     print("==netlist\n",netlist)
     print("==new\n",new_V)
     print("==old\n",old_V)
@@ -162,7 +163,7 @@ op
 
 def test_find_OPAMP_num_from_file():
     path = "../material/dataset/tb_dataset"
-    nums = utils.find_OPAMP_num_from_file(path) #amplifier
+    nums = gen_utils.find_OPAMP_num_from_file(path) #amplifier
     print("# ", len(nums))
     print("nums = ",nums)
     return nums
@@ -172,7 +173,7 @@ def test_find_OPAMPs_without_clk():
     # nums = utils.find_OPAMP_num_from_file(path)
     nums = local_config.num_amplifier_with_vin_vout
     # print("==nums\n",nums)
-    SISO_nums = utils.find_OPAMPs_without_clk(path,nums)
+    SISO_nums = gen_utils.find_OPAMPs_without_clk(path,nums)
     print("==SISO_nums\n",SISO_nums)
     print("==how much\n",len(SISO_nums))
 
@@ -181,7 +182,7 @@ def test_find_SISOs_from_OPAMPs():
     # nums = utils.find_OPAMP_num_from_file(path)
     nums = local_config.num_amplifier_without_mixer_comparator_ports
     # print("==nums\n",nums)
-    SISO_nums = utils.find_SISOs_from_OPAMPs(path,nums)
+    SISO_nums = gen_utils.find_SISOs_from_OPAMPs(path,nums)
     print("SISO_nums = ",SISO_nums)
     print("# ",len(SISO_nums))
 
@@ -189,14 +190,14 @@ def test_find_SISOs_from_OPAMPs():
 def test_find_ports_from_nums(nums):
     dataset_path = "../material/dataset/tb_dataset"
     
-    ports2 = utils.find_ports_from_all(dataset_path,nums)  
+    ports2 = gen_utils.find_ports_from_all(dataset_path,nums)  
     print("ports2\n",ports2)
 
 
 def test_find_RF_from_cir_pattern():
     dataset_path = "../material/dataset/tb_dataset"
     # port = ["VOUT1"]
-    nums1 = utils.find_cir_num_with_pattern(dataset_path,["L0"])
+    nums1 = gen_utils.find_cir_num_with_pattern(dataset_path,["L0"])
     
     print("# ", len(nums1))
     print(nums1)
@@ -205,7 +206,7 @@ def test_find_RF_from_cir_pattern():
 def test_find_all():
     dataset_path = "../material/dataset/tb_dataset"
     # port = ["VOUT1"]
-    n = utils.find_all(dataset_path)
+    n = gen_utils.find_all(dataset_path)
     print("# ", len(n))
     print(n)
 
@@ -213,7 +214,7 @@ def test_find_all():
 def test_find_cir_without_mos():
     dataset_path = "../material/dataset/tb_dataset"
     # port = ["VOUT1"]
-    nums = utils.find_cir_num_without_pattern(dataset_path,["nmos4", "pmos4", "npn"])
+    nums = gen_utils.find_cir_num_without_pattern(dataset_path,["nmos4", "pmos4", "npn"])
     print("# ", len(nums))
     print(nums)
 
@@ -222,14 +223,34 @@ def test_find_cir_without_vout():
     # port = ["VOUT1"]
     port = ["VOUT1"]
     num_test = local_config.nums_with_transistors
-    nums = utils.find_cir_num_without_pattern(dataset_path,port,num_test)
+    nums = gen_utils.find_cir_num_without_pattern(dataset_path,port,num_test)
     print("# ", len(nums))
     print(nums)
 
-def test_find_num_from_class(id):
-    nums =utils.find_num_from_class(id)
-    print("# ", len(nums))
-    print(nums)
+def test_find_num_from_class(id=None):
+    """
+    Find circuit numbers from class ID(s).
+    
+    Args:
+        id (int or None): If int, find nums for that single class.
+                         If None, find nums for all classes 1-40.
+    """
+    if id is None:
+        # Find for all classes 1 to 40
+        lines = []
+        for class_id in range(1, 41):
+            nums = gen_utils.find_num_from_class(class_id)
+            lines.append(f"class_{class_id}:  {nums}")
+            lines.append(f"len_{class_id}: {len(nums)}")
+            # print(f"Class {class_id}: # {len(nums):3d} circuits - {nums[:10]}{'...' if len(nums) > 10 else ''}")
+            content = "\n\n".join(lines)
+            path_yaml = ".\\genai_agent\\memory\\"+f"class.yaml"
+            gen_utils.save_file_overwrite(path_yaml, content)
+    else:
+        # Find for single class
+        nums = gen_utils.find_num_from_class(id)
+        print(f"Class {id}: # {len(nums)}")
+        print(nums)
 def test_modify_duplicate_component():
     raw_netlist = """
 M3 (net8 VB1 VDD VDD) pmos4
@@ -239,7 +260,7 @@ M0 (VOUT1 net8 VSS VSS) nmos4
 C1 (VOUT1 VSS) capacitor
 C1 (net8 VSS) capacitor
     """
-    clean_netlist = utils.modify_duplicate_component(raw_netlist)
+    clean_netlist = gen_utils.modify_duplicate_component(raw_netlist)
     print(clean_netlist)
 
 def test_find_cir_without_vdd():
@@ -248,20 +269,20 @@ def test_find_cir_without_vdd():
     port = ["VSS"]
     num_test = local_config.num_class_1 # only 621
     num_test = local_config.num_all#
-    nums = utils.find_cir_num_without_pattern(dataset_path,port,num_test)
+    nums = gen_utils.find_cir_num_without_pattern(dataset_path,port,num_test)
     print("# ", len(nums))
     print(nums)
-def test_pyspice_sim(nl = local_config.nl_feb24):
+def test_pyspice_sim(nl = ""):
     # nl = local_config.nl_feb23_wuhu
-    utils.delete_all_files_skip_dir(local_config.path_output) # delete all previous output to avoid confusion
+    gen_utils.delete_all_files_skip_dir(local_config.path_output) # delete all previous output to avoid confusion
     
-    utils.pyspice_op_sim_simple(nl)
-    # success = utils.pyspice_op_sim(nl)
+    gen_utils.pyspice_op_sim_simple(nl)
+    # success = gen_utils.pyspice_op_sim(nl)
     # if success["success"]:
     #     print("Simulation successful!")
     # else:
     #     print("Simulation failed with message:", success["message"])
-    success = utils.pyspice_op_sim_final(nl)
+    success = gen_utils.pyspice_op_sim_final(nl)
     if success["success"]:
         print("Simulation successful!")
     else:
@@ -282,28 +303,28 @@ def test_debug_agent(cir_num=4):
     if success["success"]:
         print("Simulation successful!")
     else:
-       debug_agent.debug_agent(local_config.nl_feb24, success["message"], cir_num=4)
+       debug_agent.debug_agent_flow(local_config.nl_feb24, success["message"], cir_num=4)
 def test_find_category_str(id):
     path_category = f"./1genai/data/categories/category{id}.md"
-    str = utils.get_file_to_str(path_category)
+    str = gen_utils.get_file_to_str(path_category)
     print(str)
     # results['dc_gain'] = df.iloc[0, 1]
     # print(f"DC Gain: {results.dc_gain} dB")
 def test_check_cat4_requirements():
     nums = local_config.num_class_4
     dataset_path = "../material/dataset/tb_dataset"
-    new_nums = utils.find_cir_num_with_pattern(dataset_path,["IIN1"],nums)
+    new_nums = gen_utils.find_cir_num_with_pattern(dataset_path,["IIN1"],nums)
     print("==new_nums\n",new_nums)
 def test_find_cat_from_num(num = 4):
     
-    cat = utils.find_cat_from_num(num)
+    cat = gen_utils.find_cat_from_num(num)
     print("==cat\n",cat)
 
 def test_cmfb_check_agent(netlist, cir_num=4):
-    category_num = utils.find_cat_from_num(cir_num) # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
+    category_num = gen_utils.find_cat_from_num(cir_num) # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
     path_category = local_config.path_category + f"{category_num}.md"
     # or the cat_num is already known, so just +"4.md"
-    category = utils.get_file_to_str(path_category)
+    category = gen_utils.get_file_to_str(path_category)
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
     contents = f"""You are an expert Analog IC Designer. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs : {local_config.table_specs_id}, and a brief requirement about this type of circuit : {category}.
 Your goal is to check whether there is CMFB loop in this circuit. If there is, say yes and explain shortly like 1 sentence. I think, if the IN,CM increases, the net017 can stop VOUT,CM to increase, right? That is also a CMFB, right?
@@ -316,7 +337,7 @@ Your goal is to check whether there is CMFB loop in this circuit. If there is, s
     print(response.text)
 
 def test_clean_before_CMFB(nl):
-    nl2 = utils.clean_before_CMFB(nl)
+    nl2 = gen_utils.clean_before_CMFB(nl)
     print(nl2)
 
 def test_cmfb_agent(nl):
@@ -363,12 +384,12 @@ end_time = time.perf_counter()
 # test_find_num_from_class(4)
 # test_find_num_from_class(7)
 # test_find_num_from_class(40)
+test_find_num_from_class()  # Find all classes 1-40
 # test_find_category_str(4)
-#endregion find type nums
 
-# utils.difference_of_nums(local_config.num_class_4, [43])
-# utils.difference_of_nums( local_config.num_amplifier_included_with_in_out,local_config.num_amplifier_without_mixer_comparator_ports)
-# utils.difference_of_nums( local_config.num_all, local_config.num_no_mos)
+# gen_utils.difference_of_nums(local_config.num_class_4, [43])
+# gen_utils.difference_of_nums( local_config.num_amplifier_included_with_in_out,local_config.num_amplifier_without_mixer_comparator_ports)
+# gen_utils.difference_of_nums( local_config.num_all, local_config.num_no_mos)
 
 # region category4
 # test_check_cat4_requirements()

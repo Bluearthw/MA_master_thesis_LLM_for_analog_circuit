@@ -89,7 +89,7 @@ def test_make_cir_sim(cir_num):
             error_msg_input = "\n".join(error_msg)
             print(error_msg_input)
             utils.test_delay(30)  # Wait 10 seconds before retrying
-            struct_debug = debug_agent.debug_agent(netlist, error_msg_input,cir_num)
+            struct_debug = debug_agent.debug_agent_flow(netlist, error_msg_input,cir_num)
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims
             error_msg.append("fixing info:\n"+struct_debug.fix_info)

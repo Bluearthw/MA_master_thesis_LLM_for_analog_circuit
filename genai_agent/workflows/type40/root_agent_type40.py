@@ -7,7 +7,7 @@ import sys
 # local import
 from genai_agent import local_config
 from genai_agent import tools
-from genai_agent import debug_agent
+from genai_agent.debug_agent import debug_agent_flow
 from genai_agent.workflows import cmfb_agent
 
 from utils import gen_utils as gen_utils
@@ -43,7 +43,7 @@ def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, 
             error_msg_input = "\n".join(error_msg)
             print(error_msg_input)
             gen_utils.test_delay(30)  # Wait 10 seconds before retrying
-            struct_debug = debug_agent.debug_agent(netlist, error_msg_input, cir_num, spec_sims)
+            struct_debug = debug_agent_flow(netlist, error_msg_input, cir_num, spec_sims)
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims
             error_msg.append("fixing info:\n" + struct_debug.fix_info)

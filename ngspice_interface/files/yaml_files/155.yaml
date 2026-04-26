@@ -3,7 +3,7 @@ circuit_name: "155"
 technology: 45nm
 
 params:
-  Cload:  !!python/tuple [!!float 0.1e-12, !!float 10.0e-12, !!float 0.1e-12]
+  cload_val:  !!python/tuple [!!float 0.1e-12, !!float 10.0e-12, !!float 0.1e-12]
   ln2:  !!python/tuple [45.0e-09, 225.0e-09, 45.0e-09]
   ln3:  !!python/tuple [45.0e-09, 225.0e-09, 45.0e-09]
   lp0:  !!python/tuple [45.0e-09, 225.0e-09, 45.0e-09]
@@ -21,19 +21,21 @@ params:
 targets:
   area: !!float 2.0e-06
   bandwidth: !!float 100.00
-  dc_gain: !!float 11.00
-  noise_total: !!float 3.0e-01
+  current: !!float 2.0e-01
+  dc_gain: !!float 10.00
+  noise_spectrum: !!float 1.0e-03
   phase_margin: !!float 60.00
   slew_rate: !!float 1.00
   ugbw: !!float 10.00
-hard_constraints: !!python/tuple ['bandwidth', 'dc_gain', 'noise_total', 'phase_margin', 'slew_rate', 'ugbw']
-optimization_targets: !!python/tuple ['area']
+hard_constraints: !!python/tuple ['bandwidth', 'dc_gain', 'noise_spectrum', 'phase_margin', 'slew_rate', 'ugbw']
+optimization_targets: !!python/tuple ['area', 'current']
 
 spec_weights:
   area: !!float 1.0
   bandwidth: !!float 1.0
+  current: !!float 1.0
   dc_gain: !!float 1.0
-  noise_total: !!float 1.0
+  noise_spectrum: !!float 1.0
   phase_margin: !!float 1.0
   slew_rate: !!float 1.0
   ugbw: !!float 1.0
@@ -47,7 +49,8 @@ circuit_multipliers:
 path_id:
   0: "./genai_agent/output/155/ac_gain.csv"
   1: "./genai_agent/output/155/ac_gain.csv"
-  3: "./genai_agent/output/155/noise.csv"
   4: "./genai_agent/output/155/tran_SR.csv"
   6: "./genai_agent/output/155/ac_gain.csv"
+  7: "./genai_agent/output/155/noise.csv"
   21: "./genai_agent/output/155/ac_gain.csv"
+  22: "./genai_agent/output/155/dc_current.csv"

@@ -3,7 +3,7 @@ from google import genai
 from genai_agent import local_config
 from genai_agent import tools
 from utils import gen_utils
-def debug_agent(netlist, error_message, cir_num, spec_sims):
+def debug_agent_flow(netlist, error_message, cir_num, spec_sims):
     print("==netlist in debug agent\n", netlist)
     print("==error_message\n", error_message)
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
@@ -17,12 +17,16 @@ You should output the fixed netlist and simply the fixing info. Also, if the spe
      .param VDD=1.2
      .param W=1u l=1u m=1
 1, PARAMETER SYNTAX: Use '.param name=value'. Do not use curly brackets {{}} if an '=' is present (e.g., 'dc=VDD' is good, 'dc={{VDD}}' is bad).
+But for resistors or capacitors, they need {{}}. 
+Example: 
+C1 VOUT1 VSS {{C_val}}
+R0 net10 tail {{R_val}}
 2, In NGSpice, you can use inoise_total if the integration noise is required. If there is no inoise_spectrum vector, try inoise_total.
 Example1 for input refer total noise integrated:
-noise v(VOUT1) vin dec 10 1 10G
+noise v(VOUT1) vin dec 10 1 100G
 wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
 Example2 :
-noise v(VOUT1) vin dec 10 1 10G
+noise v(VOUT1) vin dec 10 1 100G
 wrdata ./1genai/output/{cir_num}/noise.csv inoise_spectrum
 3, There is only 1 wrdata line after 1 simulation.
  -BAD:
