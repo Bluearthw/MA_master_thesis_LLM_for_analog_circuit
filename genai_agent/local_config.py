@@ -16,34 +16,35 @@ agent_model3 = "gemini-3-flash-preview"
 # netlist 9
 str_nl_include = '\n.include "genai_agent/data/p045_TT.sp"\n'
 
-table_specs_id = {0:    "DC Gain", 
-                  1:    "Bandwidth", 
-                  15:   "AC gain (single port output)",
-                  17:   "Common-Mode Gain",
-                  18:   "Differential-Mode Gain (differential output)",
-                  16:   "phase response",
-                  21:   "ugbw, unity gain bandwidth",
-                  5:    "gain margin", 
-                  6:    "phase margin",
-                  19:   "Output Balance",
-                  20:   "CMFB Loop Stability",
-
-                  3:    "input equivalent integrated total noise", 
-                #   7:    "input equivalent noise spectrum",
-                  
-                  8:    "input impedance",
-                  9:    "output impedance",
-                  22:   "current",
-
-                  4:    "slew rate", 
-                  12:   "settle time",
-
-                  10:   "Input swing",
-                  11:   "Output swing",
-                  
-                  2:    "Power Supply Rejection Ratio (PSRR)", 
-                  13:   "Input Common-Mode Range (ICMR)",
-                  14:   "Common-Mode Rejection Ratio (CMRR)",
+table_specs_id = {
+    0:  "DC Gain",
+    1:  "Bandwidth",
+    2:  "Power Supply Rejection Ratio (PSRR)",
+    3:  "Input equivalent integrated total noise",
+    4:  "Slew rate",
+    5:  "Gain margin",
+    6:  "Phase margin",
+    7:  "Output noise",
+    8:  "Input impedance",
+    9:  "Output impedance",
+    10: "Input swing",
+    11: "Output swing",
+    12: "Settle time",
+    13: "Input Common-Mode Range (ICMR)",
+    14: "Common-Mode Rejection Ratio (CMRR)",
+    15: "AC gain (single port output)",
+    16: "Phase response",
+    17: "Common-Mode Gain",
+    18: "Differential-Mode Gain (differential output)",
+    19: "Output Balance",
+    20: "CMFB Loop Stability",
+    21: "UGBW, unity gain bandwidth",
+    22: "Current",
+    23: "DC Output Voltage",
+    24: "Line Regulation",
+    25: "Load Regulation",
+    26: "Temperature Coefficient (TC)",
+    27: "Startup Behavior"
 }
 
 table_target_id = {
@@ -54,7 +55,7 @@ table_target_id = {
     4: 'slew_rate',
     5: 'gain_margin',
     6: 'phase_margin',
-    # 7: 'noise_spectrum',
+    7: 'output_noise',
     8: 'input_impedance',
     9: 'output_impedance',
     10: 'input_swing',
@@ -63,24 +64,29 @@ table_target_id = {
     13: 'icmr',
     14: 'cmrr',
     15: 'ac_gain',
-    16: 'phase_response', # array return result
+    16: 'phase_response',
     17: 'cm_gain',
     18: 'dm_gain',
     19: 'output_balance',
     20: 'cmfb_stability',
     21: 'ugbw',
     22: 'current',
+    23: 'dc_output_voltage',
+    24: 'line_regulation',
+    25: 'load_regulation',
+    26: 'temperature_coefficient',
+    27: 'startup_behavior',
 }
 
 table_targets_default_values = {
-    0: 10,           # gain (dB)
+    0: 10.0,          # dc_gain (dB)
     1: 1.0e+2,        # bandwidth (Hz)
     2: 10.0,          # psrr (dB)
     3: 3.0e-1,        # noise_total (V)
     4: 15.0,          # slew_rate (V/us)
-    5: 45.0,          # gm (dB)
-    6: 60.0,          # phm (degrees)
-    # 7: 1.0e-9,        # noise_spectrum (V/sqrt(Hz))??????
+    5: 45.0,          # gain_margin (dB)
+    6: 60.0,          # phase_margin (degrees)
+    7: 1.0e-9,        # output_noise (V/sqrt(Hz))
     8: 1.0e+9,        # input_impedance (Ohms)
     9: 1.0e+3,        # output_impedance (Ohms)
     10: 0.1,          # input_swing (V)
@@ -88,14 +94,19 @@ table_targets_default_values = {
     12: 10.0,         # settle_time (ns)
     13: 0.5,          # icmr (V)
     14: 10.0,         # cmrr (dB)
-    15: 10.0,          # ac_gain (dB)
-    16: 60.0,         # phase_response (array)?????
-    17: 0.01,         # cmg (dB)
-    18: 10.0,          # dmg (dB)
-    19: 0.1,          # output_balance (V)
+    15: 10.0,         # ac_gain (dB)
+    16: 60.0,         # phase_response (degrees)
+    17: -40.0,        # cm_gain (dB)
+    18: 10.0,         # dm_gain (dB)
+    19: 1.0,          # output_balance (V)
     20: 60.0,         # cmfb_stability (degrees)
-    21: 1.0e+1,       # ugbw (Hz)
+    21: 1.0e+6,       # ugbw (Hz)
     22: 2.0e-1,       # current (A)
+    23: 1.2,          # dc_output_voltage (V) - bandgap reference
+    24: 0.1,          # line_regulation (mV/V)
+    25: 0.01,         # load_regulation (mV/mA)
+    26: 100.0,        # temperature_coefficient (ppm/°C)
+    27: 0.1,          # startup_behavior (V)
 }
 
 list_targets_to_min = ["noise_total", "current", "area", "settle_time", "noise_spectrum"]

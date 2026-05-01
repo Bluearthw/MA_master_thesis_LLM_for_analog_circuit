@@ -15,6 +15,7 @@ path_id_two_stage = {0: '.\\no_backup\\output_files\\ac_TwoStage.csv', 3: '.\\no
 path_id_9_phase = {5: './genai_agent/output/9/ac_gain.csv', 6: './genai_agent/output/9/ac_gain.csv'}
 path_id_9_psrr = {0: './genai_agent/output/9/ac_gain.csv', 2: './genai_agent/output/9/ac_psrr.csv'}
 path_id_9_current = {0: './genai_agent/output/9/ac_gain.csv', 22: './genai_agent/output/9/dc_current.csv'}
+path_id_6 =  {23: './genai_agent/output/6/dc_vref.csv', 22: './genai_agent/output/6/dc_current.csv', 24: './genai_agent/output/6/dc_line_reg.csv', 25: './genai_agent/output/6/dc_load_reg.csv', 26: './genai_agent/output/6/dc_temp_coeff.csv', 2: './genai_agent/output/6/ac_psrr.csv', 27: './genai_agent/output/6/tran_startup.csv', 7: './genai_agent/output/6/noise.csv'}
 """ in yaml:
 path_id:
   0: '.\\no_backup\\output_files\\ac_TwoStage.csv'
@@ -145,7 +146,7 @@ def test_DUT_psrr_len_problem(p_id, name):
     print (result)
 #region test entrance
 # test_phase_calculation()
-test_DUT(path_id_9_current, 9)
+test_DUT(path_id_6, 9)
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
