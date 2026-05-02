@@ -15,6 +15,11 @@ from scipy.integrate import trapezoid
 sys.path.append(".")
 from genai_agent.local_config import table_target_id 
 class DUT(NgspiceWrapper):
+    def __init__(self, is_differential = False, has_input = True):
+        super().__init__()
+        self.is_diff = is_differential
+        self.has_input = has_input
+
     def measure_metrics(self, struct_path_id, is_init = True):
         self.output_files_folder = "./no_backup/output_files"
         if is_init:
@@ -38,7 +43,7 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[1]] = float(self.get_bandwidth(path))
             
             elif spec_id == 2:  # PSRR
-                spec_dict[table_target_id[2]] = self.get_psrr(path)[0] #[1] is freq
+                spec_dict[table_target_id[2]] = self.get_psrr(path, self.has_input)[0] #[1] is freq
             
             elif spec_id == 3:  # input noise
                 spec_dict[table_target_id[3]] = float(self.get_in_equivalent_total_noise(path))
@@ -164,15 +169,15 @@ class DUT(NgspiceWrapper):
         
 
     def load_ac_gain_data(self, path_gain=""):
-        if self. is_diff == False:
+        if self.is_diff == False:
             self.path_ac_gain = path_gain
             data_gain = np.genfromtxt(path_gain, autostrip=True, skip_header=1)
             self.freq = data_gain[:, 0]
             # store gain as complex and compute magnitude/phase
             # self.vout_complex = data_gain[:, 1] + 1j * data_gain[:, 2]
             self.vout_complex = self._complex_from_cols(data_gain, 1, 2)
-            self.vout_mag = np.abs(self.vout_complex)
-            self.mag_db = 20 * np.log10(self.vout_mag)
+            self.vout_mag_db = np.abs(self.vout_complex)
+            self.mag_db = 20 * np.log10(self.vout_mag_db)
             phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
             if np.average(phase) > 0 and phase[0] > 175:
                 self.phase = phase - 180
@@ -201,8 +206,8 @@ class DUT(NgspiceWrapper):
         self.phase_v2 = np.unwrap(np.angle(self.vout2_complex, deg=True), period=360)
 
         self.vout_complex = self.vout1_complex - self.vout2_complex
-        self.vout_mag = np.abs(self.vout_complex)
-        self.mag_db = 20 * np.log10(self.vout_mag)
+        self.vout_mag_db = np.abs(self.vout_complex)
+        self.mag_db = 20 * np.log10(self.vout_mag_db)
         self.phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
 
     #0 DC Gain
@@ -213,7 +218,7 @@ class DUT(NgspiceWrapper):
         elif self.path_adm is None and self.is_diff:
             self.load_adm_data(path_gain)
 
-        return self.vout_mag[0]
+        return self.vout_mag_db[0]
 
     #1 Bandwidth
     def get_bandwidth(self,path=""):
@@ -260,7 +265,7 @@ class DUT(NgspiceWrapper):
         """Return the differential-mode gain (dB) based on the adm file."""
         if self.path_adm is None:
             self.load_adm_data(path_adm)
-        return self.vout_mag, self.mag_db
+        return self.vout_mag_db, self.mag_db
         
     #16 phase response
     def get_phase_response(self, path_gain=""):
@@ -529,25 +534,27 @@ class DUT(NgspiceWrapper):
         return useful_swing_range, out_swing_min, out_swing_max
 
     #2 Power Supply Rejection Ratio (PSRR)
-    def get_psrr(self, path_psrr): # maybe it can be interpolated to get more precise value
+    def get_psrr(self, path_psrr, has_input): # maybe it can be interpolated to get more precise value
         """Return arrays (frequency, psrr_db) from the parsed PSRR file."""
         if self.path_psrr is None:
             self.path_psrr = path_psrr
-            data_psrr = np.genfromtxt(path_psrr, autostrip=True, skip_header=1)
-            psrr_gain_complex = data_psrr[:, 1] + 1j * data_psrr[:, 2]
-            psrr_gain_mag = np.abs(psrr_gain_complex)
-            
+        data_psrr = np.genfromtxt(path_psrr, autostrip=True, skip_header=1)
+        psrr_gain_complex = data_psrr[:, 1] + 1j * data_psrr[:, 2]
+        psrr_gain_mag = np.abs(psrr_gain_complex)
+        psrr_gain_mag_db = 20 * np.log10(psrr_gain_mag)
+        freq = data_psrr[:, 0]
+        if has_input:
             len_psrr = len(data_psrr[:, 0])
-            len_gain = len(self.vout_mag)
+            len_gain = len(self.vout_mag_db)
             if len_psrr < len_gain:
-                psrr_db = self.vout_mag[0: len_psrr] - psrr_gain_mag # should use subtraction since they are dBs
-                freq = data_psrr[:, 0]
+                psrr_db = self.vout_mag_db[0: len_psrr] - psrr_gain_mag_db # should use subtraction since they are  dB
             else: #psrr >= ac gain
-                psrr_db = self.vout_mag - psrr_gain_mag[0: len_gain]
+                psrr_db = self.vout_mag_db - psrr_gain_mag_db[0: len_gain]
                 freq = self.freq
-
-            
-            return psrr_db, freq
+        else:
+            psrr_db = 0 - psrr_gain_mag_db
+        
+        return psrr_db, freq
     
     #13 Input Common-Mode Range (ICMR)
     def get_icmr(self, path_icmr, error = 0.05): # Input Common-Mode Range
@@ -581,7 +588,7 @@ class DUT(NgspiceWrapper):
         if self.mag_db is None:
             raise ValueError("there is no ac_dm when you want cmrr!!")
 
-        adm_mag = self.vout_mag
+        adm_mag = self.vout_mag_db
 
         vcm_complex = data_cm[:, 1] + 1j * data_cm[:, 2]
         acm_mag = np.abs(vcm_complex)

@@ -15,7 +15,7 @@ from ngspice_interface import dut_testbench
 
 path_output = local_config.path_output
 
-def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, path_output_num):
+def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, path_output_num, has_input):
     
     counter = 0
     error_msg = []
@@ -32,7 +32,7 @@ def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, 
             netlist_path = path_output_num + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
-            measurement_results = dut_testbench.DUT(is_differential=is_differential_output).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
+            measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
             for mr in measurement_results:
                 print("Measurement results:", mr)
             return measurement_results, struct_path_id
@@ -59,6 +59,7 @@ def test_make_cir_sim(cir_num):
     path_output_num = path_output + f"{cir_num}/"
     circuit_string = gen_utils.get_file_to_str(path_cir)  
     # print("==circuit_string\n",circuit_string)
+    has_input = gen_utils.has_input_port(circuit_string) # remove duplicate component names like 2 C1 in 167
     circuit_string = gen_utils.modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167
     circuit_string = gen_utils.clean_netlist(circuit_string)# ADD .include here. remove (). nmos4' to 'nmos' and 'pmos4' to 'pmos'. REMOVE 'resistor' and 'capacitor'
     circuit_string = gen_utils.add_params(circuit_string) #ADD .param. ADD w,l,m to mos. ADD {value} for R and C

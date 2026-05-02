@@ -51,7 +51,8 @@ def test_measurement_spice_result_new(path_id):
     # print(result["icmr"][0])
 
 def test_DUT(p_id, name):
-    dut = dut_testbench.DUT()
+    has_input = False
+    dut = dut_testbench.DUT(has_input=has_input)
     dut.circuit_name = str(name)
     result = dut.measure_metrics(p_id)
     print (result)

@@ -1070,6 +1070,15 @@ def make_path_id(spec_sims, path_output_num):
             print(f"File {path_file} does not exist.")
             raise RuntimeError(f"Expected output file {path_file} not found.")
     return struct_path_id
+
+def has_input_port(netlist):
+    target_ports = ["VIN1", "IIN1"]
+    for target_port in target_ports:
+        pattern = rf"\b{target_port}\b"
+        if re.search(pattern, netlist):
+            return True
+    return False
+
 # endregion functions
 
 def test_delay(sec):

@@ -10,7 +10,7 @@ from utils import gen_utils as utils_agent
 from genai_agent import local_config 
 class NgspiceWrapper(object):
     
-    def __init__(self, path_yaml = "" , is_differential = False):
+    def __init__(self, path_yaml = ""):
         self.with_yaml = False
         if path_yaml != "":
             self.with_yaml = True
@@ -31,7 +31,7 @@ class NgspiceWrapper(object):
             self.parameters = {}
             self.read_netlist()
         
-        self.is_diff = is_differential
+        
         # paths
         self.path_ac_gain = None 
         self.path_psrr = None
