@@ -15,10 +15,12 @@ from scipy.integrate import trapezoid
 sys.path.append(".")
 from genai_agent.local_config import table_target_id 
 class DUT(NgspiceWrapper):
-    def __init__(self, is_differential = False, has_input = True):
-        super().__init__()
-        self.is_diff = is_differential
-        self.has_input = has_input
+    def __init__(self, path_yaml = "", is_differential = False, has_input = True, dc_vout_target = None):
+        super().__init__(path_yaml)
+        if path_yaml == "":
+            self.is_diff = is_differential
+            self.has_input = has_input
+            self.dc_vout_target = dc_vout_target
 
     def measure_metrics(self, struct_path_id, is_init = True):
         self.output_files_folder = "./no_backup/output_files"
@@ -91,11 +93,24 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[21]] = self.get_ugbw_unity_gain_bandwidth(path)
             elif spec_id == 22:
                 spec_dict[table_target_id[22]] = self.get_current(path) 
-
+            elif spec_id == 23:
+                if self.dc_vout_target is None:
+                    raise ValueError("Target DC output voltage is not specified")
+                spec_dict[table_target_id[23]] = self.get_dc_vout_relative_err(path, dc_vout_target= self.dc_vout_target) 
+                print("dut:", spec_dict[table_target_id[23]])
+                # spec_dict[table_target_id[23]+"_target_vout"] = self.get_dc_vout(path) 
+            elif spec_id == 24:
+                spec_dict[table_target_id[24]] = self.get_line_regulation(path) 
+            elif spec_id == 25:
+                spec_dict[table_target_id[25]] = self.get_load_regulation(path) 
+            elif spec_id == 26:
+                spec_dict[table_target_id[26]] = self.get_temperature_coefficient(path) 
+            elif spec_id == 27:
+                spec_dict[table_target_id[27]] = self.get_startup_behavior(path) 
 
             else:
                 continue
-        # print(spec_dict)
+        print(spec_dict)
         return spec_dict
     
     def parse_outputs(self):
@@ -604,6 +619,82 @@ class DUT(NgspiceWrapper):
 
         cmrr_db = 20 * np.log10(cmrr)
         return  cmrr_db, freq # Return freq and CMRR in dB
+
+    def get_dc_vout_relative_err(self, path, dc_vout_target=0.1):
+        """Return the relative DC output voltage from a DC measurement file."""
+        data = np.genfromtxt(path, autostrip=True, skip_header=1)
+        if data.size == 0:
+            raise ValueError(f"No data found in DC output file: {path}")
+        if data.ndim == 1:
+            vout = float(data[1] if data.shape[0] > 1 else data[0])
+            return abs((vout - dc_vout_target) / dc_vout_target)
+        if data.shape[1] == 1:
+            return float(data[-1, 0])
+        raise ValueError(f"Unexpected data format in DC output file: {path}")
+
+    def get_line_regulation(self, path):
+        """Compute line regulation in (V/V) % from a VDD sweep file."""
+        data = np.genfromtxt(path, autostrip=True, skip_header=1)
+        if data.ndim == 1 or data.shape[0] < 2:
+            return 0.0
+        vdd = data[:, 0]
+        vout = data[:, 1]
+        delta_vdd = vdd[-1] - vdd[0]
+        delta_vout = vout[-1] - vout[0]
+        if delta_vdd == 0:
+            return 0.0
+        # print(delta_vdd)
+        # print(delta_vout)
+        return abs(delta_vout / delta_vdd) * 100.0
+
+    def get_load_regulation(self, path):
+        """Compute load regulation in mV/mA from a load current sweep file."""
+        data = np.genfromtxt(path, autostrip=True, skip_header=1)
+        if data.ndim == 1 or data.shape[0] < 2:
+            return 0.0
+        i_load = data[:, 0]
+        vout = data[:, 1]
+        delta_i = i_load[-1] - i_load[0]
+        delta_vout = vout[-1] - vout[0]
+        if delta_i == 0:
+            return 0.0
+        # vout 0 is the no load vout (open, i = 0)
+        return abs(delta_vout / vout[-1]) * 100.0
+
+    def get_temperature_coefficient(self, path, ref_temp=27.0):
+        """Compute temperature coefficient in ppm/°C from a temperature sweep file."""
+        data = np.genfromtxt(path, autostrip=True, skip_header=1)
+        if data.ndim == 1 or data.shape[0] < 2:
+            return 0.0
+        temp = data[:, 0]
+        vout = data[:, 1]
+        delta_temp = temp[-1] - temp[0]
+        if delta_temp == 0:
+            return 0.0
+        # Use the output voltage at 27°C as the reference voltage (Vref)
+        nearest_index = np.argmin(np.abs(temp - ref_temp))
+        vref = float(vout[nearest_index])
+        if vref == 0:
+            return 0.0
+        delta_vout = vout[-1] - vout[0]
+        return abs(delta_vout / vref / delta_temp) * 1e6 #1e6 is for ppm
+
+    def get_startup_behavior(self, path, goal_percentage=0.9):
+        """Estimate startup behavior as the time to reach 90% of final output."""
+        data = np.genfromtxt(path, autostrip=True, skip_header=1)
+        if data.ndim == 1 or data.shape[0] < 2:
+            return 0.0
+        time_data = data[:, 0]
+        vout = data[:, 1]
+        final_value = np.mean(vout[-max(1, int(len(vout) * 0.1)):])
+        if final_value == 0:
+            return float(time_data[-1])
+        threshold = final_value * goal_percentage
+        if final_value > 0:
+            indices = np.where(vout >= threshold)[0]
+        else:
+            indices = np.where(vout <= threshold)[0]
+        return float(time_data[indices[0]]) if indices.size else float(time_data[-1])
 
     # Helper methods
     def get_ugbw_unity_gain_bandwidth(self, path = ""):

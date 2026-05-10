@@ -1,7 +1,7 @@
 git add .
-git commit -m "add a function for path_id making in genutils
-add get_current in dut_tb
-yaml temp creation in each cir folder now
+git commit -m "DUT and ngspicewrapper is modified to see input port is there or not
+new gen_utils function
+measurement is passed though not completed
 "
 git push
 

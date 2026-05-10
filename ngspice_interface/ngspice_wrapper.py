@@ -30,6 +30,13 @@ class NgspiceWrapper(object):
             self.param_names = yaml_data['params'].keys()
             self.parameters = {}
             self.read_netlist()
+
+            #for dut init
+            data_for_dut = yaml_data['dut_config']
+            self.is_diff = data_for_dut.get('is_differential')
+            self.has_input = data_for_dut.get('has_input')
+            self.dc_vout_target = data_for_dut.get('target_dc_vout')
+            
         
         
         # paths

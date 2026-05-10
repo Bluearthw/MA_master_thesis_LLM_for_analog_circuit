@@ -10,13 +10,21 @@ class Struct_flow(BaseModel):
     spec_sims : list[Struct_specs_sim] = Field(description="specifications required and simulations needed")
     is_diff: bool = Field(description="If the circuit is differential output, this field is True.")
     is_CMFB: bool = Field(description="If the circuit has CMFB, this field is True.")
-    
+
+class Struct_flow_type6(BaseModel):
+    netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
+    spec_sims : list[Struct_specs_sim] = Field(description="specifications required and simulations needed")
+    is_diff: bool = Field(description="If the circuit is differential output, this field is True.")
+    is_CMFB: bool = Field(description="If the circuit has CMFB, this field is True.")
+    target_dc_vout: float = Field(description="Define a target DC output voltage based on the circuit.")
+        
 class Struct_debug(BaseModel):
     netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
     spec_sims : list[Struct_specs_sim] = Field(description="simulations needed and why")
     
     # sim_file_names : list[str] =Field(description="list of names of simulations output files. Here are .csv files, e.g., ac_gain.csv and noise.csv")
     fix_info: str = Field(description="what is fixed in the netlist based on the error message and why")
+
 class Struct_cmfb_agent(BaseModel):
     netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
     spec_sims : Struct_specs_sim = Field(description="CMFB stability. id is 20")

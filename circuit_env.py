@@ -30,6 +30,8 @@ class CircuitEnv(gym.Env):
             yaml_data = yaml.load(f, Loader=yaml.Loader)
             self.path_circuit_yaml = circuit_yaml_path
         
+        # self.data_for_dut = yaml_data['dut_config']
+        
         self.dict_params = yaml_data['params']
         self.dict_targets = yaml_data['targets']
         self.hard_constraints = yaml_data['hard_constraints']
@@ -44,6 +46,9 @@ class CircuitEnv(gym.Env):
         for name, value in self.dict_params.items():
             self.param_ranges[name] = {'min': value[0], 'max': value[1], 'step': value[2]}
         
+        # is_diff = self.data_for_dut.get('is_differential', False)
+        # has_input = self.data_for_dut.get('has_input', False)
+        # target_dc_vout = self.data_for_dut.get('target_dc_vout', 0.0)
         self.simulation_engine = DUT_NGSpice(circuit_yaml_path)
         # self.simulation_engine.output_files_folder = local_config.path_output
 

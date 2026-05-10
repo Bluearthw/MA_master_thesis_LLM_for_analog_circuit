@@ -32,8 +32,9 @@ def get_params(file_path):
                     if '=' in part:
                         name = part.split('=')[0]
                         params.add(name)
-        params.remove("trf")
-        params.remove("period")
+        
+        params.discard("trf")# discard does not raise an error if the element is not there
+        params.discard("period")
     except Exception as e:
         print(f"Error reading file {file_path}: {e}")
         return []
@@ -114,7 +115,7 @@ def get_targets(spec_ids):
     if 'area' not in targets:
         targets['area'] = 2.0e-6
 
-    targets = user_target_interface(targets)
+    targets = user_input_target(targets)
     
     # Not Always include current 
     # if 'current' not in targets:
@@ -122,7 +123,7 @@ def get_targets(spec_ids):
     
     return targets
 
-def user_target_interface(targets):
+def user_input_target(targets):
     """
     Interactive interface for user to review and modify target values.
     
@@ -261,7 +262,35 @@ def make_path_id(path_id_dict, root_name='path_id'):
         lines.append(f"  {key}: \"{value}\"")
     return "\n".join(lines)
 
-def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multiplier_value=2, tech='45nm' ):
+def make_dut_yaml_lines(data_for_dut_yaml):
+    """
+    Create YAML text for DUT-specific configuration data.
+
+    Args:
+        data_for_dut_yaml (tuple): Tuple containing (is_differential, has_input, target_dc_vout)
+                                   e.g., (False, True, 1.2)
+
+    Returns:
+        str: YAML formatted dut_config section, or empty string if data_for_dut_yaml is None
+    """
+    if data_for_dut_yaml is None:
+        return ["dut_config: None"]
+    
+    if len(data_for_dut_yaml) < 3:
+        return ["dut_config: None"]
+    
+    is_differential = data_for_dut_yaml[0]
+    has_input = data_for_dut_yaml[1]
+    target_dc_vout = data_for_dut_yaml[2]
+    
+    lines = ["dut_config:"]
+    lines.append(f"  is_differential: !!bool {str(is_differential).lower()}")
+    lines.append(f"  has_input: !!bool {str(has_input).lower()}")
+    lines.append(f"  target_dc_vout: !!float {float(target_dc_vout)}")
+    
+    return "\n".join(lines)
+
+def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multiplier_value=2, tech='45nm', data_for_dut_yaml=None):
     """
     Build full YAML content and save to file from provided parameter list and target ids.
 
@@ -290,7 +319,9 @@ def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multipl
         make_spec_weights_lines(spec_weights),
         make_circuit_multipliers(params, multiplier_value),
         make_path_id(path_ids),
+        make_dut_yaml_lines(data_for_dut_yaml)
     ]
+
 
     content = "\n\n".join(yaml_sections)
     path_yaml = local_config.path_yaml+f"{cir_name}.yaml"

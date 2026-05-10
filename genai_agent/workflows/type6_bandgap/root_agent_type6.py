@@ -15,7 +15,7 @@ from ngspice_interface import dut_testbench
 
 path_output = local_config.path_output
 
-def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, path_output_num, has_input):
+def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, has_input, target_dc_vout):
     
     counter = 0
     error_msg = []
@@ -32,7 +32,7 @@ def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, 
             netlist_path = path_output_num + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
-            measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
+            measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
             for mr in measurement_results:
                 print("Measurement results:", mr)
             return measurement_results, struct_path_id
@@ -77,6 +77,9 @@ def test_make_cir_sim(cir_num):
     category_str = gen_utils.get_file_to_str(path_category)
     
     struc = add_sim_agent(netlist, category_str, cir_num)
+    target_dc_vout = struc.target_dc_vout
+    target_dc_vout = gen_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
+
     netlist = struc.netlist
     netlist = gen_utils.modify_ac_range_1T(netlist)
     spec_sims = struc.spec_sims
@@ -90,7 +93,7 @@ def test_make_cir_sim(cir_num):
     print("is CMFB:", is_CMFB)
     
     # Simulate original netlist
-    results_original, struct_path_id = sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, path_output_num)
+    results_original, struct_path_id = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, has_input, target_dc_vout)
     
     combined_results = {'original': results_original}
     path_netlist = path_output_num + "final_netlist.cir"
@@ -106,10 +109,10 @@ def test_make_cir_sim(cir_num):
         combined_results['cmfb'] = results_cmfb
     
     
-    
+    data_for_dut_yaml = (is_differential_output, has_input, target_dc_vout)
 
     print("Combined measurement results:", combined_results)
-    return combined_results, struct_path_id, path_netlist, spec_sims
+    return combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml
     
 def add_sim_agent(netlist, category, cir_num=4):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
@@ -120,21 +123,22 @@ def add_sim_agent(netlist, category, cir_num=4):
 Your goal is to complete the simulation setup for a DC voltage reference (bandgap) circuit. The netlist must be fully simulated without errors. You should output:
 1. The complete, ready-to-run netlist
 2. Whether the output is differential (true/false)
-3. A list of required specifications and corresponding simulation files for measurement
+3. A list of required specifications and corresponding simulation file paths for measurement
 4. Whether CMFB stability check is needed (typically false for bandgap references)
 
 ### Bandgap-Specific Rules and Measurements:
-**Required Measurement Examples**:
+**Simulation Examples**:
 1. **DC Output Voltage**: Initial operating point to determine nominal VREF
    - Simulation: op
    - Output: {line_wrdata_path_num}/dc_vref.csv v(VOUT1)
 
-2. **Line Regulation**: DC sweep of VDD to measure supply sensitivity (ΔVout/ΔVdd)
-   - Simulation: dc vdd 0.8 1.6 0.01
+2. **Line Regulation**: DC sweep of VDD to measure supply sensitivity (ΔVout/ΔVdd). 
+    Example: For a 1.2 V process targeting a 0.6 V reference, a safe nominal sweep is 1.0 V to 1.4 V .
+   - Simulation: dc vdd 1.0 1.4 0.01
    - Output: {line_wrdata_path_num}/dc_line_reg.csv v(VOUT1)
 
 3. **Load Regulation**: DC sweep of load current to measure output impedance (ΔVout/ΔIload)
-   - Add a variable current load at output (e.g., Iload VOUT1 VSS pulse or dc sweep)
+   - Add a variable current load at output (e.g., Iload VOUT1 VSS pulse or dc sweep). 100u is just an example. You can choose the value based on the circuit
    - Simulation: dc Iload 0 100u 1u
    - Output: {line_wrdata_path_num}/dc_load_reg.csv v(VOUT1)
 
@@ -168,15 +172,11 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
 3. **Circuit requirements**: This is a self-biasing DC reference. Ensure it has proper biasing network, feedback path, and current generation mechanism.
 4. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path!
 5. **ONE command per line**: Every `.param`, `.model`, and component definition must start on a NEW line.
-6. **Single noise method**: Use ONLY ONE noise specification (either `inoise_total` for integrated value OR `inoise_spectrum` for frequency response, not both).
+6. **Single noise method**: Use ONLY ONE noise specification (either `onoise_total` for integrated value OR `onoise_spectrum` for frequency response, not both).
 7. **Differential check**: Bandgap outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
 8. **CMFB stability**: Set to false for bandgap references (they don't typically use CMFB loops).
 
-### Output Format Example:
-- netlist: [complete testbench with all simulations]
-- is_diff: false
-- is_CMFB: false
-- spec_sims: ["dc_vref", "dc_line_reg", "dc_load_reg", "dc_temp_coeff", "ac_psrr", "tran_startup", "noise", "dc_current"]
+
 """
     
     max_retries = 5
@@ -189,7 +189,7 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
                 contents=contents,
                 config={
                     "response_mime_type": "application/json",
-                    "response_schema": tools.Struct_flow,
+                    "response_schema": tools.Struct_flow_type6,
                 },
             )
             return response.parsed

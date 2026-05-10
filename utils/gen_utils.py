@@ -878,6 +878,25 @@ def _parse_time_value(time_str):
             print(f"Warning: Could not parse time value '{time_str}', using 0")
             return 0.0
 
+def user_modify_input(v_name, v_old):
+    """Prompt the user to accept or modify a given value.
+
+    Args:
+        v_name (str): The name of the value being modified.
+        v_old: The current value that may be changed.
+    Returns:
+        The original value if the user does not modify it, otherwise the new value.
+    """
+    print(f"Current value: {v_old}")
+    choice = input(f"Do you want to modify {v_name}? [y/n]: ").strip().lower()
+    if choice not in ("y", "yes"):
+        return v_old
+
+    v_new = input("Enter new value: ").strip()
+    if v_new == "":
+        print("No new value entered. Keeping the original value.")
+        return v_old
+    return v_new
 # endregion modify
 
 
