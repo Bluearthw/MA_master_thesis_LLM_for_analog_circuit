@@ -1,7 +1,5 @@
 git add .
-git commit -m "DUT and ngspicewrapper is modified to see input port is there or not
-new gen_utils function
-measurement is passed though not completed
+git commit -m "new type measurement
 "
 git push
 
