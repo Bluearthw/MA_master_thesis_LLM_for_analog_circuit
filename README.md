@@ -1,5 +1,5 @@
 git add .
-git commit -m "new type measurement
+git commit -m "fix the calculation of line regu and temp coefficient
 "
 git push
 

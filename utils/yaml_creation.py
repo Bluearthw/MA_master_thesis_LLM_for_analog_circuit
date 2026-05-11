@@ -328,6 +328,87 @@ def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multipl
     gen_utils.save_file_overwrite(path_yaml, content)
     return path_yaml
 
+def update_yaml_targets(yaml_path, targets_dict):
+    """
+    Update the targets section in an existing YAML file with new values.
+    
+    Args:
+        yaml_path (str): Path to the YAML file to update
+        targets_dict (dict): Dictionary of target metrics and their new values
+                            e.g., {'area': 2.0e-6, 'gain': 200, 'dc_output_voltage': 1.2}
+    
+    Returns:
+        None (file is updated in place)
+    """
+    try:
+        # Load existing YAML
+        with open(yaml_path, 'r') as f:
+            yaml_data = yaml.safe_load(f)
+        
+        # Update targets section
+        if 'targets' not in yaml_data:
+            yaml_data['targets'] = {}
+        
+        for key, value in targets_dict.items():
+            yaml_data['targets'][key] = float(value)
+        
+        # Preserve the structure by reconstructing the file manually
+        # to maintain the original formatting and comments
+        with open(yaml_path, 'r') as f:
+            lines = f.readlines()
+        
+        # Find the targets section and update values
+        in_targets_section = False
+        updated_lines = []
+        i = 0
+        
+        while i < len(lines):
+            line = lines[i]
+            
+            # Check if we're entering the targets section
+            if line.strip().startswith('targets:'):
+                in_targets_section = True
+                updated_lines.append(line)
+                i += 1
+                
+                # Process all target entries until we hit a new section (non-indented line)
+                while i < len(lines):
+                    current_line = lines[i]
+                    
+                    # Check if we've left the targets section (next section starts)
+                    if current_line.strip() and not current_line.startswith('  ') and current_line.strip() != 'targets:':
+                        in_targets_section = False
+                        break
+                    
+                    # If it's a target entry (starts with 2 spaces and contains ':')
+                    if current_line.startswith('  ') and ':' in current_line and not current_line.strip().startswith('#'):
+                        # Parse the target name
+                        parts = current_line.split(':')
+                        target_name = parts[0].strip()
+                        
+                        # If this target is in our update dict, replace the value
+                        if target_name in targets_dict:
+                            new_value = _format_value(targets_dict[target_name])
+                            updated_lines.append(f"  {target_name}: !!float {new_value}\n")
+                        else:
+                            updated_lines.append(current_line)
+                    else:
+                        updated_lines.append(current_line)
+                    
+                    i += 1
+            else:
+                updated_lines.append(line)
+                i += 1
+        
+        # Write back to file
+        with open(yaml_path, 'w') as f:
+            f.writelines(updated_lines)
+        
+        print(f"Successfully updated targets in {yaml_path}")
+        
+    except Exception as e:
+        print(f"Error updating YAML targets in {yaml_path}: {e}")
+
 #region save temp
 def save_temp(data):
     i = data['cir_name']

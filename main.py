@@ -27,7 +27,7 @@ is_with_RL = 2 # only with RL sizer
 if is_with_RL == 2:
     i = test[0]
     td3_runner.td3_start(circuit_name=f'{i}')
-if is_with_RL == 3:
+elif is_with_RL == 3:
     i = test[0]
 
     path_yaml = './genai_agent/output/temp.yaml'

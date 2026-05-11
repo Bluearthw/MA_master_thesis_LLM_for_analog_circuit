@@ -639,8 +639,8 @@ class DUT(NgspiceWrapper):
             return 0.0
         vdd = data[:, 0]
         vout = data[:, 1]
-        delta_vdd = vdd[-1] - vdd[0]
-        delta_vout = vout[-1] - vout[0]
+        delta_vdd = np.max(vdd) - np.min(vdd)
+        delta_vout = np.max(vout) - np.min(vout)
         if delta_vdd == 0:
             return 0.0
         # print(delta_vdd)
@@ -655,7 +655,7 @@ class DUT(NgspiceWrapper):
         i_load = data[:, 0]
         vout = data[:, 1]
         delta_i = i_load[-1] - i_load[0]
-        delta_vout = vout[-1] - vout[0]
+        delta_vout = vout[-1] - vout[0] # no load V and max load V. It is not min max V
         if delta_i == 0:
             return 0.0
         # vout 0 is the no load vout (open, i = 0)
@@ -676,7 +676,8 @@ class DUT(NgspiceWrapper):
         vref = float(vout[nearest_index])
         if vref == 0:
             return 0.0
-        delta_vout = vout[-1] - vout[0]
+        delta_vout = np.max(vout) - np.min(vout)  # ✅ Full voltage range
+
         return abs(delta_vout / vref / delta_temp) * 1e6 #1e6 is for ppm
 
     def get_startup_behavior(self, path, goal_percentage=0.9):
