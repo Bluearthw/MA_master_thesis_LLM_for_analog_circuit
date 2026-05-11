@@ -1,5 +1,5 @@
 git add .
-git commit -m "fix the calculation of line regu and temp coefficient
+git commit -m "noise and startup are not at min targets. Also some target value are not good. Now type 6 has pareto front
 "
 git push
 
