@@ -4,7 +4,7 @@ import yaml
 #local import
 from genai_agent.memory import category_numbers
 from genai_agent.local_config import path_output 
-from utils.gen_utils import test_delay
+from utils import gen_utils
 from genai_agent.workflows.type40_DIDO import root_agent_type40
 from genai_agent.workflows.type6_bandgap import root_agent_type6
 from utils import yaml_creation
@@ -12,16 +12,16 @@ import td3_runner
 test = category_numbers.num_class_40[:10]
 test = [69, 182] # cmfb or without cmfb
 test = [9, 155, 69, 182] # try to have siso diso dido dido_cmfb
-test = [9]
-test = [155]
+# test = [9]
+# test = [155]
 # test = [69]
 # test = [182]
-test = [6] #bandgap
+# test = [6] #bandgap
 
 
 is_with_RL = 0 # only with netlist gen
-is_with_RL = 1 # whole workflow
-is_with_RL = 2 # only with RL sizer
+# is_with_RL = 1 # whole workflow
+# is_with_RL = 2 # only with RL sizer
 # is_with_RL = 3 # only with yaml
 
 if is_with_RL == 2:
@@ -44,9 +44,13 @@ else:
 
         output_dir = Path(f"{path_output}{i}")
         output_dir.mkdir(parents=True, exist_ok=True)
-
-        # combined_results, struct_path_id, path_netlist, spec_sims = root_agent_type40.test_make_cir_sim(i)
-        combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type6.test_make_cir_sim(i)
+        path_output_num, category_num, category_str, netlist, has_input = gen_utils.pre_process_circuit(i)
+        if category_num == 6:
+            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type6.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input)
+        else:
+            # print(f"found,cat:{category_num}")
+            # continue
+            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type40.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input)
         struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 2 and k != 15 and k != 14} # remove some array results
         print("====netlist generation done=======",i)
         

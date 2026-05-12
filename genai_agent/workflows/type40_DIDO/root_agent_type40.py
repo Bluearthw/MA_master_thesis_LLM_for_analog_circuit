@@ -15,7 +15,7 @@ from ngspice_interface import dut_testbench
 
 path_output = local_config.path_output
 
-def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, path_output_num):
+def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True):
     
     counter = 0
     error_msg = []
@@ -32,7 +32,7 @@ def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, 
             netlist_path = path_output_num + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
-            measurement_results = dut_testbench.DUT(is_differential=is_differential_output).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
+            measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
             for mr in measurement_results:
                 print("Measurement results:", mr)
             return measurement_results, struct_path_id
@@ -51,31 +51,12 @@ def sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, 
         if counter > 5:
             raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
 
-def test_make_cir_sim(cir_num):
-    
-    path_cir = local_config.path_dataset + f"/{cir_num}/{cir_num}.cir"
-    print("==cir_path\n", path_cir)
-    
-    path_output_num = path_output + f"{cir_num}/"
-    circuit_string = gen_utils.get_file_to_str(path_cir)  
-    # print("==circuit_string\n",circuit_string)
-    circuit_string = gen_utils.modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167
-    circuit_string = gen_utils.clean_netlist(circuit_string)# ADD .include here. remove (). nmos4' to 'nmos' and 'pmos4' to 'pmos'. REMOVE 'resistor' and 'capacitor'
-    circuit_string = gen_utils.add_params(circuit_string) #ADD .param. ADD w,l,m to mos. ADD {value} for R and C
-    circuit_string = gen_utils.add_DC_source(circuit_string)
-    # print("==cir_str\n", circuit_string)
-
-    # circuit_string = gen_utils.add_C_load(circuit_string)# some does not need to add C load.
-    # netlist = gen_utils.add_OP_simulation(circuit_string)
-    netlist = gen_utils.add_control(circuit_string)
-    print("==cir_str\n", netlist)
-    
-    category_num = gen_utils.find_cat_from_num(cir_num) # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
-    path_category = local_config.path_category + f"{category_num}.md"
-    # or the cat_num is already known, so just +"4.md"
-    category_str = gen_utils.get_file_to_str(path_category)
-    
+def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input):
+           
     struc = add_sim_agent(netlist, category_str, cir_num)
+    target_dc_vout = struc.target_dc_vout
+    target_dc_vout = gen_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
+
     netlist = struc.netlist
     netlist = gen_utils.modify_ac_range_1T(netlist)
     spec_sims = struc.spec_sims
@@ -89,7 +70,7 @@ def test_make_cir_sim(cir_num):
     print("is CMFB:", is_CMFB)
     
     # Simulate original netlist
-    results_original, struct_path_id = sim_debug_measure_loop(netlist, spec_sims, is_differential_output, cir_num, path_output_num)
+    results_original, struct_path_id = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input)
     
     combined_results = {'original': results_original}
     path_netlist = path_output_num + "final_netlist.cir"
@@ -101,14 +82,13 @@ def test_make_cir_sim(cir_num):
         cmfb_spec_sims = struct_cmfb.spec_sims
         gen_utils.save_str_to_file(cmfb_netlist, path_output_num + "cmfb_netlist.cir")
         # Simulate CMFB netlist (assuming same spec_sims)
-        results_cmfb = sim_debug_measure_loop(cmfb_netlist, [cmfb_spec_sims], is_differential_output, cir_num, path_output_num)
+        results_cmfb, struct_path_id = sim_debug_measure_loop(cmfb_netlist, [cmfb_spec_sims], cir_num, path_output_num, is_differential_output, target_dc_vout, has_input)
         combined_results['cmfb'] = results_cmfb
     
-    
-    
+    data_for_dut_yaml = (is_differential_output, has_input, target_dc_vout)
 
     print("Combined measurement results:", combined_results)
-    return combined_results, struct_path_id, path_netlist, spec_sims
+    return combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml
     
 def add_sim_agent(netlist, category,cir_num=4):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)

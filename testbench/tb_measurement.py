@@ -8,7 +8,7 @@ from ngspice_interface import dut_testbench
 sys.path.append("./genai_agent")
 import utils
 path_id_155 =  {0: './genai_agent/output/155/ac_gain.csv', 1: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv', 4: './genai_agent/output/155/tran_SR.csv', 3: './genai_agent/output/155/noise.csv'}
-path_id_69 = {0: './genai_agent/output/69/ac_gain.csv', 1: './genai_agent/output/69/ac_gain.csv', 15: './genai_agent/output/69/ac_gain.csv', 18: './genai_agent/output/69/ac_gain.csv', 19: './genai_agent/output/69/ac_balance.csv', 3: './genai_agent/output/69/noise.csv', 4: './genai_agent/output/69/tran_sr.csv', 12: './genai_agent/output/69/tran_sr.csv'}
+path_id_69 =  {18: './genai_agent/output/69/ac_gain.csv', 1: './genai_agent/output/69/ac_gain.csv', 6: './genai_agent/output/69/ac_gain.csv', 3: './genai_agent/output/69/noise.csv', 4: './genai_agent/output/69/tran_SR.csv', 22: './genai_agent/output/69/dc_current.csv', 23: './genai_agent/output/69/dc_current.csv'}
 path_id_96 = {18: './genai_agent/output/96/ac_dm.csv', 17: './genai_agent/output/96/ac_cm.csv', 0: './genai_agent/output/96/ac_gain.csv', 1: './genai_agent/output/96/ac_gain.csv', 16: './genai_agent/output/96/ac_gain.csv', 6: './genai_agent/output/96/ac_gain.csv', 3: './genai_agent/output/96/noise.csv', 4: './genai_agent/output/96/tran_sr.csv', 10: './genai_agent/output/96/dc_sweep.csv', 11: './genai_agent/output/96/dc_sweep.csv'}
 path_id_182 = {20: './genai_agent/output/182/cmfb_stb.csv'}
 path_id_two_stage = {0: '.\\no_backup\\output_files\\ac_TwoStage.csv', 3: '.\\no_backup\\output_files\\noise_TwoStage.csv', 4: '.\\no_backup\\output_files\\tran_TwoStage.csv', 6: '.\\no_backup\\output_files\\ac_TwoStage.csv', 21: '.\\no_backup\\output_files\\ac_TwoStage.csv', 22: '.\\no_backup\\output_files\\dc_TwoStage.csv'}
@@ -50,9 +50,9 @@ def test_measurement_spice_result_new(path_id):
     print(result)
     # print(result["icmr"][0])
 
-def test_DUT(p_id, name):
-    has_input = False
-    dut = dut_testbench.DUT(has_input=has_input)
+def test_DUT(p_id, name, is_differential_output=False, has_input = False, target_dc_vout=None):
+    
+    dut =dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout)
     dut.circuit_name = str(name)
     result = dut.measure_metrics(p_id)
     print (result)
@@ -147,7 +147,8 @@ def test_DUT_psrr_len_problem(p_id, name):
     print (result)
 #region test entrance
 # test_phase_calculation()
-test_DUT(path_id_6, 6)
+# test_DUT(path_id_6, 6)
+test_DUT(path_id_69, 69, True, True, 0.6)
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()

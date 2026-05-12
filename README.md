@@ -1,5 +1,5 @@
 git add .
-git commit -m "noise and startup are not at min targets. Also some target value are not good. Now type 6 has pareto front
+git commit -m "combination done, input will automatically count down and use n for
 "
 git push
 

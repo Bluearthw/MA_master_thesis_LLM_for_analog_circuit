@@ -335,8 +335,12 @@ class DUT(NgspiceWrapper):
 
     #6 phase margin # assumed LP!!!
     def get_phase_margin(self, path_gain=""): 
-        if self.path_ac_gain is None or self.phase is None:
-            self.load_ac_gain_data(path_gain)
+        if self.is_diff:
+            if self.path_adm is None:
+                self.load_adm_data(path_gain)
+        else:
+            if self.path_ac_gain is None or self.phase is None:
+                self.load_ac_gain_data(path_gain)
             
         ugbw = self.get_ugbw_unity_gain_bandwidth()
         print("ugbw",ugbw)
@@ -700,8 +704,12 @@ class DUT(NgspiceWrapper):
     # Helper methods
     def get_ugbw_unity_gain_bandwidth(self, path = ""):
         """Finds the frequency where gain is 0dB."""
-        if self.path_ac_gain is None:
-            self.load_ac_gain_data(path)
+        if self.is_diff:
+            if self.path_adm is None:
+                self.load_adm_data(path)
+        else:
+            if self.path_ac_gain is None:
+                self.load_ac_gain_data(path)
         # print("ugbw:",
         # self.mag_db[0],
         # self.mag_db[-1],

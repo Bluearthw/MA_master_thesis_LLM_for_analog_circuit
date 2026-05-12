@@ -888,15 +888,72 @@ def user_modify_input(v_name, v_old):
         The original value if the user does not modify it, otherwise the new value.
     """
     print(f"Current value: {v_old}")
-    choice = input(f"Do you want to modify {v_name}? [y/n]: ").strip().lower()
+    choice = _input_with_timeout(f"Do you want to modify {v_name}? [y/n]: ", timeout=10, default="n")
+    choice = choice.strip().lower()
     if choice not in ("y", "yes"):
         return v_old
 
-    v_new = input("Enter new value: ").strip()
+    v_new = _input_with_timeout("Enter new value: ", timeout=10, default="").strip()
     if v_new == "":
         print("No new value entered. Keeping the original value.")
         return v_old
     return v_new
+
+def _input_with_timeout(prompt, timeout=10, default=""):
+    """Read input with a timeout, returning default if no response."""
+    sys.stdout.write(prompt)
+    sys.stdout.flush()
+
+    from threading import Event, Thread
+
+    user_input = {'value': default}
+    done = Event()
+
+    def read_input():
+        try:
+            user_input['value'] = input()
+        except Exception:
+            user_input['value'] = default
+        finally:
+            done.set()
+
+    thread = Thread(target=read_input, daemon=True)
+    thread.start()
+
+    for remaining in range(timeout, 0, -1):
+        if done.wait(1):
+            break
+        sys.stdout.write(f"\r{prompt}(auto selecting default in {remaining}s) ")
+        sys.stdout.flush()
+
+    sys.stdout.write('\n')
+    if done.is_set():
+        return user_input['value']
+    return default
+
+def pre_process_circuit(cir_num):
+    path_cir = local_config.path_dataset + f"/{cir_num}/{cir_num}.cir"
+    print("==cir_path\n", path_cir)
+    
+    category_num = find_cat_from_num(cir_num) 
+    path_category = local_config.path_category + f"{category_num}.md"
+    # or the cat_num is already known, so just +"4.md"
+    category_str = get_file_to_str(path_category)
+
+    path_output_num = local_config.path_output + f"{cir_num}/"
+    circuit_string = get_file_to_str(path_cir)  
+
+    has_input = has_input_port(circuit_string) #if opamp does not have, there is problem
+    
+    circuit_string = modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167
+    circuit_string = clean_netlist(circuit_string)# ADD .include here. remove (). nmos4' to 'nmos' and 'pmos4' to 'pmos'. REMOVE 'resistor' and 'capacitor'
+    circuit_string = add_params(circuit_string) #ADD .param. ADD w,l,m to mos. ADD {value} for R and C
+    circuit_string = add_DC_source(circuit_string)
+
+    netlist = add_control(circuit_string)
+    print("==cir_str\n", netlist)
+
+    return path_output_num, category_num, category_str, netlist, has_input
 # endregion modify
 
 

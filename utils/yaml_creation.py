@@ -140,12 +140,12 @@ def user_input_target(targets):
         print(f"  {i}. {key}: {value}")
     
     while True:
-        modify = input("\nDo you want to modify any target values? (y/n): ").strip().lower()
+        modify = _prompt_input("\nDo you want to modify any target values? (y/n): ").strip().lower()
         if modify not in ['y', 'yes']:
             break
             
         try:
-            target_num = int(input(f"Enter the number of the target to modify (1-{len(sorted_targets)}): ").strip())
+            target_num = int(_prompt_input(f"Enter the number of the target to modify (1-{len(sorted_targets)}): ").strip())
             if target_num < 1 or target_num > len(sorted_targets):
                 print(f"Error: Please enter a number between 1 and {len(sorted_targets)}.")
                 continue
@@ -155,7 +155,7 @@ def user_input_target(targets):
             continue
             
         try:
-            new_value = float(input(f"Enter new value for '{target_name}' (current: {targets[target_name]}): ").strip())
+            new_value = float(_prompt_input(f"Enter new value for '{target_name}' (current: {targets[target_name]}): ").strip())
             targets[target_name] = new_value
             print(f"Updated {target_name} to {new_value}")
         except ValueError:
@@ -175,6 +175,11 @@ def _format_value(value):# start with underline, this will not be imported
     else:
         # For normal range, use appropriate precision
         return f"{fval:.2f}" 
+ 
+def _prompt_input(prompt):
+    sys.stdout.write(prompt)
+    sys.stdout.flush()
+    return sys.stdin.readline().rstrip('\n')
 
 def make_targets_lines(targets_dict):
     """
