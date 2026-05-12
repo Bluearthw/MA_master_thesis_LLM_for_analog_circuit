@@ -33,6 +33,7 @@ wrdata ./1genai/output/{cir_num}/noise.csv inoise_spectrum
     noise v(VOUT1) Vdm dec 10 1 100G
     wrdata ./1genai/output/155/noise_total.csv inoise_total
     wrdata ./1genai/output/155/noise_spectrum.csv inoise_spectrum
+4, if there is 'set curplot = noise2'. You can try to remove it.
 """
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
     retry_count = 0

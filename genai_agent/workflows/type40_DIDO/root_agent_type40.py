@@ -58,6 +58,7 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
     target_dc_vout = gen_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
 
     netlist = struc.netlist
+    netlist = gen_utils.ensure_data_format_settings(netlist)
     netlist = gen_utils.modify_ac_range_1T(netlist)
     spec_sims = struc.spec_sims
     is_differential_output = struc.is_diff
@@ -79,6 +80,8 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
     if is_CMFB:
         struct_cmfb = cmfb_agent.cmfb_agent(netlist,cir_num)
         cmfb_netlist = struct_cmfb.netlist
+        cmfb_netlist = gen_utils.ensure_data_format_settings(cmfb_netlist)
+        cmfb_netlist = gen_utils.modify_ac_range_1T(cmfb_netlist)
         cmfb_spec_sims = struct_cmfb.spec_sims
         gen_utils.save_str_to_file(cmfb_netlist, path_output_num + "cmfb_netlist.cir")
         # Simulate CMFB netlist (assuming same spec_sims)

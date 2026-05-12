@@ -147,8 +147,8 @@ def test_DUT_psrr_len_problem(p_id, name):
     print (result)
 #region test entrance
 # test_phase_calculation()
-# test_DUT(path_id_6, 6)
-test_DUT(path_id_69, 69, True, True, 0.6)
+test_DUT(path_id_6, 6, has_input=False, is_differential_output=False, target_dc_vout=0.6)
+# test_DUT(path_id_69, 69, True, True, 0.6)
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()

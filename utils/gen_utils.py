@@ -904,6 +904,37 @@ def _input_with_timeout(prompt, timeout=10, default=""):
     sys.stdout.write(prompt)
     sys.stdout.flush()
 
+    # Windows implementation using msvcrt avoids hanging stdin threads.
+    if os.name == 'nt':
+        try:
+            import msvcrt
+        except ImportError:
+            msvcrt = None
+
+        if msvcrt is not None:
+            line = ''
+            end_time = time.time() + timeout
+            while time.time() < end_time:
+                if msvcrt.kbhit():
+                    ch = msvcrt.getwch()
+                    if ch == '\r' or ch == '\n':
+                        sys.stdout.write('\n')
+                        sys.stdout.flush()
+                        return line
+                    if ch == '\x08':
+                        if line:
+                            line = line[:-1]
+                            sys.stdout.write('\b \b')
+                            sys.stdout.flush()
+                        continue
+                    line += ch
+                    sys.stdout.write(ch)
+                    sys.stdout.flush()
+                time.sleep(0.01)
+            sys.stdout.write('\n')
+            return default
+
+    # Fallback for non-Windows or if msvcrt is unavailable.
     from threading import Event, Thread
 
     user_input = {'value': default}
@@ -911,7 +942,7 @@ def _input_with_timeout(prompt, timeout=10, default=""):
 
     def read_input():
         try:
-            user_input['value'] = input()
+            user_input['value'] = sys.stdin.readline().rstrip('\n')
         except Exception:
             user_input['value'] = default
         finally:
@@ -1156,6 +1187,56 @@ def has_input_port(netlist):
     return False
 
 # endregion functions
+
+
+def ensure_data_format_settings(netlist):
+    """Ensure netlist contains required data format settings.
+    
+    Checks for 'set units=degrees' and 'set wr_vecnames'. If missing,
+    adds them after the '.control' line.
+    
+    Args:
+        netlist (str): The SPICE netlist content as a string.
+        
+    Returns:
+        str: Modified netlist with settings added if necessary.
+    """
+    lines = netlist.split('\n')
+    has_units = False
+    has_wr_vecnames = False
+    control_index = -1
+    
+    # Find .control line and check for existing settings
+    for i, line in enumerate(lines):
+        line_stripped = line.strip().lower()
+        
+        if line_stripped == '.control':
+            control_index = i
+        elif line_stripped == 'set units=degrees':
+            has_units = True
+        elif line_stripped == 'set wr_vecnames':
+            has_wr_vecnames = True
+    
+    # If .control not found, return unchanged
+    if control_index == -1:
+        raise ValueError("'.control' line not found in netlist")
+        return netlist
+    
+    # If both settings present, return unchanged
+    if has_units and has_wr_vecnames:
+        return netlist
+    
+    # Add missing settings after .control
+    insert_lines = []
+    if not has_units:
+        insert_lines.append('set units=degrees')
+    if not has_wr_vecnames:
+        insert_lines.append('set wr_vecnames')
+    
+    # Insert after .control line
+    lines[control_index + 1:control_index + 1] = insert_lines
+    
+    return '\n'.join(lines)
 
 def test_delay(sec):
     time.sleep(sec)

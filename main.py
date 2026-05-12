@@ -16,7 +16,7 @@ test = [9, 155, 69, 182] # try to have siso diso dido dido_cmfb
 # test = [155]
 # test = [69]
 # test = [182]
-# test = [6] #bandgap
+test = [6] #bandgap
 
 
 is_with_RL = 0 # only with netlist gen

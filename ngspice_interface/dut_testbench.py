@@ -628,7 +628,10 @@ class DUT(NgspiceWrapper):
         """Return the relative DC output voltage from a DC measurement file."""
         data = np.genfromtxt(path, autostrip=True, skip_header=1)
         if data.size == 0:
-            raise ValueError(f"No data found in DC output file: {path}")
+            data = np.genfromtxt(path, autostrip=True, skip_header=0) # sometimes no header
+            if data.size == 0:
+                raise ValueError(f"No data found in DC output file: {path}")
+            
         if data.ndim == 1:
             vout = float(data[1] if data.shape[0] > 1 else data[0])
             return abs((vout - dc_vout_target) / dc_vout_target)

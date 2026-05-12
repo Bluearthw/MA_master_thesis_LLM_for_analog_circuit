@@ -58,6 +58,7 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
     target_dc_vout = gen_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
 
     netlist = struc.netlist
+    netlist = gen_utils.ensure_data_format_settings(netlist)
     netlist = gen_utils.modify_ac_range_1T(netlist)
     spec_sims = struc.spec_sims
     is_differential_output = struc.is_diff
@@ -130,11 +131,12 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
    - Output: {line_wrdata_path_num}/ac_psrr.csv v(VOUT1)
 
 6. **Startup Behavior**: Transient analysis with VDD ramp to ensure proper initialization
-   - Use VDD ramp: Vdd VDD 0 PWL(0 0 10u 1.2)
+   - Use VDD ramp: Vdd VDD 0 PWL(0 0 10u 1.2) which can be combined with other VDD setup. DO NOT use alter vdd pulse(0 1.2 0 10u) in .control part.
+   
    - Simulation: tran 50n 100u
    - Output: {line_wrdata_path_num}/tran_startup.csv v(VOUT1)
 
-7. **Output Noise**: Noise analysis for integrated output noise
+7. **Output Noise**: Noise analysis for integrated output noise. DO NOT use 'set curplot = noise2'
    - Simulation: noise v(VOUT1) Vdd dec 10 1 {f_end}
    - Output: {line_wrdata_path_num}/noise.csv onoise_total
 
@@ -148,7 +150,7 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
 1. **Transistor parameters**: Use `.param` variables without curly brackets on the component line. WRONG: `w={{}}` CORRECT: `w=wp1` with `.param wp1=1u`
 2. **Passive components**: Capacitors and resistors MUST use curly brackets with variables. CORRECT: `R0 node1 node2 {{r0}}` with `.param r0=1k`
 3. **Circuit requirements**: This is a self-biasing DC reference. Ensure it has proper biasing network, feedback path, and current generation mechanism.
-4. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path!
+4. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path! MUST keep lines : 'set units=degrees' and 'set wr_vecnames'!
 5. **ONE command per line**: Every `.param`, `.model`, and component definition must start on a NEW line.
 6. **Single noise method**: Use ONLY ONE noise specification (either `onoise_total` for integrated value OR `onoise_spectrum` for frequency response, not both).
 7. **Differential check**: Bandgap outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.

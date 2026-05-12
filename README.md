@@ -1,5 +1,6 @@
 git add .
 git commit -m "combination done, input will automatically count down and use n for
+but bugs for target, can't see them at the first time.
 "
 git push
 
