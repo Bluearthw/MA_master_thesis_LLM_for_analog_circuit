@@ -107,7 +107,12 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[26]] = self.get_temperature_coefficient(path) 
             elif spec_id == 27:
                 spec_dict[table_target_id[27]] = self.get_startup_behavior(path) 
-
+            elif spec_id == 28:
+                spec_dict[table_target_id[28]] = self.get_current_matching(path) 
+            elif spec_id == 29:
+                spec_dict[table_target_id[29]] = self.get_output_ripple(path) 
+            elif spec_id == 30:
+                spec_dict[table_target_id[30]] = self.get_voltage_compliance(path) 
             else:
                 continue
         print(spec_dict)
@@ -722,6 +727,34 @@ class DUT(NgspiceWrapper):
         ugbw, found = self._get_best_crossing(self.freq, self.mag_db, 0)
         return ugbw if found else 0
         
+    def get_current_matching(self, path):
+        """Compute current matching in A from a current sweep file."""
+        data = np.genfromtxt(path, autostrip=True, skip_header=1)
+        if data.ndim == 1 or data.shape[0] < 2:
+            return 0.0
+        i_load = data[:, 0]
+        vout = data[:, 1]
+        delta_i = i_load[-1] - i_load[0]
+        delta_vout = vout[-1] - vout[0]
+        if delta_i == 0:
+            return 0.0
+        return abs(delta_vout / delta_i) * 1000.0  # Convert to mA
+
+    def get_output_ripple(self, path):
+        """Compute output ripple in V from a ripple sweep file."""
+        data = np.genfromtxt(path, autostrip=True, skip_header=1)
+        if data.ndim == 1 or data.shape[0] < 2:
+            return 0.0
+        vout = data[:, 1]
+        return np.max(vout) - np.min(vout)
+
+    def get_voltage_compliance(self, path):
+        """Compute voltage compliance in V from a compliance sweep file."""
+        data = np.genfromtxt(path, autostrip=True, skip_header=1)
+        if data.ndim == 1 or data.shape[0] < 2:
+            return 0.0
+        vout = data[:, 1]
+        return np.max(vout) - np.min(vout)
 
     def _get_best_crossing(cls, xvec, yvec, val):
         interp_fun = interp.InterpolatedUnivariateSpline(xvec, yvec)

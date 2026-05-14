@@ -1,6 +1,5 @@
 git add .
-git commit -m "combination done, input will automatically count down and use n for
-but bugs for target, can't see them at the first time.
+git commit -m "input problem fixed, yaml_creation and gen_utils. Some contents of agent are changed to avoid error.
 "
 git push
 

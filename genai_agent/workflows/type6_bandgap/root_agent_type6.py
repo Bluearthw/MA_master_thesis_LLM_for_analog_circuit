@@ -150,7 +150,7 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
 1. **Transistor parameters**: Use `.param` variables without curly brackets on the component line. WRONG: `w={{}}` CORRECT: `w=wp1` with `.param wp1=1u`
 2. **Passive components**: Capacitors and resistors MUST use curly brackets with variables. CORRECT: `R0 node1 node2 {{r0}}` with `.param r0=1k`
 3. **Circuit requirements**: This is a self-biasing DC reference. Ensure it has proper biasing network, feedback path, and current generation mechanism.
-4. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path! MUST keep lines : 'set units=degrees' and 'set wr_vecnames'!
+4. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path! Lines MUST be kept : 'set units=degrees' and 'set wr_vecnames'!
 5. **ONE command per line**: Every `.param`, `.model`, and component definition must start on a NEW line.
 6. **Single noise method**: Use ONLY ONE noise specification (either `onoise_total` for integrated value OR `onoise_spectrum` for frequency response, not both).
 7. **Differential check**: Bandgap outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.

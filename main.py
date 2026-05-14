@@ -7,17 +7,19 @@ from genai_agent.local_config import path_output
 from utils import gen_utils
 from genai_agent.workflows.type40_DIDO import root_agent_type40
 from genai_agent.workflows.type6_bandgap import root_agent_type6
+from genai_agent.workflows.type23_charge_pump import root_agent_type23
 from utils import yaml_creation
 import td3_runner
 test = category_numbers.num_class_40[:10]
 test = [69, 182] # cmfb or without cmfb
 test = [9, 155, 69, 182] # try to have siso diso dido dido_cmfb
-# test = [9]
-# test = [155]
-# test = [69]
-# test = [182]
+# test = [9] #siso
+# test = [155] #diso
+# test = [69] #dido
+# test = [182] #dido cmfb
 test = [6] #bandgap
-
+test = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump
+test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 
 is_with_RL = 0 # only with netlist gen
 # is_with_RL = 1 # whole workflow
@@ -47,6 +49,10 @@ else:
         path_output_num, category_num, category_str, netlist, has_input = gen_utils.pre_process_circuit(i)
         if category_num == 6:
             combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type6.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input)
+        if category_num == 23:
+            print("hi! i am charge pump")
+            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type23.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input)
+             
         else:
             # print(f"found,cat:{category_num}")
             # continue
