@@ -1202,8 +1202,8 @@ def make_path_id(spec_sims, path_output_num):
     #     for key, paths in struct_path_id.items():
     #         if len(paths) == 1: 
     #             struct_path_id[key] = paths[0]
-    print(struct_path_id)
-    raise ValueError("test")
+    # print(struct_path_id)
+    # raise ValueError("test")
     return struct_path_id
 
 def has_input_port(netlist):
