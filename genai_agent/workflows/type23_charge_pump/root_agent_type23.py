@@ -32,6 +32,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             netlist_path = path_output_num + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
+            print("== final_netlist = ", netlist)
             measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
             for mr in measurement_results:
                 print("Measurement results:", mr)
@@ -96,19 +97,32 @@ def add_sim_agent(netlist, category, cir_num=4):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
     # f_end = "1T"
-    contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist for a charge pump circuit: {netlist}, circuit number {cir_num}, a table of specifications and their IDs: {local_config.table_specs_id}, and detailed requirements: {category}.
+    contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given a netlist for a charge pump circuit: {netlist}, circuit number {cir_num}, a table of specifications and their IDs: {local_config.table_specs_id}, and detailed requirements: {category}.
 
-Your goal is to complete the simulation setup for a DC voltage reference (bandgap) circuit. The netlist must be fully simulated without errors. You should output:
+Your goal is to complete the simulation setup for the charge pump circuit. The netlist must be fully simulated without errors. You should output:
 1. The complete, ready-to-run netlist
 2. Whether the output is differential (true/false)
 3. A list of required specifications and corresponding simulation file paths for measurement
-4. Whether CMFB stability check is needed (typically false for bandgap references)
+4. Whether CMFB stability check is needed (typically false for charge pump circuits)
 
 ### Charge Pump-Specific Rules and Measurements:
 **Simulation Examples**:
-1. **Current Matching**: Apply long, separate pulses to the `UP` and `DN` inputs and measure the output current directly (in DC analysis) or the output voltage slew rate (`dV/dt`) across the load capacitor in transient analysis.
-    - Simulation: separate long pulses on UP and DN, then capture either output current or dV/dt.
-    - Output: {line_wrdata_path_num}/current_matching.csv i(VOUT1) or v(VOUT1) transient slope
+1. **Current Matching**: Perform two separate DC sweeps of the output node to characterize the source and sink currents across the full compliance range.   
+    - Simulation:   Phase A (Source): Force the UP logic input to VDD and the DN input to 0. Sweep a DC voltage source at the output (VCONT1) from 0 to VDD.   
+                    Phase B (Sink): Force the DN logic input to VDD and the UP logic input to 0. Sweep the same DC voltage source at the output from 0 to VDD.   
+    - Example:
+    * 1a. Measure Source Current (UP is ON, DN is OFF)
+    alter vup dc=1.2
+    alter vdn dc=0
+    dc vout_force 0 1.2 0.01
+    - Output: {line_wrdata_path_num}/ source_current.csv i(vout_force)
+    
+    * 1b. Measure Sink Current (DN is ON, UP is OFF)
+    alter vdn dc=1.2
+    alter vup dc=0
+    dc vout_force 0 1.2 0.01
+    - Output: {line_wrdata_path_num}/ sink_current.csv i(vout_force)
+
 
 2. **Output Ripple**: Apply simultaneous, narrow, identical pulses to both `UP` and `DN` inputs to simulate a locked PFD state, and measure the peak-to-peak voltage variation on the output node with the load capacitor.
     - Simulation: narrow simultaneous pulses on UP and DN, transient analysis.
@@ -139,12 +153,12 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
 0. **Load**: Add load capacitance if not present (e.g., Cload=10p at output)
 1. **Transistor parameters**: Use `.param` variables without curly brackets on the component line. WRONG: `w={{}}` CORRECT: `w=wp1` with `.param wp1=1u`
 2. **Passive components**: Capacitors and resistors MUST use curly brackets with variables. CORRECT: `R0 node1 node2 {{r0}}` with `.param r0=1k`
-3. **Circuit requirements**: This is a self-biasing DC reference. Ensure it has proper biasing network, feedback path, and current generation mechanism.
+3. **Circuit requirements**: This is a charge pump circuit. Ensure it has proper switching network, capacitors, and control logic for voltage multiplication.
 4. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path! Lines MUST be kept : 'set units=degrees' and 'set wr_vecnames'!
 5. **ONE command per line**: Every `.param`, `.model`, and component definition must start on a NEW line.
 6. **Single noise method**: Use ONLY ONE noise specification (either `onoise_total` for integrated value OR `onoise_spectrum` for frequency response, not both).
-7. **Differential check**: Bandgap outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
-8. **CMFB stability**: Set to false for bandgap references (they don't typically use CMFB loops).
+7. **Differential check**: Charge pump outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
+8. **CMFB stability**: Set to false for charge pump circuits (they don't typically use CMFB loops).
 
 
 """

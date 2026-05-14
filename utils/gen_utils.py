@@ -987,8 +987,6 @@ def pre_process_circuit(cir_num):
 
     path_output_num = local_config.path_output + f"{cir_num}/"
     circuit_string = get_full_circuit_string(cir_num)
-    print("==circuit_string\n", circuit_string)
-    return
     has_input = has_input_port(circuit_string) #if opamp does not have, there is problem
     
     circuit_string = modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167
