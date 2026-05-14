@@ -21,6 +21,8 @@ class DUT(NgspiceWrapper):
             self.is_diff = is_differential
             self.has_input = has_input
             self.dc_vout_target = dc_vout_target
+            self.sink_path = None
+            self.source_path = None
 
     def measure_metrics(self, struct_path_id, is_init = True):
         self.output_files_folder = "./no_backup/output_files"
@@ -727,23 +729,28 @@ class DUT(NgspiceWrapper):
         ugbw, found = self._get_best_crossing(self.freq, self.mag_db, 0)
         return ugbw if found else 0
         
-    def get_current_matching(self, path):
+    def get_current_matching(self, paths):
         """Compute current matching as max absolute difference between source and sink currents in A."""
-        import os
-        sink_path = os.path.join(path, "sink_current.csv")
-        source_path = os.path.join(path, "source_current.csv")
-        if not os.path.exists(sink_path) or not os.path.exists(source_path):
-            return 0.0
-        data_sink = np.genfromtxt(sink_path, autostrip=True, skip_header=1)
-        data_source = np.genfromtxt(source_path, autostrip=True, skip_header=1)
+        if len(paths) != 2:
+            raise ValueError("Expected exactly two paths for current matching.")
+        for path in paths:
+            if 'source' in path:
+                self.source_path = path
+            elif 'sink' in path:
+                self.sink_path = path
+        
+        data_sink = np.genfromtxt(self.sink_path, autostrip=True, skip_header=1)
+        data_source = np.genfromtxt(self.source_path, autostrip=True, skip_header=1)
         if data_sink.ndim == 1 or data_sink.shape[0] < 2 or data_source.ndim == 1 or data_source.shape[0] < 2:
             return 0.0
         i_sink = data_sink[:, 1]
         i_source = data_source[:, 1]
         if len(i_sink) != len(i_source):
             return 0.0
-        differences = np.abs(i_source - i_sink)
-        return np.max(differences)
+        # i_nominal is the target current at VDD/2
+        i_avg = (i_source + i_sink) / 2
+        mismatch_percentage = (np.abs(i_source - i_sink) / i_avg) * 100
+        return np.max(mismatch_percentage)
 
     def get_output_ripple(self, path):
         """Compute output ripple in V from a ripple sweep file."""

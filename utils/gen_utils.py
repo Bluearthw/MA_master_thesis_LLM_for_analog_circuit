@@ -1180,19 +1180,29 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
 # region functions
 def make_path_id(spec_sims, path_output_num):
     struct_path_id = {}  # id: path
+    # has_list_flag = False
     for spec_sim in spec_sims:
         path_file = path_output_num + spec_sim.sim_file_name
         if os.path.exists(path_file):
             print(f"File {path_file} exists.")
-            if struct_path_id.get(spec_sim.spec_id) is None:
+            target = struct_path_id.get(spec_sim.spec_id)
+            if target is None:
                 struct_path_id[spec_sim.spec_id] = path_file
             else:
-                path_file_list = [path_file, struct_path_id[spec_sim.spec_id]] 
-                struct_path_id[spec_sim.spec_id] = path_file_list
-        
+                if not isinstance(target, list):
+                    struct_path_id[spec_sim.spec_id] = [target, path_file]
+                else:
+                    struct_path_id[spec_sim.spec_id].append(path_file)
+                # has_list_flag = True
         else:
             print(f"File {path_file} does not exist.")
             raise RuntimeError(f"Expected output file {path_file} not found.")
+    
+    # if has_list_flag:
+    #     for key, paths in struct_path_id.items():
+    #         if len(paths) == 1: 
+    #             struct_path_id[key] = paths[0]
+    print(struct_path_id)
     raise ValueError("test")
     return struct_path_id
 
