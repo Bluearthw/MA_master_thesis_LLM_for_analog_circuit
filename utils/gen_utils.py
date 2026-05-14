@@ -1184,11 +1184,16 @@ def make_path_id(spec_sims, path_output_num):
         path_file = path_output_num + spec_sim.sim_file_name
         if os.path.exists(path_file):
             print(f"File {path_file} exists.")
-            struct_path_id[spec_sim.spec_id] = path_file
+            if struct_path_id.get(spec_sim.spec_id) is None:
+                struct_path_id[spec_sim.spec_id] = path_file
+            else:
+                path_file_list = [path_file, struct_path_id[spec_sim.spec_id]] 
+                struct_path_id[spec_sim.spec_id] = path_file_list
         
         else:
             print(f"File {path_file} does not exist.")
             raise RuntimeError(f"Expected output file {path_file} not found.")
+    raise ValueError("test")
     return struct_path_id
 
 def has_input_port(netlist):

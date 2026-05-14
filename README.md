@@ -1,5 +1,5 @@
 git add .
-git commit -m "input problem fixed, yaml_creation and gen_utils. Some contents of agent are changed to avoid error.
+git commit -m "update how to measure current matching in spice. Next: update measurement in python
 "
 git push
 

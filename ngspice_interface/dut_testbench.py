@@ -728,17 +728,22 @@ class DUT(NgspiceWrapper):
         return ugbw if found else 0
         
     def get_current_matching(self, path):
-        """Compute current matching in A from a current sweep file."""
-        data = np.genfromtxt(path, autostrip=True, skip_header=1)
-        if data.ndim == 1 or data.shape[0] < 2:
+        """Compute current matching as max absolute difference between source and sink currents in A."""
+        import os
+        sink_path = os.path.join(path, "sink_current.csv")
+        source_path = os.path.join(path, "source_current.csv")
+        if not os.path.exists(sink_path) or not os.path.exists(source_path):
             return 0.0
-        i_load = data[:, 0]
-        vout = data[:, 1]
-        delta_i = i_load[-1] - i_load[0]
-        delta_vout = vout[-1] - vout[0]
-        if delta_i == 0:
+        data_sink = np.genfromtxt(sink_path, autostrip=True, skip_header=1)
+        data_source = np.genfromtxt(source_path, autostrip=True, skip_header=1)
+        if data_sink.ndim == 1 or data_sink.shape[0] < 2 or data_source.ndim == 1 or data_source.shape[0] < 2:
             return 0.0
-        return abs(delta_vout / delta_i) * 1000.0  # Convert to mA
+        i_sink = data_sink[:, 1]
+        i_source = data_source[:, 1]
+        if len(i_sink) != len(i_source):
+            return 0.0
+        differences = np.abs(i_source - i_sink)
+        return np.max(differences)
 
     def get_output_ripple(self, path):
         """Compute output ripple in V from a ripple sweep file."""
