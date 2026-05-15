@@ -33,8 +33,10 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             netlist_path = path_output_num + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
+
             print("== final_netlist = ", netlist)
-            measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
+
+            measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout, netlist_path=netlist_path).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
             for mr in measurement_results:
                 print("Measurement results:", mr)
             return measurement_results, struct_path_id
@@ -130,8 +132,8 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
     - Output: {line_wrdata_path_num}/output_ripple.csv v(VOUT1)
 
 3. **Voltage Compliance Range**: Sweep the DC voltage at the charge pump output node and measure the output current to determine the operating voltage range where sourced and sinked currents remain matched.
-    - Simulation: sweep output node voltage and measure current.
-    - Output: {line_wrdata_path_num}/voltage_compliance.csv i(VOUT1)
+    - Simulation: Same as current matching, no more simulation needed.
+    - Output: Same as current matching, use those 2 paths. So, there are 2 spec_sim terms.
 
 4. ** Optional: Subcircuit
     - If needed, subcircuit can be added.
@@ -160,7 +162,7 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
 6. **Single noise method**: Use ONLY ONE noise specification (either `onoise_total` for integrated value OR `onoise_spectrum` for frequency response, not both).
 7. **Differential check**: Charge pump outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
 8. **CMFB stability**: Set to false for charge pump circuits (they don't typically use CMFB loops).
-
+9. **comment**: Remember to add short comments to tell the purpose of each simulation. Example: *current matching 
 
 """
     

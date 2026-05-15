@@ -39,32 +39,7 @@ class NgspiceWrapper(object):
             
         
         
-        # paths
-        self.path_ac_gain = None 
-        self.path_psrr = None
-        self.path_noise = None
-        self.path_trans = None
 
-        self.freq = None
-        self.current = None
-
-        # store gain as complex and compute magnitude/phase
-        self.vout_complex = None
-        self.vout_mag = None
-        self.mag_db = None
-        self.phase = None
-
-        self.psrr_db = 0
-
-        self.data_trans = None
-
-        #differential output
-        self.path_adm = None
-        self.path_acm = None
-        self.vout1_complex = None
-        self.vout2_complex = None
-        self.phase_v1 = None # for output balance
-        self.phase_v2 = None
         
     def read_netlist(self):
         with open(self.netlist_path, 'r') as f:
@@ -75,7 +50,7 @@ class NgspiceWrapper(object):
                         param_name = match.group(1)
                         param_value = match.group(2)
                         units = {'f':1e-15, 'p': 1e-12, 'n': 1e-9, 'u': 1e-6, 'm': 1e-3, 'k': 1e3, 'meg': 1e6, 'g': 1e9}
-                        if param_name in ["trf", "period", "VDD"]:
+                        if param_name in ["trf", "period", "VDD_VAL", "VDD"]:
                             value = None
                             for unit, multiplier in units.items():
                                 if unit in param_value:
@@ -126,7 +101,7 @@ class NgspiceWrapper(object):
                         new_value = str(vcm)
                     elif param_name == "VHIGH" and vhigh is not None:
                         new_value = str(vhigh)
-                    elif param_name == "VDD" and vdd is not None:
+                    elif (param_name == "VDD_VAL" or param_name == "VDD") and vdd is not None:
                         new_value = str(vdd)
                         self.VDD = new_value
                     else:

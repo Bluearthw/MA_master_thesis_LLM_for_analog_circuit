@@ -1,5 +1,5 @@
 git add .
-git commit -m "modify tool.py to have better spec_sims make sure there are 2 current matching specs in spec_sims.
+git commit -m "pass. readay for next measurement
 "
 git push
 

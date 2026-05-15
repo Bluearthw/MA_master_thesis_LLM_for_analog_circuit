@@ -5,8 +5,7 @@ import matplotlib.pyplot as plt
 # local import
 sys.path.append(".")
 from ngspice_interface import dut_testbench
-sys.path.append("./genai_agent")
-import utils
+from genai_agent import local_config
 path_id_155 =  {0: './genai_agent/output/155/ac_gain.csv', 1: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv', 4: './genai_agent/output/155/tran_SR.csv', 3: './genai_agent/output/155/noise.csv'}
 path_id_69 =  {18: './genai_agent/output/69/ac_gain.csv', 1: './genai_agent/output/69/ac_gain.csv', 6: './genai_agent/output/69/ac_gain.csv', 3: './genai_agent/output/69/noise.csv', 4: './genai_agent/output/69/tran_SR.csv', 22: './genai_agent/output/69/dc_current.csv', 23: './genai_agent/output/69/dc_current.csv'}
 path_id_96 = {18: './genai_agent/output/96/ac_dm.csv', 17: './genai_agent/output/96/ac_cm.csv', 0: './genai_agent/output/96/ac_gain.csv', 1: './genai_agent/output/96/ac_gain.csv', 16: './genai_agent/output/96/ac_gain.csv', 6: './genai_agent/output/96/ac_gain.csv', 3: './genai_agent/output/96/noise.csv', 4: './genai_agent/output/96/tran_sr.csv', 10: './genai_agent/output/96/dc_sweep.csv', 11: './genai_agent/output/96/dc_sweep.csv'}
@@ -145,12 +144,23 @@ def test_DUT_psrr_len_problem(p_id, name):
     dut.circuit_name = str(name)
     result = dut.measure_metrics(p_id)
     print (result)
+
+def test_get_vdd(cir_cum):
+    dut = dut_testbench.DUT()
+    path = local_config.path_output + f"{cir_cum}/final_netlist.cir"
+    # dut.netlist_path = "./no_backup/netlists/TwoStage.cir"
+    dut.netlist_path = path
+    vdd = dut.get_vdd()
+    print(f"VDD: {vdd}")
+
 #region test entrance
 # test_phase_calculation()
-test_DUT(path_id_6, 6, has_input=False, is_differential_output=False, target_dc_vout=0.6)
+# test_DUT(path_id_6, 6, has_input=False, is_differential_output=False, target_dc_vout=0.6)
 # test_DUT(path_id_69, 69, True, True, 0.6)
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
 
+
+test_get_vdd(439)
 #endregion test entrance

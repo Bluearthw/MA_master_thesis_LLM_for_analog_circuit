@@ -1,4 +1,5 @@
 import time
+import re
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -14,15 +15,48 @@ import sys
 from scipy.integrate import trapezoid
 sys.path.append(".")
 from genai_agent.local_config import table_target_id 
+from utils import gen_utils
 class DUT(NgspiceWrapper):
-    def __init__(self, path_yaml = "", is_differential = False, has_input = True, dc_vout_target = None):
+    def __init__(self, path_yaml = "", is_differential = False, has_input = True, dc_vout_target = None, netlist_path = None):
         super().__init__(path_yaml)
-        if path_yaml == "":
+        if path_yaml == "": # these are also from yaml
             self.is_diff = is_differential
             self.has_input = has_input
             self.dc_vout_target = dc_vout_target
-            self.sink_path = None
-            self.source_path = None
+        # paths
+        self.path_ac_gain = None 
+        self.path_psrr = None
+        self.path_noise = None
+        self.path_trans = None
+
+        self.freq = None
+        self.current = None
+
+        # store gain as complex and compute magnitude/phase
+        self.vout_complex = None
+        self.vout_mag = None
+        self.mag_db = None
+        self.phase = None
+
+        self.psrr_db = 0
+
+        self.data_trans = None
+
+        #differential output
+        self.path_adm = None
+        self.path_acm = None
+        self.vout1_complex = None
+        self.vout2_complex = None
+        self.phase_v1 = None # for output balance
+        self.phase_v2 = None
+        # type23
+        self.sink_path = None
+        self.source_path = None
+        self.mismatch = None
+        self.compliance_range_min_max = None
+
+        self.vdd = None
+        self.netlist_path = netlist_path
 
     def measure_metrics(self, struct_path_id, is_init = True):
         self.output_files_folder = "./no_backup/output_files"
@@ -114,7 +148,7 @@ class DUT(NgspiceWrapper):
             elif spec_id == 29:
                 spec_dict[table_target_id[29]] = self.get_output_ripple(path) 
             elif spec_id == 30:
-                spec_dict[table_target_id[30]] = self.get_voltage_compliance(path) 
+                spec_dict[table_target_id[30]] = self.get_voltage_compliance_range(path)
             else:
                 continue
         print(spec_dict)
@@ -738,19 +772,13 @@ class DUT(NgspiceWrapper):
                 self.source_path = path
             elif 'sink' in path:
                 self.sink_path = path
+        if self.compliance_range_min_max is None:
+            self.get_voltage_compliance_range(paths) # also mismatch calculation
         
-        data_sink = np.genfromtxt(self.sink_path, autostrip=True, skip_header=1)
-        data_source = np.genfromtxt(self.source_path, autostrip=True, skip_header=1)
-        if data_sink.ndim == 1 or data_sink.shape[0] < 2 or data_source.ndim == 1 or data_source.shape[0] < 2:
-            return 0.0
-        i_sink = data_sink[:, 1]
-        i_source = data_source[:, 1]
-        if len(i_sink) != len(i_source):
-            return 0.0
-        # i_nominal is the target current at VDD/2
-        i_avg = (i_source + i_sink) / 2
-        mismatch_percentage = (np.abs(i_source - i_sink) / i_avg) * 100
-        return np.max(mismatch_percentage)
+        mismatch_percentage = (self.mismatch) * 100
+
+
+        return np.max(mismatch_percentage) # max only looks for those are true
 
     def get_output_ripple(self, path):
         """Compute output ripple in V from a ripple sweep file."""
@@ -760,13 +788,134 @@ class DUT(NgspiceWrapper):
         vout = data[:, 1]
         return np.max(vout) - np.min(vout)
 
-    def get_voltage_compliance(self, path):
+    def get_voltage_compliance_range(self, paths, error = 0.05):
         """Compute voltage compliance in V from a compliance sweep file."""
-        data = np.genfromtxt(path, autostrip=True, skip_header=1)
-        if data.ndim == 1 or data.shape[0] < 2:
+        if self.source_path is None or self.sink_path is None:
+            if len(paths) != 2:
+                raise ValueError("Expected exactly two paths for voltage compliance.")
+            for path in paths:
+                if 'source' in path.lower():
+                    self.source_path = path
+                elif 'sink' in path.lower():
+                    self.sink_path = path
+            if self.source_path is None or self.sink_path is None:
+                raise ValueError("Could not identify source and sink paths for voltage compliance.")
+
+        data_sink = np.genfromtxt(self.sink_path, autostrip=True, skip_header=1)
+        data_source = np.genfromtxt(self.source_path, autostrip=True, skip_header=1)
+        if data_sink.ndim == 1 or data_sink.shape[0] < 2 or data_source.ndim == 1 or data_source.shape[0] < 2:
             return 0.0
-        vout = data[:, 1]
-        return np.max(vout) - np.min(vout)
+
+        v_sink = data_sink[:, 0]
+        v_source = data_source[:, 0]
+        i_sink = data_sink[:, 1]
+        i_source = data_source[:, 1]
+
+        if not np.allclose(v_sink, v_source):
+            # Align both current sweeps to the same voltage points using interpolation.
+            common_v = np.intersect1d(v_sink, v_source)
+            if common_v.size == 0:
+                common_v = np.linspace(max(v_sink.min(), v_source.min()), min(v_sink.max(), v_source.max()), min(len(v_sink), len(v_source)))
+            i_sink = np.interp(common_v, v_sink, i_sink)
+            i_source = np.interp(common_v, v_source, i_source)
+            v_sweep = common_v
+        else:
+            v_sweep = v_source
+            
+        i_sink_abs = np.abs(i_sink)
+        i_source_abs = np.abs(i_source)
+
+
+        i_avg = (i_source_abs + i_sink_abs) / 2.0
+        i_avg = np.where(i_avg == 0, 1e-12, i_avg)
+        mismatch = np.abs(i_source_abs - i_sink_abs) / i_avg
+        self.mismatch = mismatch
+
+        if self.vdd is None:
+            vdd = self.get_vdd()
+        if vdd is not None and vdd > 0:
+            v_sweep = np.clip(v_sweep, 0.0, vdd)
+        else:
+            raise ValueError("Invalid VDD value.")
+
+        valid = mismatch <= error
+        if not np.any(valid):
+            return 0.0
+
+        # Find the longest contiguous compliance region.
+        best_start = best_end = None
+        current_start = 0
+        for idx in range(1, len(valid)):
+            if not valid[idx] and valid[idx - 1]: # true to false down slope
+                if best_start is None or (idx - 1 - current_start) > (best_end - best_start):
+                    best_start, best_end = current_start, idx - 1
+            if not valid[idx]: # last false
+                current_start = idx + 1
+        if valid[-1]: # if last is true ????
+            if best_start is None or (len(valid) - 1 - current_start) > (best_end - best_start if best_end is not None else -1):
+                best_start, best_end = current_start, len(valid) - 1
+
+        if best_start is None or best_end is None:
+            return 0.0
+
+        compliance = float(v_sweep[best_end] - v_sweep[best_start])
+        self.compliance_range_min_max = (v_sweep[best_start], v_sweep[best_end])
+        if vdd is not None:
+            compliance = min(compliance, float(vdd))
+        return compliance
+
+    def get_vdd(self):
+        """Return the value assigned to a .param entry whose name contains 'vdd'.
+
+        The function scans all .param lines in the provided netlist string and
+        returns the first parameter value where the parameter name contains
+        the substring 'vdd' (case-insensitive).
+
+        Args:
+            netlist: SPICE netlist content as a string.
+
+        Returns:
+            The value string assigned to the first matching vdd parameter,
+            or None if no matching .param assignment is found.
+        """
+        netlist = gen_utils.get_file_to_str(self.netlist_path)
+        if not isinstance(netlist, str):
+            return None
+        
+        for line in netlist.splitlines():
+                # 1. Clean line and convert to lowercase for easy matching
+                clean_line = re.split(r"[;*!]", line.strip(), maxsplit=1)[0].strip()
+                line_lower = clean_line.lower()
+
+                # 2. Skip empty lines or lines without 'vdd'
+                if not clean_line or "vdd" not in line_lower:
+                    continue
+
+                # 3. Check if it's a .param line (e.g., ".param vdd=1.2")
+                if line_lower.startswith(".param"):
+                    match = re.search(r"\bvdd_val\s*=\s*([^\s]+)", line_lower)
+                    match2 = re.search(r"\bvdd\s*=\s*([^\s]+)", line_lower)
+                    if match:
+                        try:
+                            return float(match.group(1).strip("{}"))
+                        except ValueError:
+                            continue  # Found VDD, but it's a variable name, not a number
+                    if match2:
+                        try:
+                            return float(match2.group(1).strip("{}"))
+                        except ValueError:
+                            continue  # Found VDD, but it's a variable name, not a number
+
+                # 4. Check if it's a Voltage Source line (e.g., "Vvdd vdd 0 dc=1.2")
+                elif line_lower.startswith("vdd") and "dc" in line_lower:
+                    match = re.search(r"\bdc\s*=?\s*([^\s]+)", line_lower)
+                    if match:
+                        try:
+                            return float(match.group(1).strip("{}"))
+                        except ValueError:
+                            continue  # Found the DC value, but it's a variable name
+
+        return None
 
     def _get_best_crossing(cls, xvec, yvec, val):
         interp_fun = interp.InterpolatedUnivariateSpline(xvec, yvec)

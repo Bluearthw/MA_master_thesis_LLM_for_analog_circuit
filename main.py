@@ -50,7 +50,6 @@ else:
         if category_num == 6:
             combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type6.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input)
         if category_num == 23:
-            print("hi! i am charge pump")
             combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type23.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input)
              
         else:

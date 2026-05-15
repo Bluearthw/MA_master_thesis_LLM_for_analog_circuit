@@ -136,6 +136,8 @@ def delete_all_files_except_dir(folder_path):
 def save_str_to_file(str, path = local_config.path_output + "final_netlist.cir"):
     with open(path, "w") as f:
         f.write(str)
+
+
 # endregion for file IO
 
 
@@ -478,15 +480,15 @@ def add_DC_source(netlist, vdd="1.2", vb1="0.7", ib1 = "0.01"):
     Returns:
         The netlist added with parameters as a string.
     """
-    param_line = f"\n.param VDD={vdd}"
-    param_line_vb1 = f"\n.param VB1={vb1}"
-    param_line_ib1 = f"\n.param IB1={ib1}"
+    param_line = f"\n.param VDD_VAL={vdd}"
+    param_line_vb1 = f"\n.param VB1_VAL={vb1}"
+    param_line_ib1 = f"\n.param IB1_VAL={ib1}"
 
     # Standard source definitions using the parameter
-    vdd_source = "\nvdd VDD 0 dc=VDD"
+    vdd_source = "\nvdd VDD 0 dc=VDD_VAL"
     vss_source = "\nvss VSS 0 dc=0"  # VSS is typically ground reference
-    vb1_source = "\nvb1 VB1 0 dc=VB1"  # VSS is typically ground reference
-    ib1_source = "\nib1 IB1 0 dc=IB1"  # VSS is typically ground reference
+    vb1_source = "\nvb1 VB1 0 dc=VB1_VAL"  # VSS is typically ground reference
+    ib1_source = "\nib1 IB1 0 dc=IB1_VAL"  # VSS is typically ground reference
 
     # source_block = f"\n{param_line}\n{vdd_source}\n"
     # vss_block = f"{vss_source}\n"
