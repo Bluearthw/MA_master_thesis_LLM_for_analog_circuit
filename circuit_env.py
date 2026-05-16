@@ -123,6 +123,7 @@ class CircuitEnv(gym.Env):
             # print("VDD:", dut.VDD)
             
             # Measure specs
+            print("CE: self path ids",self.path_ids)
             spec_dict = dut.measure_metrics(self.path_ids)
             self.last_netV = spec_dict.get('netV', None) #？？？？ it it none
 

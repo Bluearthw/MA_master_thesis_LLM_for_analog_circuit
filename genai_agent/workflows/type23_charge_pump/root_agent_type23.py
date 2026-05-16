@@ -135,7 +135,11 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
     - Simulation: Same as current matching, no more simulation needed.
     - Output: Same as current matching, use those 2 paths. So, there are 2 spec_sim terms.
 
-4. ** Optional: Subcircuit
+4. ** Average supply current**: Need to know the current for power. Since it is with clock, transient analysis is required.
+    - Simulation: careful about the clock definition and the trans signal
+    - Output: {line_wrdata_path_num}/current.csv vdd#branch
+
+5. ** Optional: Subcircuit
     - If needed, subcircuit can be added.
     - Example:
     * Subcircuits

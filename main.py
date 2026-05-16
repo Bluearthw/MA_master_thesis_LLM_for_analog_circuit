@@ -22,9 +22,9 @@ test = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump
 test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 
 is_with_RL = 0 # only with netlist gen
-is_with_RL = 1 # whole workflow
+# is_with_RL = 1 # whole workflow
 # is_with_RL = 2 # only with RL sizer
-# is_with_RL = 3 # only with yaml
+# is_with_RL = 3 # only with yaml creation
 
 if is_with_RL == 2:
     i = test[0]
@@ -32,12 +32,13 @@ if is_with_RL == 2:
 elif is_with_RL == 3:
     i = test[0]
 
-    path_yaml = './genai_agent/output/temp.yaml'
+    path_yaml = f'./genai_agent/output/{i}/temp.yaml'
     with open(path_yaml, 'r') as f:
             yaml_data = yaml.load(f, Loader=yaml.Loader)
     path_netlist = yaml_data['path_nl']
     i = yaml_data['cir_name']
-    path_yaml = yaml_creation.make_full_yaml(path_netlist, path_ids=yaml_data['path_ids'], cir_name=i)
+    data_for_dut_yaml = (yaml_data['is_differential'], yaml_data['has_input'], yaml_data['target_dc_vout'])
+    path_yaml = yaml_creation.make_full_yaml(path_netlist, path_ids=yaml_data['path_ids'], cir_name=i, data_for_dut_yaml=data_for_dut_yaml)
     print("yaml path = ", path_yaml)
 else:
     for i in test:
@@ -64,9 +65,8 @@ else:
         'path_nl': path_netlist,
         'path_ids': struct_path_id,
         'spec_sims': spec_sims,
-        'is_differential': data_for_dut_yaml[0],
-        'has_input': data_for_dut_yaml[1],
-        'target_dc_vout': data_for_dut_yaml[2]
+        'data_for_dut_yaml': data_for_dut_yaml,
+        
         }
         yaml_creation.save_temp(data) #this is for test.
         

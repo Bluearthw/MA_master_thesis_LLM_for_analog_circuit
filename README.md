@@ -1,5 +1,6 @@
 git add .
-git commit -m "measurement exception handling done. Start RL
+git commit -m "type23 whole workflow test issue.
+now, current is added. Ready for RL again
 "
 git push
 

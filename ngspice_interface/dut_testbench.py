@@ -214,18 +214,39 @@ class DUT(NgspiceWrapper):
         # plt.show()
     
 
-    def get_current(self, path_i =""):
+    def get_current(self, path_i=""):
         if path_i == "" and self.current is not None:
             return self.current
         elif path_i != "":
-            data_op = np.genfromtxt(path_i, autostrip=True, skip_header=1)
-
-            current = abs(data_op[1]) # if op is used, the first col is always vout
+            # Load the data safely
+            data = np.genfromtxt(path_i, autostrip=True, skip_header=1)
+            
+            # Check if the data is a 2D array (Transient wave data)
+            if data.ndim == 2:
+                # Column 0 is time, Column 1 is vdd#branch current
+                time = data[:, 0]
+                i_supply_raw = data[:, 1]
+                
+                # Apply time mask to skip initial startup anomalies (e.g., > 10ns)
+                mask = time > 10e-9
+                
+                # If the transient simulation was too short, fallback to the entire array
+                if not np.any(mask):
+                    stable_currents = i_supply_raw
+                else:
+                    stable_currents = i_supply_raw[mask]
+                    
+                current = np.mean(np.abs(stable_currents))
+                
+            # Check if the data is a 1D array or scalar (Old .op simulation data)
+            else:
+                # Your old working fallback logic for .op files
+                current = abs(data[1]) 
+                
             self.current = current
             return current
         else:
             raise ValueError("Current data not available and no path provided")
-        
 
     def load_ac_gain_data(self, path_gain=""):
         if self.is_diff == False:

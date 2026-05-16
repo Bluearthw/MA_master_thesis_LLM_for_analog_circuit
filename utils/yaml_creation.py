@@ -260,12 +260,11 @@ def make_path_id(path_id_dict, root_name='path_id'):
     Returns:
         str: YAML formatted path_id section.
     """
-    lines = [f"{root_name}:"]
-    for key in sorted(path_id_dict.keys()):
-        value = path_id_dict[key]
-        # Quote the path value for YAML safety
-        lines.append(f"  {key}: \"{value}\"")
-    return "\n".join(lines)
+    data = {root_name: path_id_dict}
+    
+    # yaml.dump automatically handles lists, strings, and integers perfectly
+    # default_flow_style=None keeps lists clean on one line if short, or multi-line if long
+    return yaml.dump(data, default_flow_style=None, sort_keys=True)
 
 def make_dut_yaml_lines(data_for_dut_yaml):
     """
