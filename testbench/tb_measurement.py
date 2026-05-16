@@ -15,6 +15,8 @@ path_id_9_phase = {5: './genai_agent/output/9/ac_gain.csv', 6: './genai_agent/ou
 path_id_9_psrr = {0: './genai_agent/output/9/ac_gain.csv', 2: './genai_agent/output/9/ac_psrr.csv'}
 path_id_9_current = {0: './genai_agent/output/9/ac_gain.csv', 22: './genai_agent/output/9/dc_current.csv'}
 path_id_6 =  {23: './genai_agent/output/6/dc_vref.csv', 22: './genai_agent/output/6/dc_current.csv', 24: './genai_agent/output/6/dc_line_reg.csv', 25: './genai_agent/output/6/dc_load_reg.csv', 26: './genai_agent/output/6/dc_temp_coeff.csv', 2: './genai_agent/output/6/ac_psrr.csv', 27: './genai_agent/output/6/tran_startup.csv', 7: './genai_agent/output/6/noise.csv'}
+path_id_439 =  {28: ['./genai_agent/output/439/source_current.csv', './genai_agent/output/439/sink_current.csv'], 29: './genai_agent/output/439/output_ripple.csv', 30: ['./genai_agent/output/439/source_current.csv', './genai_agent/output/439/sink_current.csv']}
+
 """ in yaml:
 path_id:
   0: '.\\no_backup\\output_files\\ac_TwoStage.csv'
@@ -49,10 +51,12 @@ def test_measurement_spice_result_new(path_id):
     print(result)
     # print(result["icmr"][0])
 
-def test_DUT(p_id, name, is_differential_output=False, has_input = False, target_dc_vout=None):
+def test_DUT(p_id, cir_cum, is_differential_output=False, has_input = False, target_dc_vout=0.6):
     
     dut =dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout)
-    dut.circuit_name = str(name)
+    dut.circuit_name = str(cir_cum)
+    path = local_config.path_output + f"{cir_cum}/final_netlist.cir"
+    dut.netlist_path = path
     result = dut.measure_metrics(p_id)
     print (result)
  
@@ -124,6 +128,7 @@ def test_DUT_180_phase_problem(p_id, name):
 def test_DUT_ugbw(p_id, name):
     dut = dut_testbench.DUT()
     dut.circuit_name = str(name)
+    
     result = dut.measure_metrics(p_id)
     print (result)
     phase_deg = dut.get_phase_response()
@@ -155,12 +160,13 @@ def test_get_vdd(cir_cum):
 
 #region test entrance
 # test_phase_calculation()
-# test_DUT(path_id_6, 6, has_input=False, is_differential_output=False, target_dc_vout=0.6)
-# test_DUT(path_id_69, 69, True, True, 0.6)
+# test_DUT(path_id_6, 6, is_differential_output=False, has_input=False, target_dc_vout=0.6)
+# test_DUT(path_id_69, 69, True, True, 0.6) 
+test_DUT(path_id_439, 439) 
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
 
 
-test_get_vdd(439)
+# test_get_vdd(439)
 #endregion test entrance

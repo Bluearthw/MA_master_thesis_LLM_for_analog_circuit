@@ -31,4 +31,5 @@ def test_run_ngspice_direct(nl = local_config.nl_2_stage_opamp):
 # test_run_ngspice_direct(saved_netlist.nl_155_failed)
 
 # test_run_ngspice_direct_from_final_netlist(155)
-test_run_ngspice_direct_from_final_netlist(9)
+# test_run_ngspice_direct_from_final_netlist(9)
+test_run_ngspice_direct_from_final_netlist(439)

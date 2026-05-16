@@ -1,5 +1,5 @@
 git add .
-git commit -m "pass. readay for next measurement
+git commit -m "measurement exception handling done. Start RL
 "
 git push
 

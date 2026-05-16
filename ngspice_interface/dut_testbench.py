@@ -23,6 +23,7 @@ class DUT(NgspiceWrapper):
             self.is_diff = is_differential
             self.has_input = has_input
             self.dc_vout_target = dc_vout_target
+            self.netlist_path = netlist_path
         # paths
         self.path_ac_gain = None 
         self.path_psrr = None
@@ -56,7 +57,7 @@ class DUT(NgspiceWrapper):
         self.compliance_range_min_max = None
 
         self.vdd = None
-        self.netlist_path = netlist_path
+        
 
     def measure_metrics(self, struct_path_id, is_init = True):
         self.output_files_folder = "./no_backup/output_files"
@@ -146,7 +147,9 @@ class DUT(NgspiceWrapper):
             elif spec_id == 28:
                 spec_dict[table_target_id[28]] = self.get_current_matching(path) 
             elif spec_id == 29:
-                spec_dict[table_target_id[29]] = self.get_output_ripple(path) 
+                vout_ripple = self.get_output_ripple(path) 
+                
+                spec_dict[table_target_id[29]] = vout_ripple
             elif spec_id == 30:
                 spec_dict[table_target_id[30]] = self.get_voltage_compliance_range(path)
             else:
@@ -774,19 +777,50 @@ class DUT(NgspiceWrapper):
                 self.sink_path = path
         if self.compliance_range_min_max is None:
             self.get_voltage_compliance_range(paths) # also mismatch calculation
-        
+        if self.compliance_range_min_max is None:
+            return 100
         mismatch_percentage = (self.mismatch) * 100
+        if self.is_interpolate:
+            raise ValueError("Interpolation is not supported for current matching.")
+        else:
 
-
+            idx_start, idx_end = self.compliance_range_min_max[2], self.compliance_range_min_max[3]
+        # print(idx_start, idx_end)
+        if idx_start == idx_end:
+            return 100
+        mismatch_percentage = mismatch_percentage[idx_start:idx_end]
+        # print(mismatch_percentage)
         return np.max(mismatch_percentage) # max only looks for those are true
 
-    def get_output_ripple(self, path):
+    def get_output_ripple(self, path, steady_state_ratio=0.5):
         """Compute output ripple in V from a ripple sweep file."""
-        data = np.genfromtxt(path, autostrip=True, skip_header=1)
-        if data.ndim == 1 or data.shape[0] < 2:
+        try:
+        # Some SPICE outputs use commas or tabs; default to autodetecting whitespace
+            data = np.genfromtxt(path, autostrip=True)
+        except Exception:
             return 0.0
+        if data.size == 0 or data.ndim < 2 or data.shape[0] < 10:
+            return 0.0
+
+        # Extract time and voltage columns
+        # wrdata outputs: [time, v(VCONT1)]
+        time = data[:, 0]
         vout = data[:, 1]
-        return np.max(vout) - np.min(vout)
+        total_points = len(time)
+        start_idx = int(total_points * (1 - steady_state_ratio))
+
+        steady_state_vout = vout[start_idx:]
+
+        if len(steady_state_vout) == 0:
+            return 0.0
+
+        # 2. Calculate Peak-to-Peak Ripple
+        # Tip: If your simulation has high-frequency numerical noise,
+        # you could use np.percentile(steady_state_vout, 99.9) - np.percentile(steady_state_vout, 0.1)
+        # to reject single-point solver glitch spikes.
+        ripple = np.max(steady_state_vout) - np.min(steady_state_vout)
+
+        return float(ripple)
 
     def get_voltage_compliance_range(self, paths, error = 0.05):
         """Compute voltage compliance in V from a compliance sweep file."""
@@ -819,9 +853,11 @@ class DUT(NgspiceWrapper):
             i_sink = np.interp(common_v, v_sink, i_sink)
             i_source = np.interp(common_v, v_source, i_source)
             v_sweep = common_v
+            self.is_interpolate = True
         else:
             v_sweep = v_source
-            
+            self.is_interpolate = False
+
         i_sink_abs = np.abs(i_sink)
         i_source_abs = np.abs(i_source)
 
@@ -832,7 +868,8 @@ class DUT(NgspiceWrapper):
         self.mismatch = mismatch
 
         if self.vdd is None:
-            vdd = self.get_vdd()
+            self.vdd = self.get_vdd()
+        vdd = self.vdd
         if vdd is not None and vdd > 0:
             v_sweep = np.clip(v_sweep, 0.0, vdd)
         else:
@@ -843,10 +880,11 @@ class DUT(NgspiceWrapper):
             return 0.0
 
         # Find the longest contiguous compliance region.
+        # print(valid)
         best_start = best_end = None
         current_start = 0
         for idx in range(1, len(valid)):
-            if not valid[idx] and valid[idx - 1]: # true to false down slope
+            if valid[idx - 1] and not valid[idx]: # true to false down slope
                 if best_start is None or (idx - 1 - current_start) > (best_end - best_start):
                     best_start, best_end = current_start, idx - 1
             if not valid[idx]: # last false
@@ -858,8 +896,10 @@ class DUT(NgspiceWrapper):
         if best_start is None or best_end is None:
             return 0.0
 
-        compliance = float(v_sweep[best_end] - v_sweep[best_start])
-        self.compliance_range_min_max = (v_sweep[best_start], v_sweep[best_end])
+        v_max = v_sweep[best_end]
+        v_min = v_sweep[best_start]
+        compliance = float(v_max - v_min)
+        self.compliance_range_min_max = (v_min, v_max, best_start, best_end)
         if vdd is not None:
             compliance = min(compliance, float(vdd))
         return compliance
