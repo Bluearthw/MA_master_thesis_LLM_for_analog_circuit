@@ -234,7 +234,8 @@ def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
-test_v_compliance_range()
+test_v_compliance_range(sim = True)
+# test_v_compliance_range(sim = False)
 
 # test_get_vdd(439)
 #endregion test entrance

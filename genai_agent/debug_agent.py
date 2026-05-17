@@ -34,6 +34,11 @@ wrdata ./1genai/output/{cir_num}/noise.csv inoise_spectrum
     wrdata ./1genai/output/155/noise_total.csv inoise_total
     wrdata ./1genai/output/155/noise_spectrum.csv inoise_spectrum
 4, if there is 'set curplot = noise2'. You can try to remove it.
+
+5, - Device Format: If device does not fit the format, change the device name like (I1 net7 net4 VDD VSS INVERTER) should be changed to (X1 net7 net4 VDD VSS INVERTER) because it's a subcircuit. 
+6, - Source Alteration: alter source from DC to trans is NOT allowed. Should define it outsice already
+    alter @vla1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
+    alter @vlb1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
 """
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
     retry_count = 0

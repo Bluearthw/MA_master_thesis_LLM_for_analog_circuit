@@ -143,11 +143,22 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
     - Simulation: Same as current matching, no more simulation needed.
     - Output: Same as current matching, use those 2 paths. So, there are 2 spec_sim terms.
 
-4. ** Average supply current**: Need to know the current for power. Since it is with clock, transient analysis is required.
+4. **Average supply current**: Need to know the current for power. Since it is with clock, transient analysis is required.
     - Simulation: careful about the clock definition and the trans signal
     - Output: {line_wrdata_path_num}/current.csv vdd#branch
 
+5. **subcircuit**: They can be removed and use ideal blocks. If needed, there are examples:
     
+    .subckt INVERTER in out vdd vss
+    B1 out vss v = (v(in) > (v(vdd)/2)) ? v(vss) : v(vdd)
+    .ends INVERTER
+    
+    .subckt PFD clka clkb up dn vdd vss
+    B1 up vss V=V(clka)
+    B2 dn vss V=V(clkb)
+    .ends
+
+
 ### General Netlist Rules:
 
 0. **Load**: Add load capacitance if needed (e.g., Cload=10p at output)
@@ -159,7 +170,11 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
 6. **Single noise method**: Use ONLY ONE noise specification (either `onoise_total` for integrated value OR `onoise_spectrum` for frequency response, not both).
 7. **Differential check**: Charge pump outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
 8. **CMFB stability**: Set to false for charge pump circuits (they don't typically use CMFB loops).
-9. **comment**: Remember to add short comments to tell the purpose of each simulation. Example: *current matching 
+9. **Comments**: Remember to add short comments to tell the purpose of each simulation. Example: *current matching 
+10. **Format**: If device does not fit the format, change the device name like (I1 net7 net4 VDD VSS INVERTER) should be changed to (X1 net7 net4 VDD VSS INVERTER) because it's a subcircuit. 
+    - alter source from DC to trans is NOT allowed. Should define it outsice already
+    alter @vla1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
+    alter @vlb1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
 """
     
     max_retries = 5

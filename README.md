@@ -1,5 +1,8 @@
 git add .
 git commit -m "bug found. netlist different. test_make_cir_cim() problem
+use ideal subcircuit
+get a nice figure and figs
+let's write thesis
 "
 git push
 
