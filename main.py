@@ -23,7 +23,7 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 
 is_with_RL = 0 # only with netlist gen
 # is_with_RL = 1 # whole workflow
-# is_with_RL = 2 # only with RL sizer
+is_with_RL = 2 # only with RL sizer
 # is_with_RL = 3 # only with yaml creation
 
 if is_with_RL == 2:
@@ -37,7 +37,7 @@ elif is_with_RL == 3:
             yaml_data = yaml.load(f, Loader=yaml.Loader)
     path_netlist = yaml_data['path_nl']
     i = yaml_data['cir_name']
-    data_for_dut_yaml = (yaml_data['is_differential'], yaml_data['has_input'], yaml_data['target_dc_vout'])
+    data_for_dut_yaml = yaml_data['data_for_dut_yaml']
     path_yaml = yaml_creation.make_full_yaml(path_netlist, path_ids=yaml_data['path_ids'], cir_name=i, data_for_dut_yaml=data_for_dut_yaml)
     print("yaml path = ", path_yaml)
 else:

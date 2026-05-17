@@ -113,7 +113,7 @@ table_targets_default_values = {
     25: 5,         # load_regulation (V/V)% 
     26: 800.0,        # temperature_coefficient (ppm/°C)
     27: 2,          # startup_behavior (time to reach the )
-    28: 1.0e-4,      # current_matching (A)
+    28: 5,          # current_matching(mismatch) %
     29: 1.0e-2,      # output_ripple (V)
     30: 0.5,         # voltage_compliance (V)
 }

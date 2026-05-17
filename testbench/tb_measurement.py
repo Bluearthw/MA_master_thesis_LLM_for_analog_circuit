@@ -59,6 +59,7 @@ def test_DUT(p_id, cir_cum, is_differential_output=False, has_input = False, tar
     dut.netlist_path = path
     result = dut.measure_metrics(p_id)
     print (result)
+    return dut
  
 def test_DUT_with_yaml():
     project_path = os.getcwd()
@@ -158,15 +159,79 @@ def test_get_vdd(cir_cum):
     vdd = dut.get_vdd()
     print(f"VDD: {vdd}")
 
+def test_v_compliance_range(cir_cum= 439, path_id = path_id_439):
+    dut = test_DUT(path_id, cir_cum) 
+    sink_path = local_config.path_output + f"{cir_cum}/sink_current.csv"
+    source_path = local_config.path_output + f"{cir_cum}/source_current.csv"
+    
+    # Load and plot the current data
+    data_sink = np.genfromtxt(sink_path, autostrip=True, skip_header=1)
+    data_source = np.genfromtxt(source_path, autostrip=True, skip_header=1)
+    
+    v_sweep = data_sink[:, 0]
+    i_sink = data_sink[:, 1]
+    i_source = data_source[:, 1]
+    
+    # Create visualization
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+    
+    # Plot 1: Source and Sink Currents
+    ax1.plot(v_sweep, i_source * 1e9, 'b-', linewidth=2, label='Source Current')
+    ax1.plot(v_sweep, i_sink * 1e9, 'r-', linewidth=2, label='Sink Current')
+    if dut.compliance_range_min_max is not None:
+        v_min, v_max = dut.compliance_range_min_max[0], dut.compliance_range_min_max[1]
+        ax1.axvline(v_min, color='g', linestyle='--', alpha=0.7, label=f'Compliance Min: {v_min:.3f}V')
+        ax1.axvline(v_max, color='orange', linestyle='--', alpha=0.7, label=f'Compliance Max: {v_max:.3f}V')
+    ax1.set_xlabel('Output Voltage (V)')
+    ax1.set_ylabel('Current (nA)')
+    ax1.set_title('Source and Sink Currents vs Output Voltage')
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+    
+    # Plot 2: Current Mismatch
+    i_avg = (np.abs(i_source) + np.abs(i_sink)) / 2.0
+    i_avg = np.where(i_avg == 0, 1e-12, i_avg)
+    mismatch = np.abs(i_source - i_sink) / i_avg * 100
+    
+    ax2.plot(v_sweep, mismatch, 'purple', linewidth=2, label='Current Mismatch (%)')
+    ax2.axhline(5.0, color='orange', linestyle='--', alpha=0.5, label='5% Error Threshold')
+    if dut.compliance_range_min_max is not None:
+        v_min, v_max = dut.compliance_range_min_max[0], dut.compliance_range_min_max[1]
+        ax2.axvline(v_min, color='g', linestyle='--', alpha=0.7, label=f'Compliance Min: {v_min:.3f}V')
+        ax2.axvline(v_max, color='orange', linestyle='--', alpha=0.7, label=f'Compliance Max: {v_max:.3f}V')
+        ax2.fill_betweenx([0, 100], v_min, v_max, alpha=0.2, color='green', label='Compliance Range')
+    ax2.set_xlabel('Output Voltage (V)')
+    ax2.set_ylabel('Mismatch (%)')
+    ax2.set_title('Current Matching Mismatch')
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+    ax2.set_ylim([0, 50])
+    
+    plt.tight_layout()
+    plt.savefig(local_config.path_output + f"{cir_cum}/compliance_range_plot.png", dpi=150, bbox_inches='tight')
+    plt.show()
+    
+    # Print compliance information
+    if dut.compliance_range_min_max is not None:
+        v_min, v_max, idx_min, idx_max = dut.compliance_range_min_max
+        compliance_range = v_max - v_min
+        print(f"\n=== Voltage Compliance Range ===")
+        print(f"Min Voltage: {v_min:.6f} V")
+        print(f"Max Voltage: {v_max:.6f} V")
+        print(f"Compliance Range: {compliance_range:.6f} V")
+        print(f"Current Mismatch at Min: {mismatch[idx_min]:.2f}%")
+        print(f"Current Mismatch at Max: {mismatch[idx_max]:.2f}%")
+    else:
+        print("No valid compliance range found.")
 #region test entrance
 # test_phase_calculation()
 # test_DUT(path_id_6, 6, is_differential_output=False, has_input=False, target_dc_vout=0.6)
 # test_DUT(path_id_69, 69, True, True, 0.6) 
-test_DUT(path_id_439, 439) 
+# test_DUT(path_id_439, 439) 
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
-
+test_v_compliance_range()
 
 # test_get_vdd(439)
 #endregion test entrance

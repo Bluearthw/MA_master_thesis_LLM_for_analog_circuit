@@ -43,6 +43,19 @@ def get_file_to_str(path, str=""):
             raise FileNotFoundError(" No File")
     else:
         return False
+
+def get_full_circuit_string(cir_num):
+    # Prioritize the most complete files first
+    filenames = [f"{cir_num}_full.cir", f"{cir_num}.cir"]
+    
+    for filename in filenames:
+        cir_path = os.path.join(local_config.path_dataset, str(cir_num), filename)
+        content = get_file_to_str(cir_path)
+        if content:
+            print("==cir_path\n", cir_path)
+            return content  # Returns the first one it successfully finds
+            
+    raise ValueError("File not found")
         
 def get_file_to_lines(path, n_line, start_from_end = False):
     if os.path.isfile(path):
@@ -966,18 +979,7 @@ def _input_with_timeout(prompt, timeout=10, default=""):
         return user_input['value']
     return default
 
-def get_full_circuit_string(cir_num):
-    # Prioritize the most complete files first
-    filenames = [f"{cir_num}_full.cir", f"{cir_num}.cir"]
-    
-    for filename in filenames:
-        cir_path = os.path.join(local_config.path_dataset, str(cir_num), filename)
-        content = get_file_to_str(cir_path)
-        if content:
-            print("==cir_path\n", cir_path)
-            return content  # Returns the first one it successfully finds
-            
-    raise ValueError("File not found")
+
 
 def pre_process_circuit(cir_num):
     
@@ -988,7 +990,9 @@ def pre_process_circuit(cir_num):
     category_str = get_file_to_str(path_category)
 
     path_output_num = local_config.path_output + f"{cir_num}/"
-    circuit_string = get_full_circuit_string(cir_num)
+    # circuit_string = get_full_circuit_string(cir_num)
+    cir_path = local_config.path_dataset+f"/{cir_num}/{cir_num}.cir"
+    circuit_string = get_file_to_str(cir_path)
     has_input = has_input_port(circuit_string) #if opamp does not have, there is problem
     
     circuit_string = modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167

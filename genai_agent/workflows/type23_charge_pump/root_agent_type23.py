@@ -114,18 +114,24 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
     - Simulation:   Phase A (Source): Force the UP logic input to VDD and the DN input to 0. Sweep a DC voltage source at the output (VCONT1) from 0 to VDD.   
                     Phase B (Sink): Force the DN logic input to VDD and the UP logic input to 0. Sweep the same DC voltage source at the output from 0 to VDD.   
     - Example:
-    * 1a. Measure Source Current (UP is ON, DN is OFF)
-    alter vup dc=1.2
-    alter vdn dc=0
+    * Declare helping netlist
+    R_override_p net4 v_gate_p 1
+    R_override_n net3 v_gate_n 1
+    vforce_p v_gate_p 0 dc=0
+    vforce_n v_gate_n 0 dc=0
+    .control
+    ...
+    * 1a. Measure Source Current (PMOS ON, NMOS OFF)
+    alter vforce_p dc=0
+    alter vforce_n dc=0
     dc vout_force 0 1.2 0.01
     - Output: {line_wrdata_path_num}/ source_current.csv i(vout_force)
     
-    * 1b. Measure Sink Current (DN is ON, UP is OFF)
-    alter vdn dc=1.2
-    alter vup dc=0
+    * 1b. Measure Sink Current (PMOS OFF, NMOS ON)
+    alter vforce_p dc=1.2
+    alter vforce_n dc=1.2
     dc vout_force 0 1.2 0.01
     - Output: {line_wrdata_path_num}/ sink_current.csv i(vout_force)
-
 
 2. **Output Ripple**: Apply simultaneous, narrow, identical pulses to both `UP` and `DN` inputs to simulate a locked PFD state, and measure the peak-to-peak voltage variation on the output node with the load capacitor.
     - Simulation: narrow simultaneous pulses on UP and DN, transient analysis.

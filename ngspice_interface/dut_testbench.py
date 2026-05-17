@@ -817,11 +817,12 @@ class DUT(NgspiceWrapper):
         """Compute output ripple in V from a ripple sweep file."""
         try:
         # Some SPICE outputs use commas or tabs; default to autodetecting whitespace
-            data = np.genfromtxt(path, autostrip=True)
+            data = np.genfromtxt(path, autostrip=True, skip_header=1)
         except Exception:
-            return 0.0
+
+            return 9.0
         if data.size == 0 or data.ndim < 2 or data.shape[0] < 10:
-            return 0.0
+            return 19.0
 
         # Extract time and voltage columns
         # wrdata outputs: [time, v(VCONT1)]
@@ -833,7 +834,8 @@ class DUT(NgspiceWrapper):
         steady_state_vout = vout[start_idx:]
 
         if len(steady_state_vout) == 0:
-            return 0.0
+            print("??? get_output_ripple()")
+            return 29.0
 
         # 2. Calculate Peak-to-Peak Ripple
         # Tip: If your simulation has high-frequency numerical noise,
