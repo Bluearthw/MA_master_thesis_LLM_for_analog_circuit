@@ -23,7 +23,7 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 
 is_with_RL = 0 # only with netlist gen
 # is_with_RL = 1 # whole workflow
-is_with_RL = 2 # only with RL sizer
+# is_with_RL = 2 # only with RL sizer
 # is_with_RL = 3 # only with yaml creation
 
 if is_with_RL == 2:

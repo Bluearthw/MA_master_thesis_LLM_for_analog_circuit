@@ -79,7 +79,7 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
     
     combined_results = {'original': results_original}
     path_netlist = path_output_num + "final_netlist.cir"
-    gen_utils.save_str_to_file(netlist, path_netlist)
+    # gen_utils.save_str_to_file(netlist, path_netlist)
     
     if is_CMFB:
         struct_cmfb = cmfb_agent.cmfb_agent(netlist,cir_num)
@@ -114,22 +114,24 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
     - Simulation:   Phase A (Source): Force the UP logic input to VDD and the DN input to 0. Sweep a DC voltage source at the output (VCONT1) from 0 to VDD.   
                     Phase B (Sink): Force the DN logic input to VDD and the UP logic input to 0. Sweep the same DC voltage source at the output from 0 to VDD.   
     - Example:
-    * Declare helping netlist
-    R_override_p net4 v_gate_p 1
-    R_override_n net3 v_gate_n 1
-    vforce_p v_gate_p 0 dc=0
-    vforce_n v_gate_n 0 dc=0
+    - Subcircuit can be removed or use ideal block if it is not needed. 
+    * Declare helping netlist. The numbers can change if needed. 1.2 is VDD. 
+    vgate_n net3 0 pulse(0   1.2 10ns 50ps 50ps 400ps 20ns) 
+    vgate_p net4 0 pulse(1.2 0   10ns 50ps 50ps 400ps 20ns)
+
+    vout_force VCONT1 0 dc=0.6
+    .ic v(VCONT1) = 0.6
     .control
     ...
     * 1a. Measure Source Current (PMOS ON, NMOS OFF)
-    alter vforce_p dc=0
-    alter vforce_n dc=0
+    alter vgate_p dc=0
+    alter vgate_n dc=0
     dc vout_force 0 1.2 0.01
     - Output: {line_wrdata_path_num}/ source_current.csv i(vout_force)
     
     * 1b. Measure Sink Current (PMOS OFF, NMOS ON)
-    alter vforce_p dc=1.2
-    alter vforce_n dc=1.2
+    alter vgate_p dc=1.2
+    alter vgate_n dc=1.2
     dc vout_force 0 1.2 0.01
     - Output: {line_wrdata_path_num}/ sink_current.csv i(vout_force)
 
@@ -145,25 +147,10 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
     - Simulation: careful about the clock definition and the trans signal
     - Output: {line_wrdata_path_num}/current.csv vdd#branch
 
-5. ** Optional: Subcircuit
-    - If needed, subcircuit can be added.
-    - Example:
-    * Subcircuits
-    .subckt INVERTER IN OUT VDD VSS
-    M1 OUT IN VDD VDD pmos w=0.5u l=90n
-    M2 OUT IN VSS VSS nmos w=0.2u l=90n
-    .ends
-
-    .subckt PFD R V UP DN VDD VSS
-    * Simplified behavioral buffer to pass pulses to UP/DN nodes
-    XI1 R UP_int VDD VSS INVERTER
-    XI2 UP_int UP VDD VSS INVERTER
-    XI3 V DN_int VDD VSS INVERTER
-    XI4 DN_int DN VDD VSS INVERTER
-    .ends
+    
 ### General Netlist Rules:
 
-0. **Load**: Add load capacitance if not present (e.g., Cload=10p at output)
+0. **Load**: Add load capacitance if needed (e.g., Cload=10p at output)
 1. **Transistor parameters**: Use `.param` variables without curly brackets on the component line. WRONG: `w={{}}` CORRECT: `w=wp1` with `.param wp1=1u`
 2. **Passive components**: Capacitors and resistors MUST use curly brackets with variables. CORRECT: `R0 node1 node2 {{r0}}` with `.param r0=1k`
 3. **Circuit requirements**: This is a charge pump circuit. Ensure it has proper switching network, capacitors, and control logic for voltage multiplication.
@@ -173,7 +160,6 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
 7. **Differential check**: Charge pump outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
 8. **CMFB stability**: Set to false for charge pump circuits (they don't typically use CMFB loops).
 9. **comment**: Remember to add short comments to tell the purpose of each simulation. Example: *current matching 
-
 """
     
     max_retries = 5

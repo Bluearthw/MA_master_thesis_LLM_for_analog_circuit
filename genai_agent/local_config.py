@@ -115,7 +115,7 @@ table_targets_default_values = {
     27: 2,          # startup_behavior (time to reach the )
     28: 5,          # current_matching(mismatch) %
     29: 1.0e-2,      # output_ripple (V)
-    30: 0.5,         # voltage_compliance (V)
+    30: 0.3,         # voltage_compliance (V)
 }
 
 list_targets_to_min = ["noise_total", 

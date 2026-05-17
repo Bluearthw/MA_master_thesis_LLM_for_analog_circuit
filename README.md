@@ -1,6 +1,5 @@
 git add .
-git commit -m "the compliace range has a problem because of the measurement.
-I think just use simple circuit with 
+git commit -m "bug found. netlist different. test_make_cir_cim() problem
 "
 git push
 

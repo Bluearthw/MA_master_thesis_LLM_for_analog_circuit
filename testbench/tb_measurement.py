@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 sys.path.append(".")
 from ngspice_interface import dut_testbench
 from genai_agent import local_config
+from testbench import tb_netlist_simulation
 path_id_155 =  {0: './genai_agent/output/155/ac_gain.csv', 1: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 14: './genai_agent/output/155/ac_cmrr.csv', 2: './genai_agent/output/155/ac_psrr.csv', 4: './genai_agent/output/155/tran_SR.csv', 3: './genai_agent/output/155/noise.csv'}
 path_id_69 =  {18: './genai_agent/output/69/ac_gain.csv', 1: './genai_agent/output/69/ac_gain.csv', 6: './genai_agent/output/69/ac_gain.csv', 3: './genai_agent/output/69/noise.csv', 4: './genai_agent/output/69/tran_SR.csv', 22: './genai_agent/output/69/dc_current.csv', 23: './genai_agent/output/69/dc_current.csv'}
 path_id_96 = {18: './genai_agent/output/96/ac_dm.csv', 17: './genai_agent/output/96/ac_cm.csv', 0: './genai_agent/output/96/ac_gain.csv', 1: './genai_agent/output/96/ac_gain.csv', 16: './genai_agent/output/96/ac_gain.csv', 6: './genai_agent/output/96/ac_gain.csv', 3: './genai_agent/output/96/noise.csv', 4: './genai_agent/output/96/tran_sr.csv', 10: './genai_agent/output/96/dc_sweep.csv', 11: './genai_agent/output/96/dc_sweep.csv'}
@@ -159,7 +160,9 @@ def test_get_vdd(cir_cum):
     vdd = dut.get_vdd()
     print(f"VDD: {vdd}")
 
-def test_v_compliance_range(cir_cum= 439, path_id = path_id_439):
+def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
+    if sim:
+        tb_netlist_simulation.test_run_ngspice_direct_from_final_netlist(cir_cum)
     dut = test_DUT(path_id, cir_cum) 
     sink_path = local_config.path_output + f"{cir_cum}/sink_current.csv"
     source_path = local_config.path_output + f"{cir_cum}/source_current.csv"
