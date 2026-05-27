@@ -1,30 +1,29 @@
 \section{Introduction}
-% Write a brief opening paragraph here (1-2 paragraphs) introducing 
-% the general field of Analog EDA and why automation is needed.
-\IEEEPARstart{A}{nalog} and mixed-signal circuits are important. They build up the modern life and they are very common to see. However, they are not easy to design. It usually takes a long time to design an analog circuit.
-%%%%%%%%%%%%%%% \section{Background and Motivation}
-% Note: Rename "Previous work" to this. "Previous work" sounds like a 
-% Literature Review, which belongs in Chapter 2. Instead, use this section 
-% to establish the problem.
-% - Analog design blabla, previous challenges
-% - LLM-based model challenges
-% - Limitations of existing dataset-heavy methods
-analog design blabla, previous challenges
-LLM-based model challenges
-(Most of the existing methods)
-a dataset is used
-explainability so LLM 
-LLMxxx
-to make it more automatic
-% - Explainability: Why LLMs are the solution
-% - Overcoming dataset scarcity
-% - Automating the "simulation gap"
-%%%%%%%%%%%%%%% \section{Work of This Dissertation}
 
+\IEEEPARstart{A}{nalog} and mixed-signal circuits form the backbone of modern electronic systems, from RF communications and power management to sensor interfaces and analog signal processing. Despite their ubiquity, analog circuit design remains one of the most challenging and time-consuming stages in the electronic design automation (EDA) workflow. Unlike digital design, which benefits from mature automation tools and well-established methodologies, analog design heavily relies on expert knowledge, iterative simulation, and extensive manual tuning. The design cycle often spans months, involving numerous circuit topologies, parameter sweeps, and validation iterations—making analog design a significant bottleneck in product development.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%% \section{Summary and Outline}
+\section{Background and Motivation}
 
+The challenges in analog circuit design stem from several factors: (1) the lack of automated parameter optimization tools comparable to those in digital design, (2) the need for extensive domain expertise to navigate the vast design space, and (3) the difficulty in handling malfunctioning or incomplete circuit descriptions that arise during the early design phases. Traditional approaches rely on manual functional netlists as starting points for automated sizing tools, which assumes designers have already resolved fundamental circuit structure problems. This assumption limits the potential for full automation.
 
-this paper is organized as follows.
+Recent advances in large language models (LLMs) present new opportunities for analog design automation. LLMs have demonstrated remarkable capabilities in code generation, reasoning, and handling complex textual information. However, directly applying LLMs to circuit design faces significant barriers: (1) circuit design requires multi-step reasoning and validation that single-pass language models cannot guarantee, (2) LLM outputs often require correction for syntactic and functional errors, and (3) most existing methods rely on large, domain-specific datasets that are expensive to curate.
+
+To address these limitations, a multi-agent system (MAS) architecture offers a promising solution. By decomposing the problem into specialized agents that collaborate toward a common goal, we can overcome dataset scarcity, improve explainability, and bridge the gap between high-level circuit specifications and simulatable netlists. This agent-based approach enables iterative refinement, error correction, and integration with downstream optimization tools.
+
+\section{Contributions of This Dissertation}
+
+This dissertation introduces an innovative multi-agent system for analog circuit design automation that combines LLM-based reasoning with reinforcement learning-based optimization. The key contributions are:
+
+\begin{enumerate}
+    \item A netlist generator agent capable of creating initial circuit designs from high-level specifications
+    \item An error correction agent that identifies and fixes common netlist errors without requiring extensive training data
+    \item A classification system that recognizes three types of malfunctioning circuits and transforms them into functional, simulatable netlists
+    \item Integration with a reinforcement learning-based sizing engine that optimizes circuit parameters to meet specified performance targets
+    \item A unified framework that reduces manual intervention and increases automation in the early-stage circuit design workflow
+\end{enumerate}
+
+\section{Organization}
+
+The remainder of this paper is organized as follows. Chapter 1 provides detailed background on analog design challenges and related work in EDA automation. Chapter 2 presents the architecture and design of the proposed multi-agent system. Chapter 3 describes the evaluation methodology and experimental setup. Chapter 4 presents results and analysis, and Chapter 5 concludes with discussion and future directions.
 
 % \url{http://tug.ctan.org/info/lshort/english/lshort.pdf} which provides an overview of working with \LaTeX.
