@@ -10,6 +10,7 @@ import scipy.interpolate as interp
 import scipy.optimize as sciopt
 from PySpice.Spice.NgSpice.Shared import NgSpiceShared
 import matplotlib.pyplot as plt
+import json
 from google import genai
 from scipy.integrate import trapezoid
 import sys
@@ -1271,6 +1272,24 @@ def ensure_data_format_settings(netlist):
     lines[control_index + 1:control_index + 1] = insert_lines
     
     return '\n'.join(lines)
+
+def count_retry_info(cir_nums, json_name = "debug_metadata.json" ):
+    total_retries = 0
+    len_cir_nums = len(cir_nums)
+    for cir_num in cir_nums:
+        path = local_config.path_output + f"{cir_num}/" + json_name
+        # print(path)
+        if os.path.exists(path):
+            with open(path, 'r') as f:
+                data = json.load(f)
+            retry = data.get("retry_count", -1)
+            # print(f"Circuit {cir_num}: {retry} retries")
+            if retry == -1:
+                raise ValueError(f"Invalid retry count in {path}")
+            total_retries += retry
+    avg_retry = total_retries / len_cir_nums if len_cir_nums > 0 else 0
+
+    return total_retries, avg_retry
 
 def test_delay(sec):
     time.sleep(sec)
