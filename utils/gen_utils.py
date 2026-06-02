@@ -916,7 +916,7 @@ def user_modify_input(v_name, v_old):
         return v_old
     return v_new
 
-def _input_with_timeout(prompt, timeout=10, default=""):
+def _input_with_timeout(prompt, timeout=1, default=""):
     """Read input with a timeout, returning default if no response."""
     sys.stdout.write(prompt)
     sys.stdout.flush()
