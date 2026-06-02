@@ -19,12 +19,20 @@ test = [9, 155, 69, 182] # try to have siso diso dido dido_cmfb
 # test = [182] #dido cmfb
 test = [6] #bandgap
 test = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump
-test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
+# test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 
 is_with_RL = 0 # only with netlist gen
 # is_with_RL = 1 # whole workflow
-is_with_RL = 2 # only with RL sizer
+# is_with_RL = 2 # only with RL sizer
 # is_with_RL = 3 # only with yaml creation
+if is_with_RL == 0:
+    print("Only netlist generation is enabled.")
+elif is_with_RL == 1:
+    print("Whole workflow is enabled.")
+elif is_with_RL == 2:
+    print("Only RL sizer is enabled.")
+elif is_with_RL == 3:
+    print("Only yaml creation is enabled.")
 
 if is_with_RL == 2:
     i = test[0]
@@ -43,7 +51,6 @@ elif is_with_RL == 3:
 else:
     for i in test:
         print("=====*======",i)
-        print("====*=======",i)
 
         output_dir = Path(f"{path_output}{i}")
         output_dir.mkdir(parents=True, exist_ok=True)

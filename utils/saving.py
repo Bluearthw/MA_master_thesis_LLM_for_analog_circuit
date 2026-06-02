@@ -1,5 +1,6 @@
 import os
 import csv
+import json
 
 def save_solutions_csv(run_id, simulation_step, circuit_params, specs, reward):
     # Define the CSV file name based on the run_id to keep it unique
@@ -25,3 +26,16 @@ def save_solutions_csv(run_id, simulation_step, circuit_params, specs, reward):
         print(f"Error saving solution to CSV: {e}")
     
     return csv_file_name
+
+def save_error_info(path_output_num, cir_num, retry_count, error_history, fix_info, status):
+        metadata_path = path_output_num + "debug_metadata.json"
+        metadata = {
+            "cir_num": cir_num,
+            "retry_count": retry_count,
+            "status": status,
+            "error_history": error_history,
+            "fix_info": fix_info,
+        }
+        print("path_retry",metadata_path)
+        with open(metadata_path, "w", encoding="utf-8") as f:
+            json.dump(metadata, f, indent=2)

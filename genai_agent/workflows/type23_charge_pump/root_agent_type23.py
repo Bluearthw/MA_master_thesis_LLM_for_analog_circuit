@@ -11,6 +11,7 @@ from genai_agent.debug_agent import debug_agent_flow
 from genai_agent.workflows import cmfb_agent
 
 from utils import gen_utils as gen_utils
+from utils import saving
 from ngspice_interface import dut_testbench
 
 path_output = local_config.path_output
@@ -18,6 +19,7 @@ path_output = local_config.path_output
 def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True):
     
     counter = 0
+    fix_info = []
     error_msg = []
     while True:
         sim_output = gen_utils.run_ngspice_direct(netlist)
@@ -33,7 +35,9 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             netlist_path = path_output_num + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
-
+            
+            saving.save_error_info(path_output_num, cir_num, counter, error_msg, fix_info, "success")
+            
             print("== final_netlist = ", netlist)
 
             measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout, netlist_path=netlist_path).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
@@ -50,9 +54,13 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             struct_debug = debug_agent_flow(netlist, error_msg_input, cir_num, spec_sims)
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims
-            error_msg.append("fixing info:\n" + struct_debug.fix_info)
+            new_fix_info = struct_debug.fix_info
+            fix_info.append("fixing info:\n" + new_fix_info)
+            # saving.save_error_info(path_output_num, cir_num, counter + 1, error_msg, fix_info, "retry")
+            error_msg.append("iteration{counter}, fixing info:\n" + new_fix_info)
         counter += 1
         if counter > 5:
+            saving.save_error_info(path_output_num, cir_num, counter, error_msg, fix_info, "failed")
             raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
 
 def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input):
@@ -87,6 +95,7 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
         cmfb_spec_sims = struct_cmfb.spec_sims
         gen_utils.save_str_to_file(cmfb_netlist, path_output_num + "cmfb_netlist.cir")
         # Simulate CMFB netlist (assuming same spec_sims)
+        # here is measurement result and path_id, how to combine?
         results_cmfb = sim_debug_measure_loop(cmfb_netlist, [cmfb_spec_sims], is_differential_output, cir_num, path_output_num)
         combined_results['cmfb'] = results_cmfb
     

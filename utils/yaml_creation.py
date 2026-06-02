@@ -177,9 +177,15 @@ def _format_value(value):# start with underline, this will not be imported
         return f"{fval:.2f}" 
  
 def _prompt_input(prompt):
-    sys.stdout.write(prompt)
-    sys.stdout.flush()
-    return sys.stdin.readline().rstrip('\n')
+    # Use the shared timeout-enabled prompt helper from utils.gen_utils.
+    # This keeps interactive behavior consistent and avoids hanging forever.
+    try:
+        return gen_utils._input_with_timeout(prompt, timeout=10, default="").strip()
+    except Exception:
+        # Fall back to a normal prompt if the timeout helper is unavailable.
+        sys.stdout.write(prompt)
+        sys.stdout.flush()
+        return sys.stdin.readline().rstrip('\n')
 
 def make_targets_lines(targets_dict):
     """
