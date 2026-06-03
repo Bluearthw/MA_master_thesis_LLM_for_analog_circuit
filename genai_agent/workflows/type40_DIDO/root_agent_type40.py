@@ -15,7 +15,7 @@ from ngspice_interface import dut_testbench
 
 path_output = local_config.path_output
 
-def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True):
+def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, file_name = "final_netlist.cir"):
     
     counter = 0
     error_msg = []
@@ -29,7 +29,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             print(f"===  path_id_{cir_num} = ", struct_path_id)
             print("Simulation successful and output files verified!")
             # save the netlist
-            netlist_path = path_output_num + "final_netlist.cir"
+            netlist_path = path_output_num + file_name
             with open(netlist_path, "w") as f:
                 f.write(netlist)
             measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
@@ -51,9 +51,9 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
         if counter > 5:
             raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
 
-def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input):
+def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table):
            
-    struc = add_sim_agent(netlist, category_str, cir_num)
+    struc = add_sim_agent(netlist, category_str, cir_num, trimmed_spec_table)
     target_dc_vout = struc.target_dc_vout
     target_dc_vout = gen_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
 
@@ -77,6 +77,7 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
     path_netlist = path_output_num + "final_netlist.cir"
     gen_utils.save_str_to_file(netlist, path_netlist)
     
+    cmfb_struct_path_id = ""
     if is_CMFB:
         struct_cmfb = cmfb_agent.cmfb_agent(netlist,cir_num)
         cmfb_netlist = struct_cmfb.netlist
@@ -85,19 +86,21 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
         cmfb_spec_sims = struct_cmfb.spec_sims
         gen_utils.save_str_to_file(cmfb_netlist, path_output_num + "cmfb_netlist.cir")
         # Simulate CMFB netlist (assuming same spec_sims)
-        results_cmfb, struct_path_id = sim_debug_measure_loop(cmfb_netlist, [cmfb_spec_sims], cir_num, path_output_num, is_differential_output, target_dc_vout, has_input)
-        combined_results['cmfb'] = results_cmfb
+        cmfb_results, cmfb_struct_path_id = sim_debug_measure_loop(cmfb_netlist, [cmfb_spec_sims], cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, "cmfb_netlist.cir")
+        combined_results['cmfb'] = cmfb_results
     
     data_for_dut_yaml = (is_differential_output, has_input, target_dc_vout)
 
     print("Combined measurement results:", combined_results)
-    return combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml
+    return combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml, cmfb_struct_path_id
     
-def add_sim_agent(netlist, category,cir_num=4):
+def add_sim_agent(netlist, category,cir_num=4, trimmed_spec_table=None):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
     f_end= "1T"
-    contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs : {local_config.table_specs_id}, and a brief requirement about this type of circuit : {category}.
+    contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs to look up : {trimmed_spec_table}, and a brief requirement about this type of circuit : {category}.
+[CRITICAL INSTRUCTION]: You must ONLY simulate and analyze the specifications explicitly required in the requirement. 
+Do NOT assume, infer, or add any other measurements unless they are explicitly required by the requirement, even if they show in the table.
 Your goal is to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. You should output the complete netlist, tell whether it is differential output or not, a list of required specifications and corresponding simulation files for measurement. The measurement will be done by following agents.
 ### Here are some rules.
 0. Check whether the circuit needs a load. If the circuit does not have a load, add a capacitor load. Example: 

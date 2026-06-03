@@ -134,7 +134,7 @@ class DUT(NgspiceWrapper):
                 if self.dc_vout_target is None:
                     raise ValueError("Target DC output voltage is not specified")
                 spec_dict[table_target_id[23]] = self.get_dc_vout_relative_err(path, dc_vout_target= self.dc_vout_target) 
-                print("dut:", spec_dict[table_target_id[23]])
+                # print("dut:", spec_dict[table_target_id[23]])
                 # spec_dict[table_target_id[23]+"_target_vout"] = self.get_dc_vout(path) 
             elif spec_id == 24:
                 spec_dict[table_target_id[24]] = self.get_line_regulation(path) 
@@ -693,6 +693,8 @@ class DUT(NgspiceWrapper):
     def get_dc_vout_relative_err(self, path, dc_vout_target=0.1):
         """Return the relative DC output voltage from a DC measurement file."""
         data = np.genfromtxt(path, autostrip=True, skip_header=1)
+        print("DUT",data)
+        print("DUT",path)
         if data.size == 0:
             data = np.genfromtxt(path, autostrip=True, skip_header=0) # sometimes no header
             if data.size == 0:

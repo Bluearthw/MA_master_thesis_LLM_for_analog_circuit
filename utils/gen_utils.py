@@ -1275,6 +1275,7 @@ def ensure_data_format_settings(netlist):
 
 def count_retry_info(cir_nums, json_name = "debug_metadata.json" ):
     total_retries = 0
+    zero_retry_count = 0
     len_cir_nums = len(cir_nums)
     for cir_num in cir_nums:
         path = local_config.path_output + f"{cir_num}/" + json_name
@@ -1284,12 +1285,52 @@ def count_retry_info(cir_nums, json_name = "debug_metadata.json" ):
                 data = json.load(f)
             retry = data.get("retry_count", -1)
             # print(f"Circuit {cir_num}: {retry} retries")
+            if retry == 0:
+                zero_retry_count +=1
             if retry == -1:
                 raise ValueError(f"Invalid retry count in {path}")
             total_retries += retry
     avg_retry = total_retries / len_cir_nums if len_cir_nums > 0 else 0
 
-    return total_retries, avg_retry
+    return total_retries, avg_retry, zero_retry_count
+
+def trim_spec_table(text):
+    trimmed_dict = {}
+    text_lower = text.lower()
+    
+    # Mapping common abbreviations found in text to their full dictionary equivalents
+    aliases = local_config.table_specs_aliases
+    target_dict = local_config.table_specs_id
+    for idx, spec_full_name in target_dict.items():
+        spec_lower = spec_full_name.lower()
+        
+        # 1. Base check: Does the full string name or part of it appear in the markdown text?
+        # Clean up parentheses for a softer string search
+        clean_name = re.sub(r'\(.*?\)', '', spec_lower).strip()
+        exact_match = clean_name in text_lower or spec_lower in text_lower
+        
+        # 2. Alias check: Does an abbreviation (like PM or PSRR) appear?
+        alias_match = False
+        if idx in aliases:
+            alias_match = any(alias in text_lower for alias in aliases[idx])
+            
+        # 3. Negation Check: Ensure phrases like "CMRR is not applicable" remove it
+        # This checks if the spec name or its aliases are followed by negative keywords
+        keywords_to_check = [clean_name, spec_lower] + aliases.get(idx, [])
+        is_negated = False
+        for kw in keywords_to_check:
+            if kw in text_lower:
+                # Looks for "keyword is not", "keyword not required", or "not applicable" near it
+                if re.search(rf"{re.escape(kw)}[\s\w]*is\s+not", text_lower) or \
+                   re.search(rf"{re.escape(kw)}[\s\w]*not\s+applicable", text_lower):
+                    is_negated = True
+                    break
+
+        # If it matches and isn't explicitly ruled out, add it to our active list
+        if (exact_match or alias_match) and not is_negated:
+            trimmed_dict[idx] = spec_full_name
+            
+    return trimmed_dict
 
 def test_delay(sec):
     time.sleep(sec)

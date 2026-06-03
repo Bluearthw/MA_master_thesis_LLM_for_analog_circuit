@@ -21,6 +21,14 @@ test = [6] #bandgap
 test = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump
 test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 test = category_numbers.num_class_6_without_IIN1
+test = category_numbers.num_class_1_with_VDD
+tested = [9, 14, 17, 22, 24, 27, 31, 35, 37, 38, 41, 46, 48, 52, 54, 57]
+# Convert tested to a set first for blazing fast lookups
+tested_set = set(tested)
+
+# Keep only the items that aren't in the tested set
+test = [item for item in test if item not in tested_set]
+
 print(len(test))
 is_with_RL = 0 # only with netlist gen
 # is_with_RL = 1 # whole workflow
@@ -57,15 +65,16 @@ else:
         output_dir.mkdir(parents=True, exist_ok=True)
         path_output_num, category_num, category_str, netlist, has_input = gen_utils.pre_process_circuit(i)
         gen_utils.delete_all_files_except_dir(path_output_num)
+        trimmed_spec_table = gen_utils.trim_spec_table(category_str)
         if category_num == 6:
-            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type6.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input)
+            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type6.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
         if category_num == 23:
-            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type23.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input)
+            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type23.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
              
         else:
             # print(f"found,cat:{category_num}")
             # continue
-            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type40.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input)
+            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml, cmfb_struct_path_id = root_agent_type40.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
         struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 2 and k != 15 and k != 14} # remove some array results
         print("====netlist generation done=======",i)
         

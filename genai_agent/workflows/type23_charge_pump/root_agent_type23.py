@@ -63,9 +63,9 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             saving.save_error_info(path_output_num, cir_num, counter, error_msg, fix_info, "failed")
             raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
 
-def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input):
+def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table):
     
-    struc = add_sim_agent(netlist, category_str, cir_num)
+    struc = add_sim_agent(netlist, category_str, cir_num, trimmed_spec_table)
     target_dc_vout = struc.target_dc_vout
     target_dc_vout = gen_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
 
@@ -105,12 +105,11 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
     print("Combined measurement results:", combined_results)
     return combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml
     
-def add_sim_agent(netlist, category, cir_num=4):
+def add_sim_agent(netlist, category, cir_num=4, trimmed_spec_table=None):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
     # f_end = "1T"
-    contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given a netlist for a charge pump circuit: {netlist}, circuit number {cir_num}, a table of specifications and their IDs: {local_config.table_specs_id}, and detailed requirements: {category}.
-
+    contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given a netlist for a charge pump circuit: {netlist}, circuit number {cir_num}, a table of specifications and their IDs: {trimmed_spec_table}, and detailed requirements: {category}.
 Your goal is to complete the simulation setup for the charge pump circuit. The netlist must be fully simulated without errors. You should output:
 1. The complete, ready-to-run netlist
 2. Whether the output is differential (true/false)

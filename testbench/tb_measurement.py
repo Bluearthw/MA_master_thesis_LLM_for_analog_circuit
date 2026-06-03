@@ -12,14 +12,19 @@ path_id_69 =  {18: './genai_agent/output/69/ac_gain.csv', 1: './genai_agent/outp
 path_id_96 = {18: './genai_agent/output/96/ac_dm.csv', 17: './genai_agent/output/96/ac_cm.csv', 0: './genai_agent/output/96/ac_gain.csv', 1: './genai_agent/output/96/ac_gain.csv', 16: './genai_agent/output/96/ac_gain.csv', 6: './genai_agent/output/96/ac_gain.csv', 3: './genai_agent/output/96/noise.csv', 4: './genai_agent/output/96/tran_sr.csv', 10: './genai_agent/output/96/dc_sweep.csv', 11: './genai_agent/output/96/dc_sweep.csv'}
 path_id_182 = {20: './genai_agent/output/182/cmfb_stb.csv'}
 path_id_two_stage = {0: '.\\no_backup\\output_files\\ac_TwoStage.csv', 3: '.\\no_backup\\output_files\\noise_TwoStage.csv', 4: '.\\no_backup\\output_files\\tran_TwoStage.csv', 6: '.\\no_backup\\output_files\\ac_TwoStage.csv', 21: '.\\no_backup\\output_files\\ac_TwoStage.csv', 22: '.\\no_backup\\output_files\\dc_TwoStage.csv'}
+path_id_439 =  {28: ['./genai_agent/output/439/source_current.csv', './genai_agent/output/439/sink_current.csv'], 29: './genai_agent/output/439/output_ripple.csv', 30: ['./genai_agent/output/439/source_current.csv', './genai_agent/output/439/sink_current.csv']}
+
+#class 6 bandgap
+path_id_6 =  {23: './genai_agent/output/6/dc_vref.csv', 22: './genai_agent/output/6/dc_current.csv', 24: './genai_agent/output/6/dc_line_reg.csv', 25: './genai_agent/output/6/dc_load_reg.csv', 26: './genai_agent/output/6/dc_temp_coeff.csv', 2: './genai_agent/output/6/ac_psrr.csv', 27: './genai_agent/output/6/tran_startup.csv', 7: './genai_agent/output/6/noise.csv'}
+path_id_641 =  {23: './genai_agent/output/641/dc_vref.csv', 22: './genai_agent/output/641/dc_current.csv', 24: './genai_agent/output/641/dc_line_reg.csv', 25: './genai_agent/output/641/dc_load_reg.csv', 26: './genai_agent/output/641/dc_temp_coeff.csv', 2: './genai_agent/output/641/ac_psrr.csv', 27: './genai_agent/output/641/tran_startup.csv', 7: './genai_agent/output/641/noise.csv'}
+path_id_442 =  {23: './genai_agent/output/442/dc_op.csv', 22: './genai_agent/output/442/dc_current.csv', 24: './genai_agent/output/442/dc_line_reg.csv', 25: './genai_agent/output/442/dc_load_reg.csv', 26: './genai_agent/output/442/dc_tc.csv', 2: './genai_agent/output/442/ac_psrr.csv', 27: './genai_agent/output/442/tran_startup.csv', 7: './genai_agent/output/442/noise.csv'}
+
+#class1 SISO
 path_id_9_phase = {5: './genai_agent/output/9/ac_gain.csv', 6: './genai_agent/output/9/ac_gain.csv'}
 path_id_9_psrr = {0: './genai_agent/output/9/ac_gain.csv', 2: './genai_agent/output/9/ac_psrr.csv'}
 path_id_9_current = {0: './genai_agent/output/9/ac_gain.csv', 22: './genai_agent/output/9/dc_current.csv'}
-path_id_6 =  {23: './genai_agent/output/6/dc_vref.csv', 22: './genai_agent/output/6/dc_current.csv', 24: './genai_agent/output/6/dc_line_reg.csv', 25: './genai_agent/output/6/dc_load_reg.csv', 26: './genai_agent/output/6/dc_temp_coeff.csv', 2: './genai_agent/output/6/ac_psrr.csv', 27: './genai_agent/output/6/tran_startup.csv', 7: './genai_agent/output/6/noise.csv'}
-path_id_439 =  {28: ['./genai_agent/output/439/source_current.csv', './genai_agent/output/439/sink_current.csv'], 29: './genai_agent/output/439/output_ripple.csv', 30: ['./genai_agent/output/439/source_current.csv', './genai_agent/output/439/sink_current.csv']}
+path_id_57 =  {0: './genai_agent/output/57/ac_gain.csv', 1: './genai_agent/output/57/ac_gain.csv', 2: './genai_agent/output/57/psrr.csv', 3: './genai_agent/output/57/noise.csv', 4: './genai_agent/output/57/tran_SR.csv', 5: './genai_agent/output/57/ac_gain.csv', 6: './genai_agent/output/57/ac_gain.csv', 13: './genai_agent/output/57/icmr.csv', 22: './genai_agent/output/57/dc_current.csv', 23: './genai_agent/output/57/icmr.csv'}
 
-path_id_641 =  {23: './genai_agent/output/641/dc_vref.csv', 22: './genai_agent/output/641/dc_current.csv', 24: './genai_agent/output/641/dc_line_reg.csv', 25: './genai_agent/output/641/dc_load_reg.csv', 26: './genai_agent/output/641/dc_temp_coeff.csv', 2: './genai_agent/output/641/ac_psrr.csv', 27: './genai_agent/output/641/tran_startup.csv', 7: './genai_agent/output/641/noise.csv'}
-path_id_442 =  {23: './genai_agent/output/442/dc_op.csv', 22: './genai_agent/output/442/dc_current.csv', 24: './genai_agent/output/442/dc_line_reg.csv', 25: './genai_agent/output/442/dc_load_reg.csv', 26: './genai_agent/output/442/dc_tc.csv', 2: './genai_agent/output/442/ac_psrr.csv', 27: './genai_agent/output/442/tran_startup.csv', 7: './genai_agent/output/442/noise.csv'}
 """ in yaml:
 path_id:
   0: '.\\no_backup\\output_files\\ac_TwoStage.csv'
@@ -234,7 +239,7 @@ def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
 # test_DUT(path_id_69, 69, True, True, 0.6) 
 # test_DUT(path_id_439, 439) 
 # test_DUT(path_id_641, 641) 
-test_DUT(path_id_442, 442) 
+test_DUT(path_id_57, 57) 
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
