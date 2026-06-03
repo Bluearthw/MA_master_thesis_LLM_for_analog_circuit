@@ -219,6 +219,7 @@ class DUT(NgspiceWrapper):
             return self.current
         elif path_i != "":
             # Load the data safely
+            print(path_i)
             data = np.genfromtxt(path_i, autostrip=True, skip_header=1)
             print(data)
             # Check if the data is a 2D array (Transient wave data)

@@ -145,7 +145,7 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
    - Simulation: tran 50n 100u
    - Output: {line_wrdata_path_num}/tran_startup.csv v(VOUT1)
 
-7. **Output Noise**: Noise analysis for integrated output noise. DO NOT use 'set curplot = noise2'
+7. **Output Noise**: Noise analysis for integrated output noise. DO NOT use 'set curplot = noise2' or 'onoise_spectrum'.
    - Simulation: noise v(VOUT1) Vdd dec 10 1 {f_end}
    - Output: {line_wrdata_path_num}/noise.csv onoise_total
 
@@ -161,9 +161,8 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
 3. **Circuit requirements**: This is a self-biasing DC reference. Ensure it has proper biasing network, feedback path, and current generation mechanism.
 4. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path! Lines MUST be kept : 'set units=degrees' and 'set wr_vecnames'!
 5. **ONE command per line**: Every `.param`, `.model`, and component definition must start on a NEW line.
-6. **Single noise method**: Use ONLY ONE noise specification (`onoise_total` for integrated noise).
-7. **Differential check**: Bandgap outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
-8. **CMFB stability**: Set to false for bandgap references (they don't typically use CMFB loops).
+6. **Differential check**: Bandgap outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
+7. **CMFB stability**: Set to false for bandgap references (they don't typically use CMFB loops).
 
 
 """

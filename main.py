@@ -56,6 +56,7 @@ else:
         output_dir = Path(f"{path_output}{i}")
         output_dir.mkdir(parents=True, exist_ok=True)
         path_output_num, category_num, category_str, netlist, has_input = gen_utils.pre_process_circuit(i)
+        gen_utils.delete_all_files_except_dir(path_output_num)
         if category_num == 6:
             combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type6.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input)
         if category_num == 23:
