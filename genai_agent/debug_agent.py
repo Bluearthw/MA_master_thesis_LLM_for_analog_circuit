@@ -21,13 +21,11 @@ But for resistors or capacitors, they need {{}}.
 Example: 
 C1 VOUT1 VSS {{C_val}}
 R0 net10 tail {{R_val}}
-2, In NGSpice, you can use inoise_total if the integration noise is required. If there is no inoise_spectrum vector, try inoise_total.
-Example1 for input refer total noise integrated:
+2, In NGSpice, you can use inoise_total if the integration noise is required. 
+Example for input refer total noise integrated:
 noise v(VOUT1) vin dec 10 1 100G
 wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
-Example2 :
-noise v(VOUT1) vin dec 10 1 100G
-wrdata ./1genai/output/{cir_num}/noise.csv inoise_spectrum
+
 3, There is only 1 wrdata line after 1 simulation.
  -BAD:
     noise v(VOUT1) Vdm dec 10 1 100G

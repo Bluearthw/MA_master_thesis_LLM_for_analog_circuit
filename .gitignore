@@ -4,6 +4,7 @@ genai_agent/cir_response.cir
 *.pyc
 genai_agent/data
 genai_agent/output
+genai_agent/output_copy
 genai_agent/before2026_py_files/CAD/
 no_backup
 output_figs

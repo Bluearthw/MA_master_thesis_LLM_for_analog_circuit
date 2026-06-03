@@ -151,7 +151,7 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
 
 8. **Current Consumption**: DC operating current from supply
    - Simulation: op
-   - Output: {line_wrdata_path_num}/dc_current.csv i(vdd)
+   - Output: {line_wrdata_path_num}/op_current.csv i(vdd)
 
 ### General Netlist Rules:
 
@@ -161,7 +161,7 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
 3. **Circuit requirements**: This is a self-biasing DC reference. Ensure it has proper biasing network, feedback path, and current generation mechanism.
 4. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path! Lines MUST be kept : 'set units=degrees' and 'set wr_vecnames'!
 5. **ONE command per line**: Every `.param`, `.model`, and component definition must start on a NEW line.
-6. **Single noise method**: Use ONLY ONE noise specification (either `onoise_total` for integrated value OR `onoise_spectrum` for frequency response, not both).
+6. **Single noise method**: Use ONLY ONE noise specification (`onoise_total` for integrated noise).
 7. **Differential check**: Bandgap outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
 8. **CMFB stability**: Set to false for bandgap references (they don't typically use CMFB loops).
 

@@ -18,6 +18,8 @@ path_id_9_current = {0: './genai_agent/output/9/ac_gain.csv', 22: './genai_agent
 path_id_6 =  {23: './genai_agent/output/6/dc_vref.csv', 22: './genai_agent/output/6/dc_current.csv', 24: './genai_agent/output/6/dc_line_reg.csv', 25: './genai_agent/output/6/dc_load_reg.csv', 26: './genai_agent/output/6/dc_temp_coeff.csv', 2: './genai_agent/output/6/ac_psrr.csv', 27: './genai_agent/output/6/tran_startup.csv', 7: './genai_agent/output/6/noise.csv'}
 path_id_439 =  {28: ['./genai_agent/output/439/source_current.csv', './genai_agent/output/439/sink_current.csv'], 29: './genai_agent/output/439/output_ripple.csv', 30: ['./genai_agent/output/439/source_current.csv', './genai_agent/output/439/sink_current.csv']}
 
+path_id_641 =  {23: './genai_agent/output/641/dc_vref.csv', 22: './genai_agent/output/641/dc_current.csv', 24: './genai_agent/output/641/dc_line_reg.csv', 25: './genai_agent/output/641/dc_load_reg.csv', 26: './genai_agent/output/641/dc_temp_coeff.csv', 2: './genai_agent/output/641/ac_psrr.csv', 27: './genai_agent/output/641/tran_startup.csv', 7: './genai_agent/output/641/noise.csv'}
+path_id_442 =  {23: './genai_agent/output/442/dc_op.csv', 22: './genai_agent/output/442/dc_current.csv', 24: './genai_agent/output/442/dc_line_reg.csv', 25: './genai_agent/output/442/dc_load_reg.csv', 26: './genai_agent/output/442/dc_tc.csv', 2: './genai_agent/output/442/ac_psrr.csv', 27: './genai_agent/output/442/tran_startup.csv', 7: './genai_agent/output/442/noise.csv'}
 """ in yaml:
 path_id:
   0: '.\\no_backup\\output_files\\ac_TwoStage.csv'
@@ -231,10 +233,12 @@ def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
 # test_DUT(path_id_6, 6, is_differential_output=False, has_input=False, target_dc_vout=0.6)
 # test_DUT(path_id_69, 69, True, True, 0.6) 
 # test_DUT(path_id_439, 439) 
+# test_DUT(path_id_641, 641) 
+test_DUT(path_id_442, 442) 
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
-test_v_compliance_range(sim = True)
+# test_v_compliance_range(sim = True)
 # test_v_compliance_range(sim = False)
 
 # test_get_vdd(439)

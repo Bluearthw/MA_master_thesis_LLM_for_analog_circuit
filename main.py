@@ -19,8 +19,9 @@ test = [9, 155, 69, 182] # try to have siso diso dido dido_cmfb
 # test = [182] #dido cmfb
 test = [6] #bandgap
 test = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump
-# test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
-
+test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
+test = category_numbers.num_class_6_without_IIN1
+print(len(test))
 is_with_RL = 0 # only with netlist gen
 # is_with_RL = 1 # whole workflow
 # is_with_RL = 2 # only with RL sizer
