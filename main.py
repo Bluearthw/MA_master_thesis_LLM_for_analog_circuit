@@ -28,11 +28,13 @@ test = category_numbers.num_class_1_with_VDD_tested
 test = [182] #dido cmfb
 test = [69] #dido 
 test = category_numbers.num_class_40_samples
+#DISO
+test = category_numbers.num_class_7_samples
 # Convert tested to a set first for blazing fast lookups
 
-tested = category_numbers.num_class_40_samples_tested
-tested_set = set(tested)
-test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
+# tested = category_numbers.num_class_40_samples_tested
+# tested_set = set(tested)
+# test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
 
 print(len(test))
 is_with_RL = 0 # only with netlist gen

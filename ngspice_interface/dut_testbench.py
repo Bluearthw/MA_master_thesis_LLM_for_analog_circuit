@@ -268,6 +268,7 @@ class DUT(NgspiceWrapper):
             raise ("why dif goes to load_ac_gain_data()")
     
     def load_adm_data(self, path_adm = ""):
+        print("path_adm:", path_adm)
         self.path_adm = path_adm
         # ADM files can have repeated frequency columns (one per output) and may include header.
         # Expected layout (based on sample):
@@ -290,6 +291,38 @@ class DUT(NgspiceWrapper):
         self.vout_mag_db = np.abs(self.vout_complex)
         self.mag_db = 20 * np.log10(self.vout_mag_db)
         self.phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
+
+    def load_acm_data(self, path_acm=""):
+        """Load common-mode AC data from a CSV file.
+
+        The file is expected to contain complex values for both outputs under
+        common-mode excitation. Typical column layouts are either:
+          [freq, real1, imag1, real2, imag2]
+        or:
+          [freq, real1, imag1, freq, real2, imag2]
+        """
+        print("path_acm:", path_acm)
+        self.path_acm = path_acm
+        data_acm = np.genfromtxt(path_acm, autostrip=True, skip_header=1)
+        if data_acm.ndim == 1:
+            data_acm = data_acm.reshape(1, -1)
+
+        self.freq = data_acm[:, 0]
+        if data_acm.shape[1] >= 6 and np.allclose(data_acm[:, 0], data_acm[:, 3]):
+            self.vout1_complex = self._complex_from_cols(data_acm, 1, 2)
+            self.vout2_complex = self._complex_from_cols(data_acm, 4, 5)
+        elif data_acm.shape[1] >= 5:# only 1 f column?
+            self.vout1_complex = self._complex_from_cols(data_acm, 1, 2)
+            self.vout2_complex = self._complex_from_cols(data_acm, 3, 4)
+            raise ValueError(f"Unexpected ACM file format: {data_acm.shape[1]} columns, {path_acm}")
+        elif data_acm.shape[1] == 3: #this is for class 7 DISO
+            self.vout1_complex = self._complex_from_cols(data_acm, 1, 2)
+            self.vout2_complex = self.vout1_complex
+        else:
+            raise ValueError(f"Unexpected ACM file format: {data_acm.shape[1]} columns, {path_acm}")
+
+        self.phase_v1 = np.unwrap(np.angle(self.vout1_complex, deg=True), period=360)
+        self.phase_v2 = np.unwrap(np.angle(self.vout2_complex, deg=True), period=360)
 
     #0 DC Gain
     def get_dc_gain(self, path_gain="", ):
@@ -332,10 +365,10 @@ class DUT(NgspiceWrapper):
         return self.mag_db
     
     #17 common-mode gain (Vout1+Vout2)/2
-    def get_common_mode_gain(self, path_adm=""):
+    def get_common_mode_gain(self, path_acm=""):
         """Return the common-mode gain (dB) based on the adm file."""
-        if self.path_adm is None:
-            self.load_adm_data(path_adm)
+        if self.path_acm is None:
+            self.load_acm_data(path_acm)
 
         v_common = (self.vout1_complex + self.vout2_complex) / 2
         mag = np.abs(v_common)
@@ -667,14 +700,27 @@ class DUT(NgspiceWrapper):
 
     #14 Common-Mode Rejection Ratio (CMRR)
     def get_cmrr(self, path_acm):
-        data_cm = np.genfromtxt(path_acm, skip_header=1)
+        print("path_cm:", path_acm)
+        print("len(path_acm):", len(path_acm))
+        data_cm = None
         # Column 0: Freq, Column 1: Real, Column 2: Imag (or Mag depending on wrdata)
         # If using default wrdata, it's usually Real/Imag pairs
-        if self.mag_db is None:
-            raise ValueError("there is no ac_dm when you want cmrr!!")
-
+        if isinstance(path_acm, str):
+            data_cm = np.genfromtxt(path_acm, skip_header=1)
+        else:
+            for path in path_acm:
+                if 'cm' in path:
+                    data_cm = np.genfromtxt(path, skip_header=1)
+            if self.mag_db is None:
+                # use the path
+                raise ValueError("there is no ac_dm when you want cmrr!!")
+            else:
+                pass
+        if data_cm is None:
+            raise ValueError("Failed to load CM data")
         adm_mag = self.vout_mag_db
-
+        
+        print("data_cm:", data_cm)
         vcm_complex = data_cm[:, 1] + 1j * data_cm[:, 2]
         acm_mag = np.abs(vcm_complex)
 
