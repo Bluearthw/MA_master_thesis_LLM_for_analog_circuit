@@ -994,8 +994,8 @@ def pre_process_circuit(cir_num):
     # circuit_string = get_full_circuit_string(cir_num)
     cir_path = local_config.path_dataset+f"/{cir_num}/{cir_num}.cir"
     circuit_string = get_file_to_str(cir_path)
-    has_input = has_input_port(circuit_string) #if opamp does not have, there is problem
-    
+    has_input = has_port_from_nl(circuit_string) #if opamp does not have, there is problem
+    is_diff = has_port_from_nl(circuit_string, target_ports=["VOUT2"])
     circuit_string = modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167
     circuit_string = clean_netlist(circuit_string)# ADD .include here. remove (). nmos4' to 'nmos' and 'pmos4' to 'pmos'. REMOVE 'resistor' and 'capacitor'
     circuit_string = add_params(circuit_string) #ADD .param. ADD w,l,m to mos. ADD {value} for R and C
@@ -1004,7 +1004,7 @@ def pre_process_circuit(cir_num):
     netlist = add_control(circuit_string)
     print("==cir_str\n", netlist)
 
-    return path_output_num, category_num, category_str, netlist, has_input
+    return path_output_num, category_num, category_str, netlist, has_input, is_diff
 # endregion modify
 
 
@@ -1213,8 +1213,8 @@ def make_path_id(spec_sims, path_output_num):
     # raise ValueError("test")
     return struct_path_id
 
-def has_input_port(netlist):
-    target_ports = ["VIN1", "IIN1"]
+def has_port_from_nl(netlist, target_ports = ["VIN1", "IIN1"]):
+    
     for target_port in target_ports:
         pattern = rf"\b{target_port}\b"
         if re.search(pattern, netlist):

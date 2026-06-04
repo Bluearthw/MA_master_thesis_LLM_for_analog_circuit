@@ -14,13 +14,14 @@ from utils import gen_utils as gen_utils
 path_output = local_config.path_output
 
 
-def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table):
+def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table, is_diff):
            
-    struc = add_sim_agent(netlist, category_str, cir_num, trimmed_spec_table)
+    struc = add_sim_agent(netlist, category_str, cir_num, trimmed_spec_table, is_diff)
     target_dc_vout = struc.target_dc_vout
     target_dc_vout = gen_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
 
     netlist = struc.netlist
+    print("netlist_after_add_sim_agent=", netlist)
     netlist = gen_utils.ensure_data_format_settings(netlist)
     netlist = gen_utils.modify_ac_range_1T(netlist)
     spec_sims = struc.spec_sims
@@ -46,13 +47,14 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
     print("Combined measurement results:", combined_results)
     return combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml#, cmfb_struct_path_id
     
-def add_sim_agent(netlist, category,cir_num=4, trimmed_spec_table=None):
+def add_sim_agent(netlist, category,cir_num=4, trimmed_spec_table=None, is_diff=False):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
     client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
     f_end= "1T"
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs to look up : {trimmed_spec_table}, and a brief requirement about this type of circuit : {category}.
 [CRITICAL INSTRUCTION]: You must ONLY simulate and analyze the specifications explicitly required in the requirement. 
 Do NOT assume, infer, or add any other measurements unless they are explicitly required by the requirement, even if they show in the table.
+Also, the netlist is simply checked for differential output: {is_diff}. If it is True, the netlist is very likely to be differential output. Do not use DC gain but DM gain for measurement!
 Your goal is to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. You should output the complete netlist, tell whether it is differential output or not, a list of required specifications and corresponding simulation files for measurement. The measurement will be done by following agents.
 ### Here are some rules.
 0. Check whether the circuit needs a load. If the circuit does not have a load, add a capacitor load. Example: 
@@ -121,7 +123,8 @@ ac dec 10 1 100G
 {line_wrdata_path_num}/cmfb_stb.csv v(net29_sense) v(net29_gate)
 
 14. If output balance is required, use AC simulation since phases are required to see the balance.
- 
+
+
 """
     
 
