@@ -1,7 +1,7 @@
 from google import genai
 
-import os
-import sys
+# import os
+# import sys
 
 ######################
 # local import
@@ -10,8 +10,6 @@ from genai_agent import tools
 from genai_agent.workflows import sim_debug_meas_loop
 
 from utils import gen_utils as gen_utils
-from utils import saving
-from ngspice_interface import dut_testbench
 
 path_output = local_config.path_output
 
@@ -42,12 +40,6 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
     path_netlist = path_output_num + "final_netlist.cir"
     gen_utils.save_str_to_file(netlist, path_netlist)
     
-    # cmfb_struct_path_id = ""
-    if is_CMFB:
-        path = path_output + "cmfb_num.txt"
-        with open(path, "a") as f:  # "a" opens the file in append mode
-            f.write(f"{cir_num}\n")
-
     
     data_for_dut_yaml = (is_differential_output, has_input, target_dc_vout)
 
@@ -115,7 +107,7 @@ Example:
 12. You must always add current simlation.
 Example:
 op
-{line_wrdata_path_num}/dc_current.csv i(vdd)
+{line_wrdata_path_num}/current.csv i(vdd)
 
 13. If there is CMFB LOOP, add simulation for it. Be careful about 'alter'.
 Example:
@@ -128,6 +120,8 @@ alter vdm ac=0
 ac dec 10 1 100G
 {line_wrdata_path_num}/cmfb_stb.csv v(net29_sense) v(net29_gate)
 
+14. If output balance is required, use AC simulation since phases are required to see the balance.
+ 
 """
     
 

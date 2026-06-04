@@ -1,63 +1,17 @@
 from google import genai
-import json
 
-import os
-import sys
+# import os
+# import sys
 
 ######################
 # local import
 from genai_agent import local_config
 from genai_agent import tools
-from genai_agent.debug_agent import debug_agent_flow
-from genai_agent.workflows import cmfb_agent
+from genai_agent.workflows import sim_debug_meas_loop
 
-from utils import gen_utils 
-from utils import saving 
-from ngspice_interface import dut_testbench
+from utils import gen_utils as gen_utils
 
 path_output = local_config.path_output
-
-def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True):
-    
-    counter = 0
-    fix_info = []
-    error_msg = []
-    while True:
-        sim_output = gen_utils.run_ngspice_direct(netlist)
-        print("=====sim output", sim_output)
-        if sim_output["success"]: 
-            # check files
-            # gather all generated file paths; use a set to ensure uniqueness
-            struct_path_id = gen_utils.make_path_id(spec_sims, path_output_num)
-            print(f"===  path_id_{cir_num} = ", struct_path_id)
-            print("Simulation successful and output files verified!")
-            # save the netlist
-            netlist_path = path_output_num + "final_netlist.cir"
-            with open(netlist_path, "w") as f:
-                f.write(netlist)
-            saving.save_error_info(path_output_num, cir_num, counter, error_msg, fix_info, "success")
-            measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
-            for mr in measurement_results:
-                print("Measurement results:", mr)
-            return measurement_results, struct_path_id
-        else:
-            print(f"==================bug found!!!!======={counter}===============")
-            # error_msg.append(f"iteration{counter}:")
-            # error_msg.append(sim_output["message"] + "")
-            error_msg.append(f"iteration{counter}: {sim_output['message']}")# more efficient
-            error_msg_input = "\n".join(error_msg)
-            print(error_msg_input)
-            gen_utils.test_delay(30)  # Wait 10 seconds before retrying
-            struct_debug = debug_agent_flow(netlist, error_msg_input, cir_num, spec_sims)
-            netlist = struct_debug.netlist
-            spec_sims = struct_debug.spec_sims
-            new_fix_info = struct_debug.fix_info
-            fix_info.append("fixing info:\n" + new_fix_info)
-            error_msg.append("iteration{counter}, fixing info:\n" + new_fix_info)
-        counter += 1
-        if counter > 5:
-            saving.save_error_info(path_output_num, cir_num, counter, error_msg, fix_info, "failed")
-            raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
 
 def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table):
     
@@ -80,20 +34,12 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
     
     # Simulate original netlist
     print(target_dc_vout)
-    results_original, struct_path_id = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input)
+    results_original, struct_path_id = sim_debug_meas_loop.sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB)
     
     combined_results = {'original': results_original}
     path_netlist = path_output_num + "final_netlist.cir"
     gen_utils.save_str_to_file(netlist, path_netlist)
     
-    if is_CMFB:
-        struct_cmfb = cmfb_agent.cmfb_agent(netlist,cir_num)
-        cmfb_netlist = struct_cmfb.netlist
-        cmfb_spec_sims = struct_cmfb.spec_sims
-        gen_utils.save_str_to_file(cmfb_netlist, path_output_num + "cmfb_netlist.cir")
-        # Simulate CMFB netlist (assuming same spec_sims)
-        results_cmfb = sim_debug_measure_loop(cmfb_netlist, [cmfb_spec_sims], is_differential_output, cir_num, path_output_num)
-        combined_results['cmfb'] = results_cmfb
     
     
     data_for_dut_yaml = (is_differential_output, has_input, target_dc_vout)

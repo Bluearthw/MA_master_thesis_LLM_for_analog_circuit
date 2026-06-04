@@ -24,7 +24,8 @@ path_id_9_phase = {5: './genai_agent/output/9/ac_gain.csv', 6: './genai_agent/ou
 path_id_9_psrr = {0: './genai_agent/output/9/ac_gain.csv', 2: './genai_agent/output/9/ac_psrr.csv'}
 path_id_9_current = {0: './genai_agent/output/9/ac_gain.csv', 22: './genai_agent/output/9/dc_current.csv'}
 path_id_57 =  {0: './genai_agent/output/57/ac_gain.csv', 1: './genai_agent/output/57/ac_gain.csv', 2: './genai_agent/output/57/psrr.csv', 3: './genai_agent/output/57/noise.csv', 4: './genai_agent/output/57/tran_SR.csv', 5: './genai_agent/output/57/ac_gain.csv', 6: './genai_agent/output/57/ac_gain.csv', 13: './genai_agent/output/57/icmr.csv', 22: './genai_agent/output/57/dc_current.csv', 23: './genai_agent/output/57/icmr.csv'}
-
+#class 40 DODO
+path_id_310 =  {18: './genai_agent/output/310/ac_gain.csv', 17: './genai_agent/output/310/cm_gain.csv', 19: './genai_agent/output/310/tran_settle.csv', 20: './genai_agent/output/310/cmfb_stb.csv', 12: './genai_agent/output/310/tran_settle.csv', 22: './genai_agent/output/310/dc_current.csv', 23: './genai_agent/output/310/dc_current.csv'}
 """ in yaml:
 path_id:
   0: '.\\no_backup\\output_files\\ac_TwoStage.csv'
@@ -239,7 +240,7 @@ def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
 # test_DUT(path_id_69, 69, True, True, 0.6) 
 # test_DUT(path_id_439, 439) 
 # test_DUT(path_id_641, 641) 
-test_DUT(path_id_57, 57) 
+test_DUT(path_id_310, 310) 
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()

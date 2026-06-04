@@ -16,18 +16,23 @@ test = [9, 155, 69, 182] # try to have siso diso dido dido_cmfb
 # test = [9] #siso
 # test = [155] #diso
 # test = [69] #dido
-test = [6] #bandgap
 test = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump
 test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
+
+#bandgap
+test = [6] 
 test = category_numbers.num_class_6_without_IIN1
-# tested = [9, 14, 17, 22, 24, 27, 31, 35, 37, 38, 41, 46, 48, 52, 54, 57]
+#SISO
 test = category_numbers.num_class_1_with_VDD_tested
+#DIDO
 test = [182] #dido cmfb
 test = [69] #dido 
+test = category_numbers.num_class_40_samples
 # Convert tested to a set first for blazing fast lookups
 
-# tested_set = set(tested)
-# test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
+tested = category_numbers.num_class_40_samples_tested
+tested_set = set(tested)
+test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
 
 print(len(test))
 is_with_RL = 0 # only with netlist gen
