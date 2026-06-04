@@ -46,8 +46,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             return measurement_results, struct_path_id
         else:
             print(f"==================bug found!!!!======={counter}===============")
-            error_msg.append(f"iteration{counter}:")
-            error_msg.append(sim_output["message"] + "")
+            error_msg.append(f"iteration{counter}: {sim_output['message']}")# more efficient
             error_msg_input = "\n".join(error_msg)
             print(error_msg_input)
             gen_utils.test_delay(30)  # Wait 10 seconds before retrying

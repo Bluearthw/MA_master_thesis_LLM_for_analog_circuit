@@ -27,7 +27,7 @@ def save_solutions_csv(run_id, simulation_step, circuit_params, specs, reward):
     
     return csv_file_name
 
-def save_error_info(path_output_num, cir_num, retry_count, error_history, fix_info, status):
+def save_error_info(path_output_num, cir_num, retry_count, error_history, fix_info, status, is_CMFB=False):
         metadata_path = path_output_num + "debug_metadata.json"
         metadata = {
             "cir_num": cir_num,
@@ -35,6 +35,7 @@ def save_error_info(path_output_num, cir_num, retry_count, error_history, fix_in
             "status": status,
             "error_history": error_history,
             "fix_info": fix_info,
+            "is_CMFB": is_CMFB
         }
         print("path_retry",metadata_path)
         with open(metadata_path, "w", encoding="utf-8") as f:

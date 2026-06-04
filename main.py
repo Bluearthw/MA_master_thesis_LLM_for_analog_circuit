@@ -16,18 +16,18 @@ test = [9, 155, 69, 182] # try to have siso diso dido dido_cmfb
 # test = [9] #siso
 # test = [155] #diso
 # test = [69] #dido
-# test = [182] #dido cmfb
 test = [6] #bandgap
 test = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump
 test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 test = category_numbers.num_class_6_without_IIN1
-test = category_numbers.num_class_1_with_VDD
-tested = [9, 14, 17, 22, 24, 27, 31, 35, 37, 38, 41, 46, 48, 52, 54, 57]
+# tested = [9, 14, 17, 22, 24, 27, 31, 35, 37, 38, 41, 46, 48, 52, 54, 57]
+test = category_numbers.num_class_1_with_VDD_tested
+test = [182] #dido cmfb
+test = [69] #dido 
 # Convert tested to a set first for blazing fast lookups
-tested_set = set(tested)
 
-# Keep only the items that aren't in the tested set
-test = [item for item in test if item not in tested_set]
+# tested_set = set(tested)
+# test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
 
 print(len(test))
 is_with_RL = 0 # only with netlist gen
@@ -74,7 +74,7 @@ else:
         else:
             # print(f"found,cat:{category_num}")
             # continue
-            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml, cmfb_struct_path_id = root_agent_type40.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
+            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type40.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
         struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 2 and k != 15 and k != 14} # remove some array results
         print("====netlist generation done=======",i)
         

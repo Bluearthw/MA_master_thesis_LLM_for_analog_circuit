@@ -11,7 +11,7 @@ from genai_agent import tools
 from genai_agent.debug_agent import debug_agent_flow
 from genai_agent.workflows import cmfb_agent
 
-from utils import gen_utils as gen_utils
+from utils import gen_utils 
 from utils import saving 
 from ngspice_interface import dut_testbench
 
@@ -53,7 +53,6 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             spec_sims = struct_debug.spec_sims
             new_fix_info = struct_debug.fix_info
             fix_info.append("fixing info:\n" + new_fix_info)
-            # saving.save_error_info(path_output_num, cir_num, counter + 1, error_msg, fix_info, "retry")
             error_msg.append("iteration{counter}, fixing info:\n" + new_fix_info)
         counter += 1
         if counter > 5:
