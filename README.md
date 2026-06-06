@@ -1,5 +1,5 @@
 git add .
-git commit -m "switch to vertex, use 1 function for all get agent. Delete some unused agent
+git commit -m "gemini 3.5 gives very complex circuit
 "
 git push
 
@@ -119,7 +119,13 @@ $env:GOOGLE_CLOUD_LOCATION="global"
 
 # 3. Tell the SDK to bypass AI Studio completely and use your 300 USD credits
 $env:GOOGLE_GENAI_USE_ENTERPRISE="True"
-    
+
+# usage
+gcloud beta quotas info list \
+  --service=aiplatform.googleapis.com \
+  --project="project-2e780bfb-5a07-44db-866" \
+  --format="table(quotaId, metric, limit, dimensions)"
+
 ## 
 workplace
 ├─ circuit_env.py

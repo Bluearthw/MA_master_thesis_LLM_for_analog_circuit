@@ -72,6 +72,7 @@ else:
         output_dir = Path(f"{path_output}{i}")
         output_dir.mkdir(parents=True, exist_ok=True)
         path_output_num, category_num, category_str, netlist, has_input, is_diff = gen_utils.pre_process_circuit(i)
+        print("is_diff =", is_diff)
         gen_utils.delete_all_files_except_dir(path_output_num)
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
         if category_num == 6:

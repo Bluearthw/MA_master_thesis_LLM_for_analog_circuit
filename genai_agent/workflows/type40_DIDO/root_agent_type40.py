@@ -53,11 +53,14 @@ def add_sim_agent(netlist, category,cir_num=4, trimmed_spec_table=None, is_diff=
     client = gen_utils.get_client()
     f_end= "1T"
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs to look up : {trimmed_spec_table}, and a brief requirement about this type of circuit : {category}.
+
+Also, the netlist is simply checked for differential output: {is_diff}. If it is True, the netlist is very likely to be differential output. Do not use DC gain but DM gain for measurement!
+
+Your goal is to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. You should output the complete netlist, tell whether it is differential output or not, a list of required specifications and corresponding simulation files for measurement. The measurement will be done by following agents.
+### Here are some rules:
 [CRITICAL INSTRUCTION]: You must ONLY simulate and analyze the specifications explicitly required in the requirement. 
 Do NOT assume, infer, or add any other measurements unless they are explicitly required by the requirement, even if they show in the table.
-Also, the netlist is simply checked for differential output: {is_diff}. If it is True, the netlist is very likely to be differential output. Do not use DC gain but DM gain for measurement!
-Your goal is to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. You should output the complete netlist, tell whether it is differential output or not, a list of required specifications and corresponding simulation files for measurement. The measurement will be done by following agents.
-### Here are some rules.
+
 0. Check whether the circuit needs a load. If the circuit does not have a load, add a capacitor load. Example: 
 .param Cload=10p 
 Cload VOUT1 VSS {{Cload}} 
@@ -107,12 +110,12 @@ Example:
 
 11. Also, you should pay attention to whether there is CMFB stability specification check. The following agent will make a new netlist if the CMFB stability is needed.
 
-12. You must always add current simlation.
+12. You must always add current simlation. Single VDD current is enough.
 Example:
 op
 {line_wrdata_path_num}/current.csv i(vdd)
 
-13. If there is CMFB LOOP, add simulation for it. Be careful about 'alter'.
+13. If there is CMFB LOOP, add simulation for it.
 Example:
 * CMFB Loop Injection Points
 Lloop net29_sense net29_gate 1G
@@ -120,12 +123,25 @@ Cloop net29_gate loop_inj 1G
 Vi loop_inj 0 dc=0 ac=1
 
 alter vdm ac=0
-ac dec 10 1 100G
+ac dec 10 1 {f_end}
 {line_wrdata_path_num}/cmfb_stb.csv v(net29_sense) v(net29_gate)
 
 14. If output balance is required, use AC simulation since phases are required to see the balance.
 
+15. KEEP SIMULATION SETUP MINIMAL (NO DUMMY SOURCES):
+    Do not generate standalone dummy tracking sources (e.g., dummy_diff_in, dummy_cm_in) or flat pulse lines to establish DC bias. 
+    Always prioritize using the E-source behavioral modeling approach (ein1/ein2 linked to a central vdm/vcm setup) as shown in Rule 9. It is cleaner and scales to all AC/Tran analyses without needing complex resetting.
+    Ideal block is accetable if it is not a big difference to the result.
 
+16. DO NOT EXHAUSTIVELY RESET ALTER COMMANDS:
+    Only use 'alter' when necessary
+
+17. MATCH THE AC MAGNITUDES STRICTLY TO EXPECTED PARSING:
+    When setting up differential mode AC sweeps, standard practice is applying 'ac 1' globally or assigning 0.5 and -0.5 on the unified differential input network branches. Avoid custom, overly complex math definitions inside the .control segment unless explicitly asked.
+
+18. If slew rate is needed, example:
+tran 10n 20u
+{line_wrdata_path_num}/tran_sr.csv v(VOUT1)    
 """
     
 
@@ -152,7 +168,7 @@ ac dec 10 1 100G
             
             if "503" in error_msg or "ResourceExhausted" in error_msg:
                 retry_count += 1
-                wait_sec = 30*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
+                wait_sec = 40*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
                 print(f"Model busy (503). Retry #{retry_count}. ")
                 gen_utils.test_delay(wait_sec)  # Wait before retrying
             elif "429" in error_msg or "TooManyRequests" in error_msg:

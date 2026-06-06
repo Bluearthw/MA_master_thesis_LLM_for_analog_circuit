@@ -34,13 +34,14 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             error_msg.append(f"iteration{counter}: {sim_output['message']}")# more efficient
             error_msg_input = "\n".join(error_msg)
             print(error_msg_input)
-            gen_utils.test_delay(30)  # Wait 10 seconds before retrying
+            print("wait 60s before debug")
+            gen_utils.test_delay(60)  # Wait 10 seconds before retrying
             struct_debug = debug_agent_flow(netlist, error_msg_input, cir_num, spec_sims)
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims
             new_fix_info = struct_debug.fix_info
             fix_info.append("fixing info:\n" + new_fix_info)
-            error_msg.append("iteration{counter}, fixing info:\n" + new_fix_info)
+            error_msg.append(f"iteration{counter}, fixing info:\n" + new_fix_info)
         counter += 1
         if counter > 5:
             saving.save_error_info(path_output_num, cir_num, counter, error_msg, fix_info, "failed", is_CMFB)
