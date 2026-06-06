@@ -15,6 +15,7 @@ from google import genai
 from scipy.integrate import trapezoid
 import sys
 sys.path.append("./genai_agent")
+from google.genai.types import HttpOptions
 ##### local
 from genai_agent import local_config
 DEFAULT_W = "0.5u"
@@ -24,7 +25,7 @@ DEFAULT_R = "1k"
 DEFAULT_C = "3p"
 
 def get_client():
-    return genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
+    return genai.Client(http_options=HttpOptions(api_version="v1"))
 
 # region for file IO
 def get_file_to_str(path, str=""):

@@ -6,7 +6,7 @@ from utils import gen_utils
 def debug_agent_flow(netlist, error_message, cir_num, spec_sims):
     print("==netlist in debug agent\n", netlist)
     print("==error_message\n", error_message)
-    client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
+    client = gen_utils.get_client()
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist.
 Your goal is to fix a netlist with error or warning: {netlist} based on the error message: "{error_message}". You are also given a specification id table: {local_config.table_specs_id} and the specification-simulation needed from previous agent:{spec_sims}. 
 You should output the fixed netlist and simply the fixing info. Also, if the specification-simulation relationship is not enought or redundant, you should output updated it.

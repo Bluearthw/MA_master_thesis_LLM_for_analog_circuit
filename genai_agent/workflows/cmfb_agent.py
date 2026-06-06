@@ -1,11 +1,13 @@
 from google import genai
 import sys
+
 #local import
-sys.path.append("./1genai")
-import local_config
-import tools
+sys.path.append(".")
+from utils import gen_utils
+from genai_agent import local_config
+from genai_agent import tools
 def cmfb_agent(netlist, cir_num=4):
-    client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
+    client = gen_utils.get_client()
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. 
     You are given a differential output netlist and you need to modify the netlist and try to add simulation to measure the Common-mode feedback (CMFB) for later agent to stabilize the output common-mode voltage.
 

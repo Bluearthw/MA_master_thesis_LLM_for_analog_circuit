@@ -8,7 +8,6 @@ from google import genai
 from genai_agent import local_config
 from genai_agent import tools
 from genai_agent.workflows import sim_debug_meas_loop
-
 from utils import gen_utils as gen_utils
 
 path_output = local_config.path_output
@@ -50,7 +49,8 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
     
 def add_sim_agent(netlist, category,cir_num=4, trimmed_spec_table=None, is_diff=False):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
-    client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
+
+    client = gen_utils.get_client()
     f_end= "1T"
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs to look up : {trimmed_spec_table}, and a brief requirement about this type of circuit : {category}.
 [CRITICAL INSTRUCTION]: You must ONLY simulate and analyze the specifications explicitly required in the requirement. 
