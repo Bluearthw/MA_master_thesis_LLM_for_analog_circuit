@@ -17,6 +17,7 @@ path_output = local_config.path_output
 def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table, is_diff):
            
     struc = add_sim_agent(netlist, category_str, cir_num, trimmed_spec_table, is_diff)
+    print("struc=", struc)
     target_dc_vout = struc.target_dc_vout
     target_dc_vout = gen_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
 
@@ -134,7 +135,7 @@ ac dec 10 1 100G
     while True:
         try:
             response = client.models.generate_content(
-                model=local_config.agent_model3,
+                model=local_config.agent_model,
                 contents=contents,
                 config={
                     "response_mime_type": "application/json",

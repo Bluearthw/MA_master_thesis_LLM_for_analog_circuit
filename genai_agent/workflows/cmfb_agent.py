@@ -41,7 +41,7 @@ Return the new netlist that is for CMFB. The specification (CMFB stb), id (20) a
     while True:
         try:
             response = client.models.generate_content(
-                model=local_config.agent_model3,
+                model=local_config.agent_model,
                 contents=contents,
                 config={
                     "response_mime_type": "application/json",

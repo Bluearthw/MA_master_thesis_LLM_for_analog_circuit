@@ -117,7 +117,7 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
     while True:
         try:
             response = client.models.generate_content(
-                model=local_config.agent_model3,
+                model=local_config.agent_model,
                 contents=contents,
                 config={
                     "response_mime_type": "application/json",

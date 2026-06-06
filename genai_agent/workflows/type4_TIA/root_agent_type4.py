@@ -134,7 +134,7 @@ wrdata ./1genai/output/{cir_num}/tran_SR.csv v(VOUT1)
     while True:
         try:
             response = client.models.generate_content(
-                model=local_config.agent_model3,
+                model=local_config.agent_model,
                 contents=contents,
                 config={
                     "response_mime_type": "application/json",

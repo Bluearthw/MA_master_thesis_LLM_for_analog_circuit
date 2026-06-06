@@ -330,7 +330,7 @@ def test_cmfb_check_agent(netlist, cir_num=4):
 Your goal is to check whether there is CMFB loop in this circuit. If there is, say yes and explain shortly like 1 sentence. I think, if the IN,CM increases, the net017 can stop VOUT,CM to increase, right? That is also a CMFB, right?
 """
     response = client.models.generate_content(
-                model=local_config.agent_model3,
+                model=local_config.agent_model,
                 contents=contents,
                 
             )
