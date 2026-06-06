@@ -102,7 +102,7 @@ def test_make_cir_sim(cir_num):
     
     
 def add_sim_agent(netlist, category,cir_num=4):
-    client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
+    client = gen_utils.get_client()
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs : {local_config.table_specs_id}, and a brief requirement about this type of circuit : {category}.
 Your goal is to complete simulation of the netlist and make sure the result netlist can be simulated and without errors. You should output the complete netlist and the list of specifications and corresponding simulation files needed for measurement. The measurement will be done by following agents.
 ### Here are some rules.

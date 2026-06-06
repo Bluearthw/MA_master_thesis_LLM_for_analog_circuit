@@ -1,5 +1,5 @@
 git add .
-git commit -m "switch to vertex
+git commit -m "switch to vertex, use 1 function for all get agent. Delete some unused agent
 "
 git push
 

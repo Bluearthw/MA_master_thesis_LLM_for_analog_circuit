@@ -325,7 +325,7 @@ def test_cmfb_check_agent(netlist, cir_num=4):
     path_category = local_config.path_category + f"{category_num}.md"
     # or the cat_num is already known, so just +"4.md"
     category = gen_utils.get_file_to_str(path_category)
-    client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
+    client = gen_utils.get_client()
     contents = f"""You are an expert Analog IC Designer. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs : {local_config.table_specs_id}, and a brief requirement about this type of circuit : {category}.
 Your goal is to check whether there is CMFB loop in this circuit. If there is, say yes and explain shortly like 1 sentence. I think, if the IN,CM increases, the net017 can stop VOUT,CM to increase, right? That is also a CMFB, right?
 """

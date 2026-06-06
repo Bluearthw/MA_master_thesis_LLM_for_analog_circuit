@@ -48,7 +48,7 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
     
 def add_sim_agent(netlist, category, cir_num=4, trimmed_spec_table=None):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
-    client = genai.Client(api_key=local_config.GOOGLE_API_KEY_yong)
+    client = gen_utils.get_client()
     # f_end = "1T"
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given a netlist for a charge pump circuit: {netlist}, circuit number {cir_num}, a table of specifications and their IDs: {trimmed_spec_table}, and detailed requirements: {category}.
 Your goal is to complete the simulation setup for the charge pump circuit. The netlist must be fully simulated without errors. You should output:
