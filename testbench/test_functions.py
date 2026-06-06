@@ -7,7 +7,7 @@ import time
 import numpy as np
 import pandas as pd
 ## local imports
-import saved_netlist
+import genai_agent.data.saved_netlist as saved_netlist
 sys.path.append('.')
 from utils import gen_utils
 from genai_agent import local_config

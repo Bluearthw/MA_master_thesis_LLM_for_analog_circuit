@@ -2,7 +2,7 @@ from pathlib import Path
 import sys
 import yaml
 #local import
-from genai_agent.memory import category_numbers
+from genai_agent.data import category_numbers
 from genai_agent.local_config import path_output 
 from utils import gen_utils
 from genai_agent.workflows.type40_DIDO import root_agent_type40
@@ -102,4 +102,4 @@ else:
         print("====yaml done=======",i)  
         if is_with_RL == 1:
             td3_runner.td3_start(circuit_name=f'{i}')
-        # test_delay(30)
+        gen_utils.test_delay(30)
