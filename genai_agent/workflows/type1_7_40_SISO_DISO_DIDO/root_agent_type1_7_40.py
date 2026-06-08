@@ -67,32 +67,30 @@ Cload VOUT1 VSS {{Cload}}
 1. When it comes to the transistors parameters, patterns like w={{}} are not allowed. the curly brackets cause error. It should be w= a variable. The variable is assigned a value using .param. So, when there is =, do not use {{}}
 
 2. When it comes to passive components like capacitor, it must have {{}} with a variable inside the brackets.
+example: Cload VOUT1 VSS {{Cload}} 
 
-3. You should read category requirement and add relevant simulations needed. But, calculation/measurement of specification will be done by following agent.
+3. You should read category requirement and add relevant simulations needed. But, calculation/measurement of specification will be done by following agent. So the simulation data format is important! Try example output first!
 
-4. The netlist file should also write the required data to a file. The path should include the circuit number! Also, for ac_gain, use v(VOUT1) since the following measurement agent will use this format.. Using vdb(VOUT1) or vp(VOUT1) is bad 
-Example:
+4. The netlist file should also write the required data to a file. The path should include the circuit number! Also, for ac_gain, use v(VOUT1) since the following measurement agent will use this format.. Using vdb(VOUT1) or vp(VOUT1) is incorrect.
+In this example, the VOUT1 is the output node. Example:
 * for gain
 ac dec 10 1 {f_end}
 {line_wrdata_path_num}/ac_gain.csv v(VOUT1)
-In this example, the VOUT1 is the output node.
+
 
 5. ONE COMMAND PER LINE: Every '.param', '.model', or component must start on a NEW line. 
    - BAD: .param VDD=1.2 .param W=1u
    - GOOD: 
      .param VDD=1.2
      .param W=1u
-6. You must provide exactly one noise reporting method. Do not combine them. NEVER write two wrdata lines for noise in the same netlist.
+6. If noise is required, use noise_total. Do not combine them. NEVER write two wrdata lines for noise in the same netlist.
     6a. If equivalent input totoal integrated noise is needed: To get the single value of total noise, use:
     noise v(VOUT1) vin dec 10 1 {f_end}
     {line_wrdata_path_num}/noise.csv inoise_total
 
-    6b. If equivalent input noise spectrum is needed: To get the noise vs. frequency curve, use:
-    noise v(VOUT1) vin dec 10 1 {f_end}
-    setplot noise1
-    {line_wrdata_path_num}/noise.csv inoise_spectrum 
+7. If AC gain is required, use DC gain and UGBW. If phase response is required, use Phase Margin.
 
-8. If transient analysis is needed, there is an example:  
+8. For slew rate transient analysis, example:  
 vin VIN1 VSS dc=vcm ac=1.0 PULSE({{-VDD*0.5}} {{VDD*0.5}} trf trf trf {{0.5*period-trf}} period)
 tran 50n 30u
 {line_wrdata_path_num}/tran_SR.csv v(VOUT1)
@@ -102,20 +100,19 @@ Vinput aid VSS dc=0.0 ac=1.0 PULSE({{-VHIGH*0.5}} {{VHIGH*0.5}} trf trf trf {{0.
 ein1 net1 VCM aid 0 0.5
 ein2 net2 VCM aid 0 -0.5
 
-10. If the circuit is differential output. Make sure the specification is correct.
-Use differential mode gain instead of AC gain (single port) for differential output circuits.
+10. For differential output circuits, use differential mode gain instead of AC gain (single port) .
 Also, the simulation should simulate the output separately for CM gain and DM gain. This is the format for later measurement.
 Example:
 {line_wrdata_path_num}/ac_gain.csv v(VOUT1) v(VOUT2)
 
-11. Also, you should pay attention to whether there is CMFB stability specification check. The following agent will make a new netlist if the CMFB stability is needed.
+
 
 12. You must always add current simlation. Single VDD current is enough.
 Example:
 op
 {line_wrdata_path_num}/current.csv i(vdd)
-
-13. If there is CMFB LOOP, add simulation for it.
+11. 
+13. Also, check whether there is CMFB stability in specifications. If there is CMFB LOOP, add simulation for it.
 Example:
 * CMFB Loop Injection Points
 Lloop net29_sense net29_gate 1G
@@ -128,21 +125,36 @@ ac dec 10 1 {f_end}
 
 14. If output balance is required, use AC simulation since phases are required to see the balance.
 
-15. KEEP SIMULATION SETUP MINIMAL (NO DUMMY SOURCES):
-    Do not generate standalone dummy tracking sources (e.g., dummy_diff_in, dummy_cm_in) or flat pulse lines to establish DC bias. 
-    Always prioritize using the E-source behavioral modeling approach (ein1/ein2 linked to a central vdm/vcm setup) as shown in Rule 9. It is cleaner and scales to all AC/Tran analyses without needing complex resetting.
-    Ideal block is accetable if it is not a big difference to the result.
 
-16. DO NOT EXHAUSTIVELY RESET ALTER COMMANDS:
-    Only use 'alter' when necessary
 
-17. MATCH THE AC MAGNITUDES STRICTLY TO EXPECTED PARSING:
-    When setting up differential mode AC sweeps, standard practice is applying 'ac 1' globally or assigning 0.5 and -0.5 on the unified differential input network branches. Avoid custom, overly complex math definitions inside the .control segment unless explicitly asked.
+
+
 
 18. If slew rate is needed, example:
 tran 10n 20u
 {line_wrdata_path_num}/tran_sr.csv v(VOUT1)    
-"""
+
+### General Netlist Rules:
+
+0. **Circuit requirements**: This is a amplifier. Ensure it has proper biasing network, feedback path, and current generation mechanism.
+1. **Differential check**: There are 3 types of circuits: single-ended (SISO), fully differential (DIDO) and differential input single-ended output (DISO).
+2. **CMFB stability**: Set to false for bandgap references (they don't typically use CMFB loops).
+3. **Load**: Add load capacitance if not present (e.g., Cload=10p at output)
+4. **Transistor parameters**: Use `.param` variables without curly brackets on the component line. WRONG: `w={{}}` CORRECT: `w=wp1` with `.param wp1=1u`
+5. **Passive components**: Capacitors and resistors MUST use curly brackets with variables. CORRECT: `R0 node1 node2 {{r0}}` with `.param r0=1k`
+6. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path! Lines MUST be kept : 'set units=degrees' and 'set wr_vecnames'!
+7. **ONE command per line**: Every `.param`, `.model`, and component definition must start on a NEW line.
+8. **Single noise method**: If noise is needed, use ONLY ONE noise specification (`onoise_total` or `inoise_total` ).
+9. **Comments**: Remember to add short comments to tell the purpose of each simulation. Example: *current matching 
+10. **Format**: If subcircuit device name does not fit the format, change the device name like (I1 net7 net4 VDD VSS INVERTER) should be changed to (X1 net7 net4 VDD VSS INVERTER) because it's a subcircuit. 
+    - alter source from DC to trans is NOT allowed. Should define it outsice already WRONG:    alter @vla1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
+    - DO NOT EXHAUSTIVELY RESET ALTER COMMANDS: Only use 'alter' when necessary since the simulation is sequential, so do the effect of alter. 
+11. **MATCH THE AC MAGNITUDES STRICTLY TO EXPECTED PARSING**: When setting up differential mode AC sweeps, standard practice is applying 'ac 1' globally or assigning 0.5 and -0.5 on the unified differential input network branches. Avoid custom, overly complex math definitions inside the .control segment unless explicitly asked.
+12. **KEEP SIMULATION SETUP MINIMAL (NO DUMMY SOURCES)**:
+    - Do not generate standalone dummy tracking sources (e.g., dummy_diff_in, dummy_cm_in) or flat pulse lines to establish DC bias. 
+    - Always prioritize using the E-source behavioral modeling approach (ein1/ein2 linked to a central vdm/vcm setup) as shown in Rule 9. It is cleaner and scales to all AC/Tran analyses without needing complex resetting.
+    - Ideal block is accetable if it is not a big difference to the result.   
+    """
     
 
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down

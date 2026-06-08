@@ -4,7 +4,7 @@ from genai_agent import local_config
 from genai_agent.data import saved_netlist
 from utils import gen_utils
 
-def test_run_ngspice_direct(nl = local_config.nl_2_stage_opamp):
+def test_run_ngspice_direct(nl = ""):
     # Write the netlist to a temporary file
     gen_utils.pyspice_op_sim_simple(nl)
     print("===direct::")
@@ -43,11 +43,12 @@ def test_run_ngspice_direct_from_temp():
 # test_run_ngspice_direct(saved_netlist.nl_timeout)
 # test_run_ngspice_direct(saved_netlist.nl_april_sim_failed_warning)
 # test_run_ngspice_direct(saved_netlist.nl_155_failed)
+test_run_ngspice_direct(saved_netlist.nl_test_noise_spectrum_failed)
 
 # test_run_ngspice_direct_from_final_netlist(155)
 # test_run_ngspice_direct_from_final_netlist(9)
 # test_run_ngspice_direct_from_final_netlist(439)
-test_run_ngspice_direct_from_temp()
+# test_run_ngspice_direct_from_temp()
 """
 ==netlist in debug agent
  * title line

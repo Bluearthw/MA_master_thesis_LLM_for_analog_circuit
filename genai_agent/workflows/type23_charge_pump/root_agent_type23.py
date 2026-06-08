@@ -106,7 +106,9 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
     B1 up vss V=V(clka)
     B2 dn vss V=V(clkb)
     .ends
-
+7. If DC Vout is required: Initial operating point to determine nominal VOUT_REF
+   - Simulation: op
+   - Output: {line_wrdata_path_num}/op_vout_ref.csv v(VOUT1)
 
 ### General Netlist Rules:
 
@@ -116,14 +118,12 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
 3. **Circuit requirements**: This is a charge pump circuit. Ensure it has proper switching network, capacitors, and control logic for voltage multiplication.
 4. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path! Lines MUST be kept : 'set units=degrees' and 'set wr_vecnames'!
 5. **ONE command per line**: Every `.param`, `.model`, and component definition must start on a NEW line.
-6. **Single noise method**: Use ONLY ONE noise specification (either `onoise_total` for integrated value OR `onoise_spectrum` for frequency response, not both).
-7. **Differential check**: Charge pump outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
-8. **CMFB stability**: Set to false for charge pump circuits (they don't typically use CMFB loops).
+6. **Differential check**: Charge pump outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
+7. **CMFB stability**: Set to false for charge pump circuits (they don't typically use CMFB loops).
+8. **Single noise method**: If noise is needed, use ONLY ONE noise specification (`onoise_total` or `inoise_total` ).
 9. **Comments**: Remember to add short comments to tell the purpose of each simulation. Example: *current matching 
-10. **Format**: If device does not fit the format, change the device name like (I1 net7 net4 VDD VSS INVERTER) should be changed to (X1 net7 net4 VDD VSS INVERTER) because it's a subcircuit. 
-    - alter source from DC to trans is NOT allowed. Should define it outsice already
-    alter @vla1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
-    alter @vlb1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
+10. **Format**: If subcircuit device name does not fit the format, change the device name like (I1 net7 net4 VDD VSS INVERTER) should be changed to (X1 net7 net4 VDD VSS INVERTER) because it's a subcircuit. 
+    - alter source from DC to trans is NOT allowed. Should define it outsice already WRONG:    alter @vla1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
 """
     
     max_retries = 5

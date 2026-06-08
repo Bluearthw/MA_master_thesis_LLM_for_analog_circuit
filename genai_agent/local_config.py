@@ -25,7 +25,7 @@ table_specs_id = {
     4:  "Slew rate",
     5:  "Gain margin",
     6:  "Phase margin",
-    7:  "Output noise",
+    7:  "Output total noise",
     8:  "Input impedance",
     9:  "Output impedance",
     10: "Input swing",
@@ -33,8 +33,8 @@ table_specs_id = {
     12: "Settle time",
     13: "Input Common-Mode Range (ICMR)",
     14: "Common-Mode Rejection Ratio (CMRR)",
-    15: "AC gain (single port output)",
-    16: "Phase response",
+    # 15: "AC gain (single port output)", # treated as UGBW
+    16: "Phase response", # treated as PM
     17: "Common-Mode Gain",
     18: "Differential-Mode Gain (differential output)",
     19: "Output Balance",
@@ -67,7 +67,7 @@ table_target_id = {
     12: 'settle_time',
     13: 'icmr',
     14: 'cmrr',
-    15: 'ac_gain',
+    # 15: 'ac_gain',
     16: 'phase_response',
     17: 'cm_gain',
     18: 'dm_gain',
@@ -320,138 +320,3 @@ A fundamental gain block intended for signal conditioning, typically operating i
 
 #endregion class40
 
-nl_2_stage_opamp = """TwoStage_opamp_netlist
-
-.include "genai_agent/data/p045_TT.sp"
-
-.param wp1=0.5u lp1=90n mp1=10
-.param wn1=0.5u ln1=90n mn1=38
-.param wn3=0.5u ln3=90n mn3=9
-.param wp3=0.5u lp3=90n mp3=4
-.param wn4=0.5u ln4=90n mn4=20
-.param wn5=0.5u ln5=90n mn5=60
-.param cap=3p
-.param res=1k
-
-.param ibias=30u
-.param cload=10p
-.param vcm=0.6
-
-.param VDD=1.2
-.param trf=0.5u ; for slew-rate calculation
-.param period=10u ; for slew-rate calculation
-.param vhigh=VDD ; for slew-rate calculation
-
-*    D    G    S   B
-mp1 net4 net4 VDD VDD pmos w=wp1 l=lp1 m=mp1
-mp2 net5 net4 VDD VDD pmos w=wp1 l=lp1 m=mp1
-mn1 net4 net2 net3 net3 nmos w=wn1 l=ln1 m=mn1
-mn2 net5 net1 net3 net3 nmos w=wn1 l=ln1 m=mn1
-mn3 net7 net7 VSS VSS nmos w=wn3 l=ln3 m=mn3
-mn4 net3 net7 VSS VSS nmos w=wn4 l=ln4 m=mn4
-mp3 net6 net5 VDD VDD pmos w=wp3 l=lp3 m=mp3
-mn5 net6 net7 VSS VSS nmos w=wn5 l=ln5 m=mn5
-cc net5 net8 {cap}
-rc net8 net6 {res}
-
-
-ibias VDD net7 ibias
-
-Vicm VCM VSS dc=vcm
-Vinput aid VSS dc=0.0 ac=1.0 PULSE({-VHIGH*0.5} {VHIGH*0.5} trf trf trf {0.5*period-trf} period)
-ein1 net1 VCM aid 0 0.5
-ein2 net2 VCM aid 0 -0.5
-
-vdd VDD 0 dc=VDD
-vss VSS 0 dc=0
-CL net6 0 {cload}
-
-.control
-run
-set units=degrees
-*whether name would be written into the file.
-set wr_vecnames 
-option numdgt=7
-* set temperature
-set temp=25
-
-* transient analysis
-tran 50n 30u
-* save Vout data in a file named 'tran_TwoStage.csv'
-* --- ??? ---
-wrdata ./no_backup/output_files/tran_TwoStage.csv v(net6) 
-
-* ac analysis
-ac dec 10 1 1T
-* save Vout data in a file named 'ac_TwoStage.csv'
-* --- ??? ---
-wrdata ./no_backup/output_files/ac_TwoStage.csv v(net6)
-
-* noise analysis
-* calculate the output noise and save it in a file named 'noise_TwoStage.csv'
-* --- ??? ---
-* --- ??? ---
-noise v(net6) Vinput dec 50 1 1e9
-wrdata ./no_backup/output_files/noise_TwoStage.csv onoise_total
-* dc analysis
-save all
-op
-* save the total current consumption in a file named 'dc_TwoStage.csv'
-* --- ??? ---
-* dc Vinput 0 0 0.1
-wrdata ./no_backup/output_files/dc_TwoStage.csv i(vdd) v(net1) v(net2) v(net3) v(net4) v(net5) v(net6) v(net7) v(net8)
-
-*auto quit
-quit 
-.endc
-
-.end
-
-"""
-
-nl_test_noise_spectrum = """* circuit number 170
-.param IB1=0.01
-.param w1=0.5u
-.param l1=90n
-.param m1=1
-.param w0=0.5u
-.param l0=90n
-.param m0=1
-.param r1=1k
-.param r0=1k
-.param trf=0.5u
-.param period=10u
-.param VDD_val=1.2
-.param vcm=0.6
-.param Cload=1p
-.include "genai_agent/data/p045_TT.sp"
-M1 VDD VOUT1 IB1 VSS nmos w=w1 l=l1 m=m1
-M0 VOUT1 IB1 VSS VSS nmos w=w0 l=l0 m=m0
-R1 VDD VOUT1 {r1}
-R0 VIN1 IB1 {r0}
-CL VOUT1 0 {Cload}
-ib1 IB1 0 dc=IB1
-vss VSS 0 dc=0
-vdd VDD 0 dc=VDD_val
-vin VIN1 0 dc=vcm ac=1.0 PULSE({vcm-0.1} {vcm+0.1} {trf} {trf} {trf} {0.5*period-trf} {period})
-.control
-option numdgt=7
-set temp=25
-set units=degrees
-set wr_vecnames
-ac dec 10 1 100G
-wrdata ./genai_agent/output/170/ac_gain.csv v(VOUT1)
-noise v(VOUT1) vin dec 10 1 100G
-wrdata ./genai_agent/output/170/noise.csv noise1.inoise_spectrum 
-alter vdd ac=1
-alter vin ac=0
-ac dec 10 1 100G
-wrdata ./genai_agent/output/170/psrr.csv v(VOUT1)
-alter vdd ac=0
-alter vin ac=0
-tran 10n 30u
-wrdata ./genai_agent/output/170/tran_SR.csv v(VOUT1)
-.endc
-.end"""
-
-nl_one_line = """* title line\n*params\n.param IB1=0.01\n.param w1=0.5u\n.param l1=90n\n.param m1=1\n.param w0=0.5u\n.param l0=90n\n.param m0=1\n.param w3=0.5u\n.param l3=90n\n.param m3=1\n.param w2=0.5u\n.param l2=90n\n.param m2=1\n.param r0=1k\n.param trf=0.5u\n.param period=10u\n.param VDD_val=1.2\n.param Cload=1p\n.param vcm_val=0.6\n.include "genai_agent/data/p045_TT.sp"\nM1 VOUT1 net10 VDD VDD pmos w=w1 l=l1 m=m1\nM0 net10 net10 VDD VDD pmos w=w0 l=l0 m=m0\nM3 VOUT1 VIN2 tail_node VSS nmos w=w3 l=l3 m=m3\nM2 net10 VIN1 tail_node VSS nmos w=w2 l=l2 m=m2\nR0 net10 tail_node {r0}\nib1 tail_node 0 dc=IB1\nvss VSS 0 dc=0\nv_vdd VDD 0 dc={VDD_val}\nCL1 VOUT1 VSS {Cload}\nvcm v_cm 0 dc={vcm_val} ac=0\nvd v_diff 0 dc=0 ac=1.0 pulse(-0.6 0.6 0 {trf} {trf} {0.5*period-trf} {period})\ne_p VIN1 v_cm v_diff 0 0.5\ne_n VIN2 v_cm v_diff 0 -0.5\n.control\noption numdgt=7\nset temp=25\nset units=degrees\nset wr_vecnames\nac dec 10 1 100G\nwrdata ./genai_agent/output/155/ac_gain.csv v(VOUT1)\nnoise v(VOUT1) vd dec 10 1 100G\nwrdata ./genai_agent/output/155/noise.csv inoise_total noise1.inoise_spectrum\nalter vd ac=0\nalter v_vdd ac=1\nac dec 10 1 100G\nwrdata ./genai_agent/output/155/psrr.csv v(VOUT1)\nalter v_vdd ac=0\nalter vcm ac=1\nac dec 10 1 100G\nwrdata ./genai_agent/output/155/cmrr.csv v(VOUT1)\nalter vcm ac=0\ndc vcm 0 1.2 0.01\nwrdata ./genai_agent/output/155/dc_sweep.csv v(VOUT1)\ntran 50n 30u\nwrdata ./genai_agent/output/155/tran_SR.csv v(VOUT1)\n.endc\n.end"""

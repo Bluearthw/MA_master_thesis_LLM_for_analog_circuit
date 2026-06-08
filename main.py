@@ -5,7 +5,7 @@ import yaml
 from genai_agent.data import category_numbers
 from genai_agent.local_config import path_output 
 from utils import gen_utils
-from genai_agent.workflows.type40_DIDO import root_agent_type40
+from genai_agent.workflows.type1_7_40_SISO_DISO_DIDO import root_agent_type1_7_40
 from genai_agent.workflows.type6_bandgap import root_agent_type6
 from genai_agent.workflows.type23_charge_pump import root_agent_type23
 from utils import yaml_creation
@@ -83,8 +83,8 @@ else:
         else:
             # print(f"found,cat:{category_num}")
             # continue
-            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type40.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table, is_diff)
-        struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 2 and k != 15 and k != 14} # remove some array results
+            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type1_7_40.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table, is_diff)
+        struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 15} # remove some array results
         print("====netlist generation done=======",i)
         
         data = {

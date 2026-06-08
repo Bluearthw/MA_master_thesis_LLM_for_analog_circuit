@@ -62,7 +62,7 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
 **Simulation Examples**:
 1. **DC Output Voltage**: Initial operating point to determine nominal VREF
    - Simulation: op
-   - Output: {line_wrdata_path_num}/dc_vref.csv v(VOUT1)
+   - Output: {line_wrdata_path_num}/op_vout_ref.csv v(VOUT1)
 
 2. **Line Regulation**: DC sweep of VDD to measure supply sensitivity (ΔVout/ΔVdd). 
     Example: For a 1.2 V process targeting a 0.6 V reference, a safe nominal sweep is 1.0 V to 1.4 V .
@@ -99,15 +99,18 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
 
 ### General Netlist Rules:
 
-0. **Load**: Add load capacitance if not present (e.g., Cload=10p at output)
-1. **Transistor parameters**: Use `.param` variables without curly brackets on the component line. WRONG: `w={{}}` CORRECT: `w=wp1` with `.param wp1=1u`
-2. **Passive components**: Capacitors and resistors MUST use curly brackets with variables. CORRECT: `R0 node1 node2 {{r0}}` with `.param r0=1k`
-3. **Circuit requirements**: This is a self-biasing DC reference. Ensure it has proper biasing network, feedback path, and current generation mechanism.
-4. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path! Lines MUST be kept : 'set units=degrees' and 'set wr_vecnames'!
-5. **ONE command per line**: Every `.param`, `.model`, and component definition must start on a NEW line.
-6. **Differential check**: Bandgap outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
-7. **CMFB stability**: Set to false for bandgap references (they don't typically use CMFB loops).
-
+0. **Circuit requirements**: This is a DC reference. Ensure it has proper biasing network, feedback path, and current generation mechanism.
+1. **Differential check**: Bandgap outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
+2. **CMFB stability**: Set to false for bandgap references (they don't typically use CMFB loops).
+3. **Load**: Add load capacitance if not present (e.g., Cload=10p at output)
+4. **Transistor parameters**: Use `.param` variables without curly brackets on the component line. WRONG: `w={{}}` CORRECT: `w=wp1` with `.param wp1=1u`
+5. **Passive components**: Capacitors and resistors MUST use curly brackets with variables. CORRECT: `R0 node1 node2 {{r0}}` with `.param r0=1k`
+6. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path! Lines MUST be kept : 'set units=degrees' and 'set wr_vecnames'!
+7. **ONE command per line**: Every `.param`, `.model`, and component definition must start on a NEW line.
+8. **Single noise method**: If noise is needed, use ONLY ONE noise specification (`onoise_total` or `inoise_total` ).
+9. **Comments**: Remember to add short comments to tell the purpose of each simulation. Example: *current matching 
+10. **Format**: If subcircuit device name does not fit the format, change the device name like (I1 net7 net4 VDD VSS INVERTER) should be changed to (X1 net7 net4 VDD VSS INVERTER) because it's a subcircuit. 
+    - alter source from DC to trans is NOT allowed. Should define it outsice already WRONG:    alter @vla1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
 
 """
     

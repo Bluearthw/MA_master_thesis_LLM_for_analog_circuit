@@ -837,10 +837,13 @@ class DUT(NgspiceWrapper):
                 raise ValueError(f"No data found in DC output file: {path}")
             
         if data.ndim == 1:
-            vout = float(data[1] if data.shape[0] > 1 else data[0])
+            if data.shape[0] == 2:
+                vout = float(data[1])
+            else:
+                vout = float(data[-1]) 
+                raise ValueError(f"Data dc vout has {data.shape[0]} cols????")
             return abs((vout - dc_vout_target) / dc_vout_target)
-        if data.shape[1] == 1:
-            return float(data[-1, 0])
+        
         raise ValueError(f"Unexpected data format in DC output file: {path}")
 
     def get_line_regulation(self, path):
