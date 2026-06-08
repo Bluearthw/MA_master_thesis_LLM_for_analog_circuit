@@ -2,7 +2,7 @@ import sys
 sys.path.append(".")
 from utils import gen_utils
 from genai_agent import local_config
-from genai_agent.memory import category_numbers
+from genai_agent.data import category_numbers
 def test_count_retry_info(cir_nums):
     total, average, zero_retry_count = gen_utils.count_retry_info(cir_nums)
     print(f"Total retries: {total}, Average retries: {average}, Zero retries: {zero_retry_count}")

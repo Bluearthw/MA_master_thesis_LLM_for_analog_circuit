@@ -1,6 +1,5 @@
 git add .
-git commit -m "gemini 3.5 gives very complex circuit. update content and clean up a bit directories
-now 320 outputs
+git commit -m "clean up structure
 "
 git push
 

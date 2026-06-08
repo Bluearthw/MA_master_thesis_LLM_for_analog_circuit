@@ -82,7 +82,7 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[1]] = float(self.get_bandwidth(path))
             
             elif spec_id == 2:  # PSRR
-                spec_dict[table_target_id[2]] = self.get_psrr(path, self.has_input)[0] #[1] is freq
+                spec_dict[table_target_id[2]] = self.get_psrr(path, self.has_input, 50)[0] #[1] is freq
             
             elif spec_id == 3:  # input noise
                 spec_dict[table_target_id[3]] = float(self.get_in_equivalent_total_noise(path))
@@ -257,8 +257,8 @@ class DUT(NgspiceWrapper):
             # store gain as complex and compute magnitude/phase
             # self.vout_complex = data_gain[:, 1] + 1j * data_gain[:, 2]
             self.vout_complex = self._complex_from_cols(data_gain, 1, 2)
-            self.vout_mag_db = np.abs(self.vout_complex)
-            self.mag_db = 20 * np.log10(self.vout_mag_db)
+            self.vout_db = np.abs(self.vout_complex)
+            self.mag_db = 20 * np.log10(self.vout_db)
             phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
             if np.average(phase) > 0 and phase[0] > 175:
                 self.phase = phase - 180
@@ -288,8 +288,8 @@ class DUT(NgspiceWrapper):
         self.phase_v2 = np.unwrap(np.angle(self.vout2_complex, deg=True), period=360)
 
         self.vout_complex = self.vout1_complex - self.vout2_complex
-        self.vout_mag_db = np.abs(self.vout_complex)
-        self.mag_db = 20 * np.log10(self.vout_mag_db)
+        self.vout_db = np.abs(self.vout_complex)
+        self.mag_db = 20 * np.log10(self.vout_db)
         self.phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
 
     def load_acm_data(self, path_acm=""):
@@ -332,7 +332,7 @@ class DUT(NgspiceWrapper):
         elif self.path_adm is None and self.is_diff:
             self.load_adm_data(path_gain)
 
-        return self.vout_mag_db[0]
+        return self.vout_db[0]
 
     #1 Bandwidth
     def get_bandwidth(self,path=""):
@@ -379,7 +379,7 @@ class DUT(NgspiceWrapper):
         """Return the differential-mode gain (dB) based on the adm file."""
         if self.path_adm is None:
             self.load_adm_data(path_adm)
-        return self.vout_mag_db, self.mag_db
+        return self.vout_db, self.mag_db
         
     #16 phase response
     def get_phase_response(self, path_gain=""):
@@ -652,27 +652,88 @@ class DUT(NgspiceWrapper):
         return useful_swing_range, out_swing_min, out_swing_max
 
     #2 Power Supply Rejection Ratio (PSRR)
-    def get_psrr(self, path_psrr, has_input): # maybe it can be interpolated to get more precise value
-        """Return arrays (frequency, psrr_db) from the parsed PSRR file."""
+    def get_psrr(self, path_psrr, has_input, target_f=50):
+        """Compute PSRR and support several query modes.
+
+        Default (mode=None) returns (psrr_db_array, freq_array) for compatibility.
+
+        Additional modes:
+          XXXXX- mode='at_freq' : return interpolated PSRR at `query_freqs` (scalar or list). list of f like: []
+          - mode='min'     : return (min_psrr_db, freq_at_min)
+          - mode='dc'      : return (psrr_db_at_lowest_freq, freq_low)
+          - mode='target'  : return PSRR interpolated at `target_f` (Hz)
+
+        Keeps backward compatibility with existing callers.
+        """
         if self.path_psrr is None:
             self.path_psrr = path_psrr
+
         data_psrr = np.genfromtxt(path_psrr, autostrip=True, skip_header=1)
-        psrr_gain_complex = data_psrr[:, 1] + 1j * data_psrr[:, 2]
-        psrr_gain_mag = np.abs(psrr_gain_complex)
-        psrr_gain_mag_db = 20 * np.log10(psrr_gain_mag)
+        if data_psrr.ndim == 1:
+            data_psrr = data_psrr.reshape(1, -1) # if it is complex output already
+            print("data is complex already")
+
         freq = data_psrr[:, 0]
-        if has_input:
-            len_psrr = len(data_psrr[:, 0])
-            len_gain = len(self.vout_mag_db)
-            if len_psrr < len_gain:
-                psrr_db = self.vout_mag_db[0: len_psrr] - psrr_gain_mag_db # should use subtraction since they are  dB
-            else: #psrr >= ac gain
-                psrr_db = self.vout_mag_db - psrr_gain_mag_db[0: len_gain]
-                freq = self.freq
+        # prefer real/imag pairs in columns 1/2, otherwise try 1 as magnitude
+        if data_psrr.shape[1] >= 3:
+            psrr_gain_complex = data_psrr[:, 1] + 1j * data_psrr[:, 2]
         else:
-            psrr_db = 0 - psrr_gain_mag_db
+            psrr_gain_complex = data_psrr[:, 1]
+
+        psrr_gain_mag = np.abs(psrr_gain_complex)
+        # avoid log10(0)
+        psrr_gain_mag_db = 20 * np.log10(np.where(psrr_gain_mag == 0, 1e-30, psrr_gain_mag))
+
+        # If the circuit has an input path (AC gain), compute Vout_db on PSRR freq grid
+        if has_input and self.vout_db is not None and len(self.vout_db) > 0:
+            vout_db = self.vout_db
+            # if self.freq matches psrr freq, use directly; otherwise interpolate vout to psrr freq
+            if hasattr(self, 'freq') and len(self.freq) == len(vout_db) and np.allclose(self.freq, freq):
+                common_vout_db = vout_db
+                common_freq = freq
+            else:
+                common_freq = freq
+                # ensure we have valid self.freq; otherwise assume vout_db grid equals freq
+                if not hasattr(self, 'freq') or self.freq is None or len(self.freq) == 0:
+                    # fallback: cannot align, use first N points
+                    minlen = min(len(vout_db), len(freq))
+                    common_vout_db = vout_db[:minlen]
+                    common_freq = freq[:minlen]
+                    psrr_gain_mag_db = psrr_gain_mag_db[:minlen]
+                else:
+                    common_vout_db = np.interp(common_freq, self.freq, vout_db)
+
+            psrr_db = common_vout_db - psrr_gain_mag_db
+            freq_out = common_freq
+        else:
+            # when no input gain available, return negative of supply-to-output gain (supply->out)
+            psrr_db = - psrr_gain_mag_db
+            freq_out = freq
+
+        # Provide query modes
         
-        return psrr_db, freq
+        if target_f == -1: # array,-1
+            return psrr_db, freq_out
+        elif target_f == -2:# min,-2
+            # CRITICAL FIX: Limit the search to your active bandwidth (e.g., up to 10MHz or 100MHz)
+            # Why? PSRR often drops to 0dB at extremely high frequencies (10GHz+) where the circuit dies.
+            # We want the minimum inside the real operating band.
+            #limit or not?
+            idx = np.argmin(psrr_db)
+            return float(psrr_db[idx]), float(freq_out[idx])
+        elif target_f == -3:# dc,-3
+            return float(psrr_db[0]), float(freq_out[0])
+        else:
+            val = float(np.interp(float(target_f), freq_out, psrr_db))
+            return val, target_f
+        # elif mode == 'at_freq':
+            
+        #     freqs_arr = np.atleast_1d(target_f)
+        #     values = np.interp(freqs_arr, freq_out, psrr_db)
+        #     if np.isscalar(target_f):
+        #         return float(values[0])
+        #     return {float(f): float(v) for f, v in zip(freqs_arr, values)}
+        
     
     #13 Input Common-Mode Range (ICMR)
     def get_icmr(self, path_icmr, error = 0.05): # Input Common-Mode Range
@@ -718,7 +779,7 @@ class DUT(NgspiceWrapper):
                 pass
         if data_cm is None:
             raise ValueError("Failed to load CM data")
-        adm_mag = self.vout_mag_db
+        adm_mag = self.vout_db
         
         print("data_cm:", data_cm)
         vcm_complex = data_cm[:, 1] + 1j * data_cm[:, 2]

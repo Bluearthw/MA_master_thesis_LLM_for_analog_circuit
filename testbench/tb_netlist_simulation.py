@@ -1,7 +1,7 @@
 import sys
 sys.path.append('.')
 from genai_agent import local_config
-from genai_agent import saved_netlist
+from genai_agent.data import saved_netlist
 from utils import gen_utils
 
 def test_run_ngspice_direct(nl = local_config.nl_2_stage_opamp):

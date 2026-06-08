@@ -13,7 +13,7 @@ path_yaml_two_stage = os.path.join(path_project, 'ngspice_interface', 'files', '
 
 agent_model25 = "gemini-2.5-flash"
 agent_model3 = "gemini-3-flash-preview"
-agent_model = agent_model25
+agent_model = agent_model3
 # netlist 9
 str_nl_include = '\n.include "genai_agent/data/p045_TT.sp"\n'
 
