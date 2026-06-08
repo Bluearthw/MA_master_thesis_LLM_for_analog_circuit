@@ -1,5 +1,5 @@
 git add .
-git commit -m "psrr modification for 1 single result
+git commit -m "psrr, f=-3 to f = 0, check min commands for restart working again
 "
 git push
 

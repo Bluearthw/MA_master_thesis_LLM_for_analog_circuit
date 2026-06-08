@@ -82,7 +82,7 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[1]] = float(self.get_bandwidth(path))
             
             elif spec_id == 2:  # PSRR
-                spec_dict[table_target_id[2]] = self.get_psrr(path, self.has_input, 50)[0] #[1] is freq
+                spec_dict[table_target_id[2]] = self.get_psrr(path, self.has_input, 0)[0] #[1] is freq
             
             elif spec_id == 3:  # input noise
                 spec_dict[table_target_id[3]] = float(self.get_in_equivalent_total_noise(path))
@@ -110,7 +110,7 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[13]] = self.get_icmr(path)[0]
 
             elif spec_id == 14:  # cmrr, it is a list
-                spec_dict[table_target_id[14]] = self.get_cmrr(path)[0]
+                spec_dict[table_target_id[14]] = self.get_cmrr(path, 0)[0]
 
             elif spec_id == 15:
                 spec_dict[table_target_id[15]] = self.get_ac_gain(path)
@@ -757,42 +757,74 @@ class DUT(NgspiceWrapper):
         return None, None, None, None
 
     #14 Common-Mode Rejection Ratio (CMRR)
-    def get_cmrr(self, path_acm):
+    def get_cmrr(self, path_acm, target_f=0):
+        """Compute CMRR and support query modes similar to `get_psrr()`.
+
+        Args:
+            path_acm: path or list of paths to common-mode AC data.
+            target_f: query mode / frequency:
+                -1 -> return full (cmrr_db_array, freq_array) [default]
+                -2 -> return (min_cmrr_db, freq_at_min)
+                 0 -> return DC point (lowest frequency)
+                >0 -> return interpolated cmrr at that frequency (Hz)
+
+        Returns:
+            Depending on `target_f`, either (cmrr_db_array, freq_array) or (value, freq).
+        """
         print("path_cm:", path_acm)
-        print("len(path_acm):", len(path_acm))
         data_cm = None
-        # Column 0: Freq, Column 1: Real, Column 2: Imag (or Mag depending on wrdata)
-        # If using default wrdata, it's usually Real/Imag pairs
+        # Load CM data (support single path string or list of paths)
         if isinstance(path_acm, str):
-            data_cm = np.genfromtxt(path_acm, skip_header=1)
+            data_cm = np.genfromtxt(path_acm, autostrip=True, skip_header=1)
         else:
             for path in path_acm:
                 if 'cm' in path:
-                    data_cm = np.genfromtxt(path, skip_header=1)
+                    data_cm = np.genfromtxt(path, autostrip=True, skip_header=1)
             if self.mag_db is None:
-                # use the path
                 raise ValueError("there is no ac_dm when you want cmrr!!")
-            else:
-                pass
+
         if data_cm is None:
             raise ValueError("Failed to load CM data")
+
+        # Ensure 2D
+        if data_cm.ndim == 1:
+            data_cm = data_cm.reshape(1, -1)
+
         adm_mag = self.vout_db
-        
-        print("data_cm:", data_cm)
+
         vcm_complex = data_cm[:, 1] + 1j * data_cm[:, 2]
         acm_mag = np.abs(vcm_complex)
 
         len_dm = len(adm_mag)
         len_cm = len(acm_mag)
-        if len_dm < len_cm:
-            cmrr = adm_mag / acm_mag[0: len_dm]
-            freq = data_cm[:, 0]
-        else: #psrr >= ac gain
-            cmrr = adm_mag[0: len_cm] / acm_mag
-            freq = self.freq
 
-        cmrr_db = 20 * np.log10(cmrr)
-        return  cmrr_db, freq # Return freq and CMRR in dB
+        # Align lengths and choose frequency vector that matches cmrr length
+        if len_dm < len_cm:
+            cmrr = adm_mag / acm_mag[:len_dm]
+            if hasattr(self, 'freq') and self.freq is not None and len(self.freq) == len_dm:
+                freq = self.freq
+            else:
+                freq = data_cm[:len_dm, 0]
+        else:
+            cmrr = adm_mag[:len_cm] / acm_mag
+            if hasattr(self, 'freq') and self.freq is not None and len(self.freq) >= len_cm:
+                freq = self.freq[:len_cm]
+            else:
+                freq = data_cm[:len_cm, 0]
+
+        cmrr_db = 20 * np.log10(np.where(cmrr == 0, 1e-30, cmrr))
+
+        # Query modes
+        if target_f == -1:
+            return cmrr_db, freq
+        elif target_f == -2:
+            idx = int(np.argmin(cmrr_db))
+            return float(cmrr_db[idx]), float(freq[idx])
+        elif target_f == 0:
+            return float(cmrr_db[target_f]), float(freq[target_f])
+        else:
+            val = float(np.interp(float(target_f), freq, cmrr_db))
+            return val, float(target_f)
 
     def get_dc_vout_relative_err(self, path, dc_vout_target=0.1):
         """Return the relative DC output voltage from a DC measurement file."""
