@@ -30,7 +30,7 @@ test = [69] #dido
 test = category_numbers.num_class_40_samples
 #DISO
 test = category_numbers.num_class_7_samples
-test = [320]
+test = [619]
 # Convert tested to a set first for blazing fast lookups
 
 # tested = category_numbers.num_class_40_samples_tested

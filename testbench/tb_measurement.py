@@ -30,15 +30,8 @@ path_id_310 =  {18: './genai_agent/output/310/ac_gain.csv', 17: './genai_agent/o
 path_id_155_2path_cmrr =  {0: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 16: './genai_agent/output/155/ac_gain.csv', 14: ['./genai_agent/output/155/ac_gain.csv', './genai_agent/output/155/ac_cm.csv'], 17: './genai_agent/output/155/ac_cm.csv', 2: './genai_agent/output/155/psrr.csv', 13: './genai_agent/output/155/icmr.csv', 11: './genai_agent/output/155/swing.csv', 4: './genai_agent/output/155/tran_sr.csv', 22: './genai_agent/output/155/current.csv', 23: './genai_agent/output/155/current.csv'}
 path_id_155_1path_cmrr =  {0: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 13: './genai_agent/output/155/icmr.csv', 14: './genai_agent/output/155/cmrr.csv', 2: './genai_agent/output/155/psrr.csv', 11: './genai_agent/output/155/swing.csv', 4: './genai_agent/output/155/tran_SR.csv', 22: './genai_agent/output/155/current.csv', 23: './genai_agent/output/155/dc_vout.csv'}
 path_id_320 =  {0: './genai_agent/output/320/ac_gain.csv', 2: './genai_agent/output/320/psrr.csv', 4: './genai_agent/output/320/tran_SR.csv', 6: './genai_agent/output/320/ac_gain.csv', 11: './genai_agent/output/320/dc_out_swing.csv', 13: './genai_agent/output/320/dc_icmr.csv', 14: ['./genai_agent/output/320/ac_gain.csv', './genai_agent/output/320/cm_gain.csv'], 16: './genai_agent/output/320/ac_gain.csv', 17: './genai_agent/output/320/cm_gain.csv', 22: './genai_agent/output/320/current.csv', 23: './genai_agent/output/320/dc_vout.csv'}
-""" in yaml:
-path_id:
-  0: '.\\no_backup\\output_files\\ac_TwoStage.csv'
-  3: '.\\no_backup\\output_files\\noise_TwoStage.csv'
-  4: '.\\no_backup\\output_files\\tran_TwoStage.csv'
-  6: '.\\no_backup\\output_files\\ac_TwoStage.csv'
-  21: '.\\no_backup\\output_files\\ac_TwoStage.csv'
-  22: '.\\no_backup\\output_files\\dc_TwoStage.csv'
-  """
+path_id_333 =  {0: './genai_agent/output/333/ac_gain.csv', 2: './genai_agent/output/333/ac_psrr.csv', 4: './genai_agent/output/333/tran_sr.csv', 6: './genai_agent/output/333/ac_gain.csv', 11: './genai_agent/output/333/dc_swing.csv', 13: './genai_agent/output/333/dc_icmr.csv', 14: ['./genai_agent/output/333/ac_gain.csv', './genai_agent/output/333/ac_cm_gain.csv'], 16: './genai_agent/output/333/ac_gain.csv', 17: './genai_agent/output/333/ac_cm_gain.csv', 22: './genai_agent/output/333/current.csv', 23: './genai_agent/output/333/dc_vout.csv'}
+
 def test_phase_calculation():
     print("--- SPICE Phase Processing Test Bench ---")
     
@@ -245,7 +238,8 @@ def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
 # test_DUT(path_id_439, 439) 
 # test_DUT(path_id_641, 641) 
 # test_DUT(path_id_155_2path_cmrr, 155, has_input=True) 
-test_DUT(path_id_155_1path_cmrr, 155, has_input=True) 
+# test_DUT(path_id_155_1path_cmrr, 155, has_input=True) 
+test_DUT(path_id_333, 333, has_input=True) 
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()

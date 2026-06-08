@@ -653,7 +653,7 @@ class DUT(NgspiceWrapper):
 
     #2 Power Supply Rejection Ratio (PSRR)
     def get_psrr(self, path_psrr, has_input, target_f=50):
-        """Compute PSRR and support several query modes.
+        """Compute PSRR (default at 50Hz) and support several query modes.
 
         Default (mode=None) returns (psrr_db_array, freq_array) for compatibility.
 
@@ -721,18 +721,15 @@ class DUT(NgspiceWrapper):
             #limit or not?
             idx = np.argmin(psrr_db)
             return float(psrr_db[idx]), float(freq_out[idx])
-        elif target_f == -3:# dc,-3
-            return float(psrr_db[0]), float(freq_out[0])
+        elif target_f == 0:# dc,
+            f = np.argmin(freq_out)
+            if f != 0:
+                print(f"DC point is not at index 0. Using f {f}")
+            return float(psrr_db[f]), float(freq_out[f])
         else:
             val = float(np.interp(float(target_f), freq_out, psrr_db))
             return val, target_f
-        # elif mode == 'at_freq':
-            
-        #     freqs_arr = np.atleast_1d(target_f)
-        #     values = np.interp(freqs_arr, freq_out, psrr_db)
-        #     if np.isscalar(target_f):
-        #         return float(values[0])
-        #     return {float(f): float(v) for f, v in zip(freqs_arr, values)}
+
         
     
     #13 Input Common-Mode Range (ICMR)

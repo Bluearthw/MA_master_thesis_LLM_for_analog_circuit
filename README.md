@@ -1,5 +1,5 @@
 git add .
-git commit -m "clean up structure
+git commit -m "psrr modification for 1 single result
 "
 git push
 
@@ -54,8 +54,9 @@ $env:GOOGLE_APPLICATION_CREDENTIALS="C:\Users\$env:USERNAME\AppData\Roaming\gclo
 & “D:\tool\google_cloud_cli\google-cloud-sdk\bin\gcloud.cmd" auth application-default login
 
 
-
+# access
 (venv) PS D:\1kulStudy\8MA_Thesis\workplace> powershell -c "iex (irm https://storage.googleapis.com/cloud-samples-data/adc/setup_adc.ps1)"
+project id: project-2e780bfb-5a07-44db-866
 # grant access
 https://console.cloud.google.com/iam-admin/iam?authuser=1
 ================================================================
@@ -110,9 +111,13 @@ export GOOGLE_CLOUD_LOCATION=global
 export GOOGLE_GENAI_USE_ENTERPRISE=True
 
 在vscode下用：
+
+$env:GOOGLE_CLOUD_PROJECT="project-2e780bfb-5a07-44db-866"
+$env:GOOGLE_CLOUD_LOCATION="global"
+$env:GOOGLE_GENAI_USE_ENTERPRISE="True"
+
 # 1. Set your Project ID
 $env:GOOGLE_CLOUD_PROJECT="project-2e780bfb-5a07-44db-866"
-
 # 2. CRITICAL: Change "global" to "us-central1"
 # The new Agent Platform requires a specific region for Gemini 3.5. 'global' will trigger a 404.
 $env:GOOGLE_CLOUD_LOCATION="global"
