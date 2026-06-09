@@ -75,6 +75,7 @@ else:
         print("is_diff =", is_diff)
         gen_utils.delete_all_files_except_dir(path_output_num)
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
+        print("trimmed_spec_table",trimmed_spec_table)
         if category_num == 6:
             combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type6.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
         if category_num == 23:

@@ -112,18 +112,10 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
 
 ### General Netlist Rules:
 
-0. **Load**: Add load capacitance if needed (e.g., Cload=10p at output)
-1. **Transistor parameters**: Use `.param` variables without curly brackets on the component line. WRONG: `w={{}}` CORRECT: `w=wp1` with `.param wp1=1u`
-2. **Passive components**: Capacitors and resistors MUST use curly brackets with variables. CORRECT: `R0 node1 node2 {{r0}}` with `.param r0=1k`
-3. **Circuit requirements**: This is a charge pump circuit. Ensure it has proper switching network, capacitors, and control logic for voltage multiplication.
-4. **Data output format**: Each measurement must write to a unique CSV file with the circuit number in path! Lines MUST be kept : 'set units=degrees' and 'set wr_vecnames'!
-5. **ONE command per line**: Every `.param`, `.model`, and component definition must start on a NEW line.
-6. **Differential check**: Charge pump outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
-7. **CMFB stability**: Set to false for charge pump circuits (they don't typically use CMFB loops).
-8. **Single noise method**: If noise is needed, use ONLY ONE noise specification (`onoise_total` or `inoise_total` ).
-9. **Comments**: Remember to add short comments to tell the purpose of each simulation. Example: *current matching 
-10. **Format**: If subcircuit device name does not fit the format, change the device name like (I1 net7 net4 VDD VSS INVERTER) should be changed to (X1 net7 net4 VDD VSS INVERTER) because it's a subcircuit. 
-    - alter source from DC to trans is NOT allowed. Should define it outsice already WRONG:    alter @vla1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
+0. **Circuit requirements**: This is a charge pump circuit. Ensure it has proper switching network, capacitors, and control logic for voltage multiplication.
+1. **Differential check**: Charge pump outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
+2. **CMFB stability**: Set to false for charge pump circuits (they don't typically use CMFB loops).
+{local_config.general_rules}
 """
     
     max_retries = 5
