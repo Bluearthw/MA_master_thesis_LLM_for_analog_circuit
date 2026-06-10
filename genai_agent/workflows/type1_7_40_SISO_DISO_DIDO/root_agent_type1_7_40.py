@@ -13,8 +13,6 @@ from utils import gen_utils as gen_utils
 
 path_output = local_config.path_output
 
-
-    
 def add_sim_agent(netlist, category,cir_num=4, trimmed_spec_table=None, is_diff=False):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
     
@@ -35,14 +33,6 @@ def add_sim_agent(netlist, category,cir_num=4, trimmed_spec_table=None, is_diff=
 
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
     retry_count = 0
-    # Save the generated prompt to a file so it can be reviewed or reused later.
-    # try:
-    #     prompt_dir = os.path.join(local_config.path_prompts, 'prompts')
-    #     os.makedirs(local_config.path_prompts, exist_ok=True)
-    #     prompt_path = os.path.join(prompt_dir, f"prompt_1.txt")
-    #     gen_utils.save_str_to_file(contents, prompt_path)
-    # except Exception as e:
-    #     print(f"Warning: failed to save prompt file: {e}")
     
     while True:
         try:
@@ -79,8 +69,5 @@ def add_sim_agent(netlist, category,cir_num=4, trimmed_spec_table=None, is_diff=
         if retry_count >= max_retries:
             raise RuntimeError("Max retries reached. The model may be unavailable.")
 
-    #out of while True and files exist.
-# def measuremnt(spice_result, path, files):
-    
 
 
