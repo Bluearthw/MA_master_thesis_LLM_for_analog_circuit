@@ -6,46 +6,22 @@ from google import genai
 ######################
 # local import
 from genai_agent import local_config
+import os
 from genai_agent import tools
-from genai_agent.workflows import sim_debug_meas_loop
+from genai_agent.workflows import workflow
 from utils import gen_utils as gen_utils
 
 path_output = local_config.path_output
 
 
 def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table, is_diff):
-           
-    struc = add_sim_agent(netlist, category_str, cir_num, trimmed_spec_table, is_diff)
-    print("struc=", struc)
-    target_dc_vout = struc.target_dc_vout
-    target_dc_vout = gen_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
+    """Delegate to centralized `test_make_cir_sim` in sim_debug_meas_loop.
 
-    netlist = struc.netlist
-    print("netlist_after_add_sim_agent=", netlist)
-    netlist = gen_utils.ensure_data_format_settings(netlist)
-    netlist = gen_utils.modify_ac_range_1T(netlist)
-    spec_sims = struc.spec_sims
-    is_differential_output = struc.is_diff
-    is_CMFB = struc.is_CMFB
-    for spec_sim in spec_sims:
-        print("==spec_sims", spec_sim)
-    print("======sim netlist = ")
-    print(netlist)
-    print(is_differential_output)
-    print("is CMFB:", is_CMFB)
-    
-    # Simulate original netlist
-    results_original, struct_path_id = sim_debug_meas_loop.sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB)
-    
-    combined_results = {'original': results_original}
-    path_netlist = path_output_num + "final_netlist.cir"
-    gen_utils.save_str_to_file(netlist, path_netlist)
-    
-    
-    data_for_dut_yaml = (is_differential_output, has_input, target_dc_vout)
+    Charge-pump workflows don't require `ensure_format`, so we only set
+    `modify_ac=True`.
+    """
+    return workflow.generate_netlist(add_sim_agent, cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table, is_diff_arg=is_diff)
 
-    print("Combined measurement results:", combined_results)
-    return combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml#, cmfb_struct_path_id
     
 def add_sim_agent(netlist, category,cir_num=4, trimmed_spec_table=None, is_diff=False):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
@@ -126,6 +102,14 @@ op
 
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
     retry_count = 0
+    # Save the generated prompt to a file so it can be reviewed or reused later.
+    try:
+        prompt_dir = os.path.join(local_config.path_output, 'prompts')
+        os.makedirs(prompt_dir, exist_ok=True)
+        prompt_path = os.path.join(prompt_dir, f"prompt_{cir_num}.txt")
+        gen_utils.save_str_to_file(contents, prompt_path)
+    except Exception as e:
+        print(f"Warning: failed to save prompt file: {e}")
     
     while True:
         try:

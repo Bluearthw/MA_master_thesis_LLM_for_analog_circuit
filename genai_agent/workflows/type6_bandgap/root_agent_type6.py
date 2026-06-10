@@ -7,47 +7,21 @@ from google import genai
 # local import
 from genai_agent import local_config
 from genai_agent import tools
-from genai_agent.workflows import sim_debug_meas_loop
+from genai_agent.workflows import workflow
 
 from utils import gen_utils as gen_utils
 
 path_output = local_config.path_output
 
 def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table):
-    
-    struc = add_sim_agent(netlist, category_str, cir_num, trimmed_spec_table)
-    target_dc_vout = struc.target_dc_vout
-    target_dc_vout = gen_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
+    """Wrapper that uses the shared `sim_debug_meas_loop.test_make_cir_sim`.
 
-    netlist = struc.netlist
-    netlist = gen_utils.ensure_data_format_settings(netlist)
-    netlist = gen_utils.modify_ac_range_1T(netlist)
-    spec_sims = struc.spec_sims
-    is_differential_output = struc.is_diff
-    is_CMFB = struc.is_CMFB
-    for spec_sim in spec_sims:
-        print("==spec_sims", spec_sim)
-    print("======sim netlist = ")
-    print(netlist)
-    print(is_differential_output)
-    print("is CMFB:", is_CMFB)
+    This preserves the original signature while delegating behavior to the
+    centralized implementation which calls the workflow-local `add_sim_agent`.
+    """
+    return workflow.generate_netlist(add_sim_agent, cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
     
-    # Simulate original netlist
-    print(target_dc_vout)
-    results_original, struct_path_id = sim_debug_meas_loop.sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB)
-    
-    combined_results = {'original': results_original}
-    path_netlist = path_output_num + "final_netlist.cir"
-    gen_utils.save_str_to_file(netlist, path_netlist)
-    
-    
-    
-    data_for_dut_yaml = (is_differential_output, has_input, target_dc_vout)
-
-    print("Combined measurement results:", combined_results)
-    return combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml
-    
-def add_sim_agent(netlist, category, cir_num=4, trimmed_spec_table=None):
+def add_sim_agent(netlist, category, cir_num=4, trimmed_spec_table=None, is_diff=None):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
     client = gen_utils.get_client()
     f_end = "1T"

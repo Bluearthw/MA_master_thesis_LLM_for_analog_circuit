@@ -47,7 +47,6 @@ def test_make_cir_sim(cir_num):
     print("======sim netlist = ")
     print(netlist)
     
-    utils.save_str_to_file(netlist, path_output_num + "final_netlist.cir")
     
     counter = 0
     error_msg=[]

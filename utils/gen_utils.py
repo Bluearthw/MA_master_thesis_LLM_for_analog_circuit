@@ -789,10 +789,10 @@ def modify_ac_range_1T(netlist):
         
         # Check if current line starts with 'ac' (case-insensitive)
         if line.lower().startswith('ac '):
-            # Check if next line contains 'ac_gain' in wrdata
+            
             if i + 1 < len(lines):
                 next_line = lines[i + 1].strip()
-                if 'ac_gain' in next_line.lower() and 'wrdata' in next_line.lower():
+                if 'wrdata' in next_line.lower():# i think ac_gain is not needed but wrdata is needed
                     # Replace upper frequency with 1T using regex
                     # Pattern: ac dec 10 1 <frequency>
                     # Match any frequency value (e.g., 100G, 10G, 1G, 1000M, etc.)
@@ -1261,7 +1261,6 @@ def ensure_data_format_settings(netlist):
     # If .control not found, return unchanged
     if control_index == -1:
         raise ValueError("'.control' line not found in netlist")
-        return netlist
     
     # If both settings present, return unchanged
     if has_units and has_wr_vecnames:

@@ -77,14 +77,14 @@ else:
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
         print("trimmed_spec_table",trimmed_spec_table)
         if category_num == 6:
-            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type6.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
+            results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type6.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
         if category_num == 23:
-            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type23.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
+            results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type23.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
              
         else:
             # print(f"found,cat:{category_num}")
             # continue
-            combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type1_7_40.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table, is_diff)
+            results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type1_7_40.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table, is_diff)
         struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 15} # remove some array results
         print("====netlist generation done=======",i)
         

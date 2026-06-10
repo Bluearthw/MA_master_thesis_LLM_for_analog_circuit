@@ -17,7 +17,9 @@ def test_find_cir_num_without_pattern(nums, port = []):
     print(nums_new)
 
 def test_trim_spec_table(category_num):
+    print(local_config.path_category)
     path_category = local_config.path_category + f"{category_num}.md"
+    print(path_category)
     # or the cat_num is already known, so just +"4.md"
     category_str = gen_utils.get_file_to_str(path_category)
     new_dict = gen_utils.trim_spec_table(category_str)
@@ -27,7 +29,7 @@ def test_trim_spec_table(category_num):
 charge_pump_nums = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump\
 bandgap_nums = category_numbers.num_class_6_without_IIN1
 amplifier_nums = category_numbers.num_class_40_samples_tested
-test_count_retry_info(bandgap_nums)
+# test_count_retry_info(bandgap_nums)
 
 bandgap_nums_old = category_numbers.num_class_6
 # test_find_cir_num_without_pattern(bandgap_nums_old,["IIN1"])

@@ -1,5 +1,5 @@
 git add .
-git commit -m "save path_id and check all the types once. fix error: netlist path is not passed when it is the first measuremnt 
+git commit -m "combine test_make_cir_sim
 "
 git push
 

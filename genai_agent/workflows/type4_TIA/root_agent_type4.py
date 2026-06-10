@@ -76,14 +76,6 @@ def test_make_cir_sim(cir_num):
             print("Measurement results:", measurement_results)
             # return the unique paths for callers that care
             
-
-        # else:
-        #     print(f"==================bug found!!!!======={counter}===============")
-        #     utils.test_delay(60)  # Wait 10 seconds before retrying
-        #     struct_debug = debug_agent.debug_agent(netlist, sim_output["message"],cir_num)
-        #     netlist = struct_debug.netlist
-        #     spec_sims = struct_debug.spec_sims
-        #     # is_debug = True
         counter+=1
         if counter > 5:
             raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")

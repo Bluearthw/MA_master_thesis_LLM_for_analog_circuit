@@ -47,3 +47,54 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
         if counter > 5:
             saving.save_error_info(path_output_num, cir_num, counter, error_msg, fix_info, "failed", is_CMFB)
             raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
+
+
+def generate_netlist(add_sim_agent, cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table,  is_diff_arg=None):
+    """Generic test-maker that invokes a workflow-local `add_sim_agent` to prepare the netlist,
+    then runs the sim-debug-measure loop.
+
+    Parameters:
+        - add_sim_agent: callable provided by the workflow (signature varies slightly).
+        - cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table: workflow params
+        - ensure_format: if True, call `gen_utils.ensure_data_format_settings(netlist)`
+        - modify_ac: if True, call `gen_utils.modify_ac_range_1T(netlist)`
+        - is_diff_arg: optional extra argument forwarded to `add_sim_agent`
+
+    Returns: (combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml)
+    """
+    # Call the workflow-local add_sim_agent with or without the extra is_diff arg
+    struc = add_sim_agent(netlist, category_str, cir_num, trimmed_spec_table, is_diff_arg)
+    
+
+    target_dc_vout = getattr(struc, 'target_dc_vout', None)
+    if target_dc_vout is None:
+        raise ValueError("Target DC output voltage is not specified.")
+    # Allow the user to override target interactively (non-blocking helper may be used)
+    target_dc_vout = gen_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
+
+    netlist = struc.netlist
+
+    netlist = gen_utils.ensure_data_format_settings(netlist)
+    netlist = gen_utils.modify_ac_range_1T(netlist)
+        
+
+    spec_sims = struc.spec_sims
+    is_differential_output = struc.is_diff
+    is_CMFB = struc.is_CMFB
+    ####################
+    for spec_sim in spec_sims:
+        print("==spec_sims", spec_sim)
+    print("======sim netlist = ")
+    print(netlist)
+    print(is_differential_output)
+    print("is CMFB:", is_CMFB)
+    ####################
+
+    # Run sim-debug-measure loop
+    results_original, struct_path_id = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB)
+
+    
+    path_netlist = path_output_num + "final_netlist.cir"
+    data_for_dut_yaml = (is_differential_output, has_input, target_dc_vout)
+
+    return results_original, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml
