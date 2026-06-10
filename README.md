@@ -1,5 +1,5 @@
 git add .
-git commit -m "combine test_make_cir_sim
+git commit -m "try to switch prompts only. so only 1 netlist_builder
 "
 git push
 

@@ -49,21 +49,19 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
 
 
-def generate_netlist(add_sim_agent, cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table,  is_diff_arg=None):
+def generate_netlist(add_sim_agent, cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table,  is_diff=None):
     """Generic test-maker that invokes a workflow-local `add_sim_agent` to prepare the netlist,
     then runs the sim-debug-measure loop.
 
     Parameters:
         - add_sim_agent: callable provided by the workflow (signature varies slightly).
         - cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table: workflow params
-        - ensure_format: if True, call `gen_utils.ensure_data_format_settings(netlist)`
-        - modify_ac: if True, call `gen_utils.modify_ac_range_1T(netlist)`
         - is_diff_arg: optional extra argument forwarded to `add_sim_agent`
 
     Returns: (combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml)
     """
     # Call the workflow-local add_sim_agent with or without the extra is_diff arg
-    struc = add_sim_agent(netlist, category_str, cir_num, trimmed_spec_table, is_diff_arg)
+    struc = add_sim_agent(netlist, category_str, cir_num, trimmed_spec_table, is_diff)
     
 
     target_dc_vout = getattr(struc, 'target_dc_vout', None)

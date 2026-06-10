@@ -4,6 +4,7 @@ import yaml
 #local import
 from genai_agent.data import category_numbers
 from genai_agent.local_config import path_output 
+from genai_agent.workflows import workflow
 from utils import gen_utils
 from genai_agent.workflows.type1_7_40_SISO_DISO_DIDO import root_agent_type1_7_40
 from genai_agent.workflows.type6_bandgap import root_agent_type6
@@ -51,6 +52,7 @@ elif is_with_RL == 2:
 elif is_with_RL == 3:
     print("Only yaml creation is enabled.")
 # sys.exit(0)
+
 if is_with_RL == 2:
     i = test[0]
     td3_runner.td3_start(circuit_name=f'{i}')
@@ -77,14 +79,22 @@ else:
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
         print("trimmed_spec_table",trimmed_spec_table)
         if category_num == 6:
-            results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type6.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
-        if category_num == 23:
-            results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type23.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table)
-             
+            agent = root_agent_type6
+        elif category_num == 23:
+            agent = root_agent_type23
         else:
-            # print(f"found,cat:{category_num}")
-            # continue
-            results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = root_agent_type1_7_40.test_make_cir_sim(i, path_output_num, category_str, netlist, has_input, trimmed_spec_table, is_diff)
+            agent = root_agent_type1_7_40
+            
+        results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = workflow.generate_netlist(
+        add_sim_agent=agent.add_sim_agent, 
+        cir_num=i, 
+        path_output_num=path_output_num, 
+        category_str=category_str, 
+        netlist=netlist, 
+        has_input=has_input, 
+        trimmed_spec_table=trimmed_spec_table,
+        is_diff=is_diff 
+        )
         struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 15} # remove some array results
         print("====netlist generation done=======",i)
         
