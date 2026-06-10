@@ -49,7 +49,7 @@ def test_make_cir_sim(cir_num, path_output_num, category_str, netlist, has_input
 def add_sim_agent(netlist, category, cir_num=4, trimmed_spec_table=None):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
     client = gen_utils.get_client()
-    # f_end = "1T"
+    f_end = "1T" # not needed
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given a netlist for a charge pump circuit: {netlist}, circuit number {cir_num}, a table of specifications and their IDs: {trimmed_spec_table}, and detailed requirements: {category}.
 Your goal is to complete the simulation setup for the charge pump circuit. The netlist must be fully simulated without errors. You should output:
 1. The complete, ready-to-run netlist
@@ -115,7 +115,7 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
 0. **Circuit requirements**: This is a charge pump circuit. Ensure it has proper switching network, capacitors, and control logic for voltage multiplication.
 1. **Differential check**: Charge pump outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
 2. **CMFB stability**: Set to false for charge pump circuits (they don't typically use CMFB loops).
-{local_config.general_rules}
+{local_config.general_rules.replace('{f_end}', f_end)} 
 """
     
     max_retries = 5
@@ -136,13 +136,12 @@ Your goal is to complete the simulation setup for the charge pump circuit. The n
         except Exception as e:
             error_msg = str(e)
             
+            retry_count += 1
             if "503" in error_msg or "ResourceExhausted" in error_msg:
-                retry_count += 1
                 wait_sec = 30 * retry_count
                 print(f"Model busy (503). Retry #{retry_count}. ")
                 gen_utils.test_delay(wait_sec)
             elif "429" in error_msg or "TooManyRequests" in error_msg:
-                retry_count += 1
                 wait_sec = 120 * retry_count
                 print(f"Rate limit exceeded (429). Retry #{retry_count}. ")
                 gen_utils.test_delay(wait_sec)

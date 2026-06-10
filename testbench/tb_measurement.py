@@ -7,6 +7,7 @@ sys.path.append(".")
 from ngspice_interface import dut_testbench
 from genai_agent import local_config
 from testbench import tb_netlist_simulation
+from utils import gen_utils
 path_id_69 =  {18: './genai_agent/output/69/ac_gain.csv', 1: './genai_agent/output/69/ac_gain.csv', 6: './genai_agent/output/69/ac_gain.csv', 3: './genai_agent/output/69/noise.csv', 4: './genai_agent/output/69/tran_SR.csv', 22: './genai_agent/output/69/dc_current.csv', 23: './genai_agent/output/69/dc_current.csv'}
 path_id_96 = {18: './genai_agent/output/96/ac_dm.csv', 17: './genai_agent/output/96/ac_cm.csv', 0: './genai_agent/output/96/ac_gain.csv', 1: './genai_agent/output/96/ac_gain.csv', 16: './genai_agent/output/96/ac_gain.csv', 6: './genai_agent/output/96/ac_gain.csv', 3: './genai_agent/output/96/noise.csv', 4: './genai_agent/output/96/tran_sr.csv', 10: './genai_agent/output/96/dc_sweep.csv', 11: './genai_agent/output/96/dc_sweep.csv'}
 path_id_182 = {20: './genai_agent/output/182/cmfb_stb.csv'}
@@ -31,7 +32,8 @@ path_id_155_2path_cmrr =  {0: './genai_agent/output/155/ac_gain.csv', 6: './gena
 path_id_155_1path_cmrr =  {0: './genai_agent/output/155/ac_gain.csv', 6: './genai_agent/output/155/ac_gain.csv', 13: './genai_agent/output/155/icmr.csv', 14: './genai_agent/output/155/cmrr.csv', 2: './genai_agent/output/155/psrr.csv', 11: './genai_agent/output/155/swing.csv', 4: './genai_agent/output/155/tran_SR.csv', 22: './genai_agent/output/155/current.csv', 23: './genai_agent/output/155/dc_vout.csv'}
 path_id_320 =  {0: './genai_agent/output/320/ac_gain.csv', 2: './genai_agent/output/320/psrr.csv', 4: './genai_agent/output/320/tran_SR.csv', 6: './genai_agent/output/320/ac_gain.csv', 11: './genai_agent/output/320/dc_out_swing.csv', 13: './genai_agent/output/320/dc_icmr.csv', 14: ['./genai_agent/output/320/ac_gain.csv', './genai_agent/output/320/cm_gain.csv'], 16: './genai_agent/output/320/ac_gain.csv', 17: './genai_agent/output/320/cm_gain.csv', 22: './genai_agent/output/320/current.csv', 23: './genai_agent/output/320/dc_vout.csv'}
 path_id_333 =  {0: './genai_agent/output/333/ac_gain.csv', 2: './genai_agent/output/333/ac_psrr.csv', 4: './genai_agent/output/333/tran_sr.csv', 6: './genai_agent/output/333/ac_gain.csv', 11: './genai_agent/output/333/dc_swing.csv', 13: './genai_agent/output/333/dc_icmr.csv', 14: ['./genai_agent/output/333/ac_gain.csv', './genai_agent/output/333/ac_cm_gain.csv'], 16: './genai_agent/output/333/ac_gain.csv', 17: './genai_agent/output/333/ac_cm_gain.csv', 22: './genai_agent/output/333/current.csv', 23: './genai_agent/output/333/dc_vout.csv'}
-
+path_id_619 =  {0: './genai_agent/output/619/ac_gain.csv', 2: './genai_agent/output/619/psrr.csv', 4: './genai_agent/output/619/tran_sr.csv', 6: './genai_agent/output/619/ac_gain.csv', 11: './genai_agent/output/619/output_swing.csv', 13: './genai_agent/output/619/icmr.csv', 14: './genai_agent/output/619/cm_gain.csv', 16: './genai_agent/output/619/ac_gain.csv', 22: './genai_agent/output/619/current.csv', 23: './genai_agent/output/619/dc_vout.csv'}
+path_id_439 =  {22: './genai_agent/output/439/current.csv', 23: './genai_agent/output/439/op_vout_ref.csv', 28: ['./genai_agent/output/439/source_current.csv', './genai_agent/output/439/sink_current.csv'], 29: './genai_agent/output/439/output_ripple.csv', 30: ['./genai_agent/output/439/source_current.csv', './genai_agent/output/439/sink_current.csv']}
 def test_phase_calculation():
     print("--- SPICE Phase Processing Test Bench ---")
     
@@ -57,11 +59,16 @@ def test_measurement_spice_result_new(path_id):
     print(result)
     # print(result["icmr"][0])
 
-def test_DUT(p_id, cir_cum, is_differential_output=False, has_input = False, target_dc_vout=0.6):
-    
+def test_DUT(cir_num, is_differential_output=False, has_input = False, target_dc_vout=0.6, pid=None):
+    path_output_num = local_config.path_output + f"{cir_num}/"
+    if pid is None:
+        p_id = gen_utils.get_dict_from_json(path_output_num + "struct_path_id.json")
+    else:
+        p_id = pid
+    print("p_id:", p_id)
     dut =dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout)
-    dut.circuit_name = str(cir_cum)
-    path = local_config.path_output + f"{cir_cum}/final_netlist.cir"
+    dut.circuit_name = str(cir_num)
+    path = path_output_num + "final_netlist.cir"
     dut.netlist_path = path
     result = dut.measure_metrics(p_id)
     print (result)
@@ -132,10 +139,11 @@ def test_DUT_180_phase_problem(p_id, name):
     # plt.axhline(y=-180, color='r', linestyle=':', label='-180° Limit')
     # plt.legend()
     # plt.show()
-def test_DUT_ugbw(p_id, name):
+def test_DUT_ugbw(cir_name):
     dut = dut_testbench.DUT()
-    dut.circuit_name = str(name)
-    
+    dut.circuit_name = str(cir_name)
+    p_id = gen_utils.get_file_to_str(local_config.path_output + f"{cir_name}/struct_path_id.txt")
+    print("p_id:", p_id)
     result = dut.measure_metrics(p_id)
     print (result)
     phase_deg = dut.get_phase_response()
@@ -239,7 +247,7 @@ def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
 # test_DUT(path_id_641, 641) 
 # test_DUT(path_id_155_2path_cmrr, 155, has_input=True) 
 # test_DUT(path_id_155_1path_cmrr, 155, has_input=True) 
-test_DUT(path_id_333, 333, has_input=True) 
+test_DUT(439, has_input=True,pid=path_id_439) 
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()

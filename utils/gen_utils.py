@@ -151,8 +151,13 @@ def delete_all_files_except_dir(folder_path):
 def save_str_to_file(str, path = local_config.path_output + "final_netlist.cir"):
     with open(path, "w") as f:
         f.write(str)
+def save_dict_to_json(dict, path):
+    with open(path, "w") as f:
+        json.dump(dict, f, indent=4)
 
-
+def get_dict_from_json(path):
+    with open(path, "r") as f:
+        return json.load(f)
 # endregion for file IO
 
 
@@ -1334,5 +1339,5 @@ def trim_spec_table(text):
     return trimmed_dict
 
 def test_delay(sec):
-    time.sleep(sec)
     print(f"Waited for {sec} seconds")
+    time.sleep(sec)

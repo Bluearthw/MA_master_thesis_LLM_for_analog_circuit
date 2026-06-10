@@ -112,14 +112,17 @@ ac dec 10 1 {f_end}
 tran 10n 20u
 {line_wrdata_path_num}/tran_sr.csv v(VOUT1)    
 
+10. If DC VOUT is needed, example:
+op
+{line_wrdata_path_num}/op_dc_vout.csv v(VOUT1)
+
 ### General Netlist Rules:
 
 0. **Circuit requirements**: This is a amplifier. Ensure it has proper biasing network, feedback path, and current generation mechanism.
 1. **Differential check**: There are 3 types of circuits: single-ended (SISO), fully differential (DIDO) and differential input single-ended output (DISO).
 2. **CMFB stability**: Set to false for bandgap references (they don't typically use CMFB loops).
-{local_config.general_rules} 
+{local_config.general_rules.replace('{f_end}', f_end)} 
     """
-    
 
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
     retry_count = 0
@@ -142,13 +145,12 @@ tran 10n 20u
             # Note: Depending on your library version, 'e' might have a .code or .status_code
             error_msg = str(e)
             
+            retry_count += 1
             if "503" in error_msg or "ResourceExhausted" in error_msg:
-                retry_count += 1
                 wait_sec = 40*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
                 print(f"Model busy (503). Retry #{retry_count}. ")
                 gen_utils.test_delay(wait_sec)  # Wait before retrying
             elif "429" in error_msg or "TooManyRequests" in error_msg:
-                retry_count += 1
                 wait_sec = 120*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
                 print(f"Rate limit exceeded (429). Retry #{retry_count}. ")
                 gen_utils.test_delay(wait_sec)  # Wait before retrying

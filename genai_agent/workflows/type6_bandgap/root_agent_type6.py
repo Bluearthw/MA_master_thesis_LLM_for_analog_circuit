@@ -62,7 +62,7 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
 **Simulation Examples**:
 1. **DC Output Voltage**: Initial operating point to determine nominal VREF
    - Simulation: op
-   - Output: {line_wrdata_path_num}/op_vout_ref.csv v(VOUT1)
+   - Output: {line_wrdata_path_num}/op_dc_vout.csv v(VOUT1)
 
 2. **Line Regulation**: DC sweep of VDD to measure supply sensitivity (ΔVout/ΔVdd). 
     Example: For a 1.2 V process targeting a 0.6 V reference, a safe nominal sweep is 1.0 V to 1.4 V .
@@ -102,7 +102,7 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
 0. **Circuit requirements**: This is a DC reference. Ensure it has proper biasing network, feedback path, and current generation mechanism.
 1. **Differential check**: Bandgap outputs are typically single-ended (non-differential), so output differential=false unless proven otherwise.
 2. **CMFB stability**: Set to false for bandgap references (they don't typically use CMFB loops).
-{local_config.general_rules}
+{local_config.general_rules.replace('{f_end}', f_end)} 
 """
     
     max_retries = 5
@@ -123,13 +123,12 @@ Your goal is to complete the simulation setup for a DC voltage reference (bandga
         except Exception as e:
             error_msg = str(e)
             
+            retry_count += 1
             if "503" in error_msg or "ResourceExhausted" in error_msg:
-                retry_count += 1
                 wait_sec = 30 * retry_count
                 print(f"Model busy (503). Retry #{retry_count}. ")
                 gen_utils.test_delay(wait_sec)
             elif "429" in error_msg or "TooManyRequests" in error_msg:
-                retry_count += 1
                 wait_sec = 120 * retry_count
                 print(f"Rate limit exceeded (429). Retry #{retry_count}. ")
                 gen_utils.test_delay(wait_sec)

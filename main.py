@@ -20,17 +20,17 @@ test = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump
 test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 
 #bandgap
-test = [6] 
-test = category_numbers.num_class_6_without_IIN1
-#SISO
-test = category_numbers.num_class_1_with_VDD_tested
-#DIDO
-test = [182] #dido cmfb
-test = [69] #dido 
-test = category_numbers.num_class_40_samples
-#DISO
-test = category_numbers.num_class_7_samples
-test = [619]
+# test = [6] 
+# test = category_numbers.num_class_6_without_IIN1
+# #SISO
+# test = category_numbers.num_class_1_with_VDD_tested
+# #DIDO
+# test = [182] #dido cmfb
+# test = [69] #dido 
+# test = category_numbers.num_class_40_samples
+# #DISO
+# test = category_numbers.num_class_7_samples
+# test = [619]
 # Convert tested to a set first for blazing fast lookups
 
 # tested = category_numbers.num_class_40_samples_tested
@@ -50,7 +50,7 @@ elif is_with_RL == 2:
     print("Only RL sizer is enabled.")
 elif is_with_RL == 3:
     print("Only yaml creation is enabled.")
-
+# sys.exit(0)
 if is_with_RL == 2:
     i = test[0]
     td3_runner.td3_start(circuit_name=f'{i}')
@@ -103,4 +103,5 @@ else:
         print("====yaml done=======",i)  
         if is_with_RL == 1:
             td3_runner.td3_start(circuit_name=f'{i}')
+        
         gen_utils.test_delay(30)

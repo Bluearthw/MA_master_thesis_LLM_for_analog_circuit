@@ -174,7 +174,7 @@ general_rules = """3. **Load**: Add load capacitance if not present (e.g.: `Cloa
 7. **ONE command per line**: Every `.param`, `.model`, and component definition must start on a NEW line.
 8. **Single noise method**: If noise is needed, use ONLY ONE noise specification (`onoise_total` or `inoise_total` ).
 9. **Comments**: Remember to add short comments to tell the purpose of each simulation. Example: *current matching 
-10. **Format**: If subcircuit device name does not fit the format, change the device name like (I1 net7 net4 VDD VSS INVERTER) should be changed to (X1 net7 net4 VDD VSS INVERTER) because it's a subcircuit. 
+10. **Format**: If subcircuit is required and subcircuit device name does not fit the format, change the device name, like (I1 net7 net4 VDD VSS INVERTER) should be changed to (X1 net7 net4 VDD VSS INVERTER). 
     - alter source from DC to trans is NOT allowed. Should define it outsice already WRONG:    alter @vla1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
     - DO NOT EXHAUSTIVELY RESET ALTER COMMANDS: Only use 'alter' when necessary since the simulation is sequential, so do the effect of alter. 
     - Use v(VOUT1) for output due to the format requirement from following measurement. INCORRECT: vdb(VOUT1) or vp(VOUT1).
@@ -183,6 +183,7 @@ general_rules = """3. **Load**: Add load capacitance if not present (e.g.: `Cloa
     - Do not generate standalone dummy tracking sources (e.g., dummy_diff_in, dummy_cm_in) or flat pulse lines to establish DC bias. 
     - Always prioritize using the E-source behavioral modeling approach (ein1/ein2 linked to a central vdm/vcm setup) as shown in Rule 9. It is cleaner and scales to all AC/Tran analyses without needing complex resetting.
     - Ideal block is accetable if it is not a big difference to the result. 
+    - Try to align the end frequency for all ac simulations:{f_end} 
 13. **You must ONLY simulate and analyze the specifications explicitly required in the requirement**: Do NOT assume, infer, or add any other measurements unless they are explicitly required by the requirement, even if they show in the table.
 """
 #  894 # all
