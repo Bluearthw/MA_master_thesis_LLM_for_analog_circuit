@@ -1,5 +1,5 @@
 git add .
-git commit -m "try to switch prompts only. so only 1 netlist_builder
+git commit -m "switch prompts done
 "
 git push
 

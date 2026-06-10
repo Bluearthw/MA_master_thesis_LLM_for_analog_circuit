@@ -13,11 +13,12 @@ from utils import yaml_creation
 import td3_runner
 test = category_numbers.num_class_40[:10]
 test = [69, 182] # cmfb or without cmfb
-test = [9, 155, 69, 182] # try to have siso diso dido dido_cmfb
+test = [9, 155, 69, 182, 439, 381] # try to have siso diso dido dido_cmfb，charge pump, bandgap
 # test = [9] #siso
 # test = [155] #diso
 # test = [69] #dido
-test = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump
+# charge pump
+test = category_numbers.num_class_23
 test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 
 #bandgap
@@ -31,7 +32,7 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 # test = category_numbers.num_class_40_samples
 # #DISO
 # test = category_numbers.num_class_7_samples
-test = [619]
+# test = [9]
 # Convert tested to a set first for blazing fast lookups
 
 # tested = category_numbers.num_class_40_samples_tested
@@ -43,14 +44,7 @@ is_with_RL = 0 # only with netlist gen
 # is_with_RL = 1 # whole workflow
 # is_with_RL = 2 # only with RL sizer
 # is_with_RL = 3 # only with yaml creation
-if is_with_RL == 0:
-    print("Only netlist generation is enabled.")
-elif is_with_RL == 1:
-    print("Whole workflow is enabled.")
-elif is_with_RL == 2:
-    print("Only RL sizer is enabled.")
-elif is_with_RL == 3:
-    print("Only yaml creation is enabled.")
+gen_utils.print_status(is_with_RL)
 # sys.exit(0)
 
 if is_with_RL == 2:
@@ -78,22 +72,17 @@ else:
         gen_utils.delete_all_files_except_dir(path_output_num)
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
         print("trimmed_spec_table",trimmed_spec_table)
-        if category_num == 6:
-            agent = root_agent_type6
-        elif category_num == 23:
-            agent = root_agent_type23
-        else:
-            agent = root_agent_type1_7_40
+
             
         results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = workflow.generate_netlist(
-        add_sim_agent=agent.add_sim_agent, 
         cir_num=i, 
         path_output_num=path_output_num, 
         category_str=category_str, 
         netlist=netlist, 
         has_input=has_input, 
         trimmed_spec_table=trimmed_spec_table,
-        is_diff=is_diff 
+        is_diff=is_diff,
+        category_num=category_num
         )
         struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 15} # remove some array results
         print("====netlist generation done=======",i)
@@ -115,3 +104,4 @@ else:
             td3_runner.td3_start(circuit_name=f'{i}')
         
         gen_utils.test_delay(30)
+

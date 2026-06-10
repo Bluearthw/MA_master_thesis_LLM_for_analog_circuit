@@ -3,6 +3,7 @@ from genai_agent.debug_agent import debug_agent_flow
 from utils import gen_utils 
 from utils import saving 
 from ngspice_interface import dut_testbench
+from genai_agent.workflows import netlist_builder
 
 def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False):
     
@@ -49,7 +50,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
 
 
-def generate_netlist(add_sim_agent, cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table,  is_diff=None):
+def generate_netlist(cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table,  is_diff=None, category_num=None):
     """Generic test-maker that invokes a workflow-local `add_sim_agent` to prepare the netlist,
     then runs the sim-debug-measure loop.
 
@@ -60,9 +61,11 @@ def generate_netlist(add_sim_agent, cir_num, path_output_num, category_str, netl
 
     Returns: (combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml)
     """
-    # Call the workflow-local add_sim_agent with or without the extra is_diff arg
-    struc = add_sim_agent(netlist, category_str, cir_num, trimmed_spec_table, is_diff)
-    
+    # If a category number is provided, use the central netlist builder
+    if category_num is not None:
+        struc = netlist_builder.netlist_builder(netlist=netlist, category=category_str, category_num=category_num, cir_num=cir_num, trimmed_spec_table=trimmed_spec_table, is_diff=is_diff)
+    else:
+        raise ValueError("Category number is required.")
 
     target_dc_vout = getattr(struc, 'target_dc_vout', None)
     if target_dc_vout is None:

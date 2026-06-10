@@ -1340,3 +1340,13 @@ def trim_spec_table(text):
 def test_delay(sec):
     print(f"Waited for {sec} seconds")
     time.sleep(sec)
+
+def print_status(is_with_RL):
+    if is_with_RL == 0:
+        print("Only netlist generation is enabled.")
+    elif is_with_RL == 1:
+        print("Whole workflow is enabled.")
+    elif is_with_RL == 2:
+        print("Only RL sizer is enabled.")
+    elif is_with_RL == 3:
+        print("Only yaml creation is enabled.")
