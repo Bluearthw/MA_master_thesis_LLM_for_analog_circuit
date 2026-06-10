@@ -4,6 +4,7 @@ import os
 path_dataset = "../material/dataset/tb_dataset"# out of workplace
 path_classified_dataset = "../material/classified_dataset_from_mohsen/Dataset"
 path_category = "./genai_agent/data/categories/category"
+path_categories = "./genai_agent/data/categories/"
 path_output = "./genai_agent/output/"
 path_yaml = "./ngspice_interface/files/yaml_files/" 
 path_prompts = "./genai_agent/data/prompts/"

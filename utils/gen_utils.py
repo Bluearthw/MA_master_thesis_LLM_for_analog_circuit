@@ -1337,6 +1337,10 @@ def trim_spec_table(text):
             
     return trimmed_dict
 
+
+
+
+
 def test_delay(sec):
     print(f"Waited for {sec} seconds")
     time.sleep(sec)

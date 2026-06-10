@@ -1,5 +1,5 @@
 git add .
-git commit -m "switch prompts done
+git commit -m "update input, trim category str to json
 "
 git push
 
