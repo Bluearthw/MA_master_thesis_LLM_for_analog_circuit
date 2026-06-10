@@ -30,7 +30,7 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 # test = category_numbers.num_class_40_samples
 # #DISO
 # test = category_numbers.num_class_7_samples
-# test = [619]
+test = [619]
 # Convert tested to a set first for blazing fast lookups
 
 # tested = category_numbers.num_class_40_samples_tested

@@ -6,7 +6,7 @@ path_classified_dataset = "../material/classified_dataset_from_mohsen/Dataset"
 path_category = "./genai_agent/data/categories/category"
 path_output = "./genai_agent/output/"
 path_yaml = "./ngspice_interface/files/yaml_files/" 
-
+path_prompts = "./genai_agent/data/prompts/"
 path_project = os.getcwd()
 path_yaml_two_stage = os.path.join(path_project, 'ngspice_interface', 'files', 'yaml_files', 'TwoStage.yaml')
 

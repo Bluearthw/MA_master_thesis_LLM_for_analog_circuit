@@ -1,5 +1,5 @@
 from google import genai
-
+import sys
 # import os
 # import sys
 
@@ -28,6 +28,7 @@ def add_sim_agent(netlist, category,cir_num=4, trimmed_spec_table=None, is_diff=
     
     client = gen_utils.get_client()
     f_end= "1T"
+    general_rules = local_config.general_rules.replace('{f_end}', f_end)
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs to look up : {trimmed_spec_table}, and a brief requirement about this type of circuit : {category}.
 
 Also, previous about differential output check is given: {is_diff}. If it is True: 1, the netlist is very likely to be differential output. 2, do not use DC gain but DM gain for measurement!
@@ -97,19 +98,33 @@ op
 0. **Circuit requirements**: This is a amplifier. Ensure it has proper biasing network, feedback path, and current generation mechanism.
 1. **Differential check**: There are 3 types of circuits: single-ended (SISO), fully differential (DIDO) and differential input single-ended output (DISO).
 2. **CMFB stability**: Set to false for bandgap references (they don't typically use CMFB loops).
-{local_config.general_rules.replace('{f_end}', f_end)} 
-    """
+{general_rules} 
+""" 
+    
 
+    prompt_path = os.path.join(local_config.path_prompts, f"prompt_1.md")
+    result = gen_utils.get_file_to_str(prompt_path).format(general_rules=general_rules,
+                                                           f_end=f_end, 
+                                                           line_wrdata_path_num=line_wrdata_path_num, 
+                                                           netlist=netlist,
+                                                           is_diff = is_diff,
+                                                           trimmed_spec_table = trimmed_spec_table,
+                                                           category = category,
+                                                           cir_num = cir_num
+                                                           )
+    if result != contents:
+        print("bad")
+    sys.exit(0)
     max_retries = 5  # Optional: prevent infinite loops if the server is truly down
     retry_count = 0
     # Save the generated prompt to a file so it can be reviewed or reused later.
-    try:
-        prompt_dir = os.path.join(local_config.path_output, 'prompts')
-        os.makedirs(prompt_dir, exist_ok=True)
-        prompt_path = os.path.join(prompt_dir, f"prompt_{cir_num}.txt")
-        gen_utils.save_str_to_file(contents, prompt_path)
-    except Exception as e:
-        print(f"Warning: failed to save prompt file: {e}")
+    # try:
+    #     prompt_dir = os.path.join(local_config.path_prompts, 'prompts')
+    #     os.makedirs(local_config.path_prompts, exist_ok=True)
+    #     prompt_path = os.path.join(prompt_dir, f"prompt_1.txt")
+    #     gen_utils.save_str_to_file(contents, prompt_path)
+    # except Exception as e:
+    #     print(f"Warning: failed to save prompt file: {e}")
     
     while True:
         try:
