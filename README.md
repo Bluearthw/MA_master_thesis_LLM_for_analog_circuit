@@ -1,5 +1,5 @@
 git add .
-git commit -m "refactor while True in netlist builder 
+git commit -m "clean up and comprssor
 "
 git push
 

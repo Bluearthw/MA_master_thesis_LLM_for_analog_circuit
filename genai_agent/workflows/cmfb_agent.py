@@ -5,7 +5,7 @@ import sys
 sys.path.append(".")
 from utils import gen_utils
 from genai_agent.data import local_config
-from genai_agent.data import tools
+from genai_agent.data import response_schema
 def cmfb_agent(netlist, cir_num=4):
     client = gen_utils.get_client()
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. 
@@ -47,7 +47,7 @@ Return the new netlist that is for CMFB. The specification (CMFB stb), id (20) a
                 contents=contents,
                 config={
                     "response_mime_type": "application/json",
-                    "response_schema": tools.Struct_cmfb_agent,
+                    "response_schema": response_schema.Struct_cmfb_agent,
                 },
             )
             return response.parsed

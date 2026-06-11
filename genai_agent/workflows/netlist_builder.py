@@ -7,7 +7,7 @@ import sys
 # local import
 from genai_agent.data import local_config
 import os
-from genai_agent.data import tools
+from genai_agent.data import response_schema
 from utils import gen_utils as gen_utils
 from utils import agent_utils
 
@@ -44,12 +44,12 @@ def netlist_builder(netlist, category, category_num, cir_num=4, trimmed_spec_tab
                                                             )
 
     try:
-        struc = agent_utils.call_agent(contents=contents, response_schema=tools.Struct_flow)
+        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_flow)
 
         return struc
     except Exception as e:
         # Re-raise so upstream code can decide how to handle persistent failures.
-        print(f"debug_agent_flow: call_agent failed: {e}")
+        print(f"netlist_builder: call_agent failed: {e}")
         raise
 
     

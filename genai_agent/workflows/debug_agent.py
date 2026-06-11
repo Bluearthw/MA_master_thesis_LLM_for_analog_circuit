@@ -1,5 +1,5 @@
 from genai_agent.data import local_config
-from genai_agent.data import tools
+from genai_agent.data import response_schema
 from utils import agent_utils
 def debug_agent_flow(netlist, error_message, cir_num, spec_sims):
     print("==netlist in debug agent\n", netlist)
@@ -38,7 +38,7 @@ wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
 """
     # Delegate retry/backoff and error handling to a central helper.
     try:
-        struc = agent_utils.call_agent(contents=contents, response_schema=tools.Struct_debug)
+        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_debug)
         print("==netlist after debug", struc.netlist)
         print("==debug agent spec sims", struc.spec_sims)
         print("==debug agent fix info", struc.fix_info)

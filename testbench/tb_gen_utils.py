@@ -66,6 +66,32 @@ def test_is_cir_debugged(nums):
     for i in nums:
         if gen_utils.is_cir_debugged(i):
             print(f"Circuit {i} is debugged.")
+
+def update_gen_rules_json():
+    """Scan the prompts directory and write a single `workflow_prompts.json` file.
+
+    The JSON will map prompt basename (without extension) -> prompt contents.
+    This is intended to be run once to build a cache used by workflows/tests.
+    """
+    prompt_dir = local_config.path_prompts
+    os.makedirs(prompt_dir, exist_ok=True)
+
+    out_path = os.path.join(prompt_dir, 'workflow_prompts.json')
+    try:
+        
+
+        # Write structured JSON with general rules as a list and the prompt map.
+        general_rules = local_config.general_rules
+        general_rules_list = [line.strip() for line in general_rules.splitlines() if line.strip()]
+
+        payload = {
+            "general_rules": general_rules_list,
+        }
+        gen_utils.save_dict_to_json(payload, out_path)
+        return out_path
+    except Exception as e:
+        print(f"update_prompts_json failed: {e}")
+        return None
 charge_pump_nums = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump\
 bandgap_nums = category_numbers.num_class_6_without_IIN1
 amplifier_nums = category_numbers.num_class_40_samples_tested
@@ -78,4 +104,6 @@ bandgap_nums_old = category_numbers.num_class_6
 # test_trim_spec_table(1)
 # test_save_load_prompt()
 # test_get_prompt()
-test_is_cir_debugged(charge_pump_nums)
+# test_is_cir_debugged(charge_pump_nums)
+
+update_gen_rules_json()

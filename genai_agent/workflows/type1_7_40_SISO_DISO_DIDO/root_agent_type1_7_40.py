@@ -7,7 +7,7 @@ import sys
 # local import
 from genai_agent.data import local_config
 import os
-from genai_agent.data import tools
+from genai_agent.data import response_schema
 from genai_agent.workflows import workflow
 from utils import gen_utils as gen_utils
 
@@ -41,7 +41,7 @@ def add_sim_agent(netlist, category,cir_num=4, trimmed_spec_table=None, is_diff=
                 contents=contents,
                 config={
                     "response_mime_type": "application/json",
-                    "response_schema": tools.Struct_flow,
+                    "response_schema": response_schema.Struct_flow,
                 },
             )
             # If successful, return the parsed data
