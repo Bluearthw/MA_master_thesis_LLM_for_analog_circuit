@@ -1,0 +1,10 @@
+{
+    "category": "Single-Ended Baseband Voltage Amplifiers (Linear Gain Stages)",
+    "required_specs": [
+        "Voltage Gain (Av) & Phase",
+        "Stability (PM/GM)",
+        "PSRR",
+        "Input-Referred Noise",
+        "Slew Rate"
+    ]
+}

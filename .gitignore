@@ -1,6 +1,6 @@
 
 *.pyc
-genai_agent/data
+genai_agent/data/*
 !genai_agent/data/local_config.py
 !genai_agent/data/response_schema.py
 !genai_agent/data/category_numbers.py

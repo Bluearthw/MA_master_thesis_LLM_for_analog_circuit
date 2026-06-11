@@ -1,0 +1,13 @@
+### 37. Analog Folding Circuits / Waveshapers
+A circuit that performs a non-linear, periodic waveshaping function on an analog input, creating a "folded" transfer characteristic (e.g., sawtooth or triangle wave), typically as a front-end for a folding ADC.
+*   **Ports**:
+    *   **Required**: One primary analog signal input (e.g., `Vin`/`VIN1`).
+    *   **Required**: One or more analog signal outputs (e.g., single-ended `Vout` or differential `Voutp`/`VOUT1`, `Voutn`/`VOUT2`).
+    *   **Required**: Multiple distinct DC reference voltage inputs that define the folding points (e.g., `Vref1`/`VIN2`, `Vref2`/`VIN3`, ...).
+*   **Stimuli/Measurements**:
+    *   **Stimuli**: Apply a slow voltage ramp (e.g., triangle wave) to the signal input that sweeps across the full range defined by the reference voltages. Apply stable DC voltages to the reference inputs.
+    *   **Measurements**:
+        *   **DC Transfer Curve**: The primary measurement. Plot the output voltage vs. the input voltage to verify the folded (e.g., triangle/sawtooth) characteristic. Key metrics are the locations of the fold points (determined by the reference voltages), the peak/valley voltages, and the linearity of each segment.
+        *   **Bandwidth / Frequency Response**: AC analysis to determine the small-signal bandwidth. For high-speed applications, transient analysis with a high-frequency sine wave input is used to check for distortion and verify the "bandwidth multiplication" effect where the output fundamental frequency can be a multiple of the input.
+*   **Topologies**: The defining topology consists of multiple parallel transconductor stages (typically **differential pairs**) whose inputs are driven by a common signal and a set of staggered DC reference voltages. The output currents of these stages are summed into a common load (e.g., resistive loads). Some stages are connected non-invertingly while others are cross-coupled (inverting) to the output, causing the slope of the transfer function to change direction at each reference threshold, thereby creating the folding effect.
+*   **Rule**: The circuit must have one primary analog signal input, multiple DC reference inputs, and an analog output. Its primary function must be to produce a non-linear, periodic (folded) output transfer curve, characterized by multiple changes in the sign of its slope. This distinguishes it from linear amplifiers (which have a constant slope), comparators (which have a digital output), and simple rectifiers/clippers (Class 32, which typically have only one or two changes in slope and lack multiple reference inputs). 
