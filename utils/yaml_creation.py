@@ -2,7 +2,7 @@ import sys
 
 import yaml
 sys.path.append(".")
-from genai_agent import local_config
+from genai_agent.data import local_config
 from utils import gen_utils
 
 def make_technology_line(tech = "45nm"):

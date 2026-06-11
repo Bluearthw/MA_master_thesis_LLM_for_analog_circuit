@@ -4,8 +4,8 @@ import sys
 #local import
 sys.path.append(".")
 from utils import gen_utils
-from genai_agent import local_config
-from genai_agent import tools
+from genai_agent.data import local_config
+from genai_agent.data import tools
 def cmfb_agent(netlist, cir_num=4):
     client = gen_utils.get_client()
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist. 

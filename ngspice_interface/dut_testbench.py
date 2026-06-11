@@ -14,7 +14,7 @@ from .ngspice_wrapper import NgspiceWrapper
 import sys
 from scipy.integrate import trapezoid
 sys.path.append(".")
-from genai_agent.local_config import table_target_id 
+from genai_agent.data.local_config import table_target_id 
 from utils import gen_utils
 class DUT(NgspiceWrapper):
     def __init__(self, path_yaml = "", is_differential = False, has_input = True, dc_vout_target = None, netlist_path = None):

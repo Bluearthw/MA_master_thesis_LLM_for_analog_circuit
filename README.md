@@ -1,5 +1,5 @@
 git add .
-git commit -m "prepare debug agent for self-improving
+git commit -m "refactor while True in netlist builder 
 "
 git push
 

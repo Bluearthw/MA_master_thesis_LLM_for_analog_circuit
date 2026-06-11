@@ -1,5 +1,5 @@
-from genai_agent import local_config
-from genai_agent.debug_agent import debug_agent_flow
+from genai_agent.data import local_config
+from genai_agent.workflows.debug_agent import debug_agent_flow
 from utils import gen_utils 
 from utils import saving 
 from ngspice_interface import dut_testbench

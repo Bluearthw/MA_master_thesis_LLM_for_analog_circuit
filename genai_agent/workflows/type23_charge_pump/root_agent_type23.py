@@ -5,8 +5,8 @@ import os
 
 ######################
 # local import
-from genai_agent import local_config
-from genai_agent import tools
+from genai_agent.data import local_config
+from genai_agent.data import tools
 from genai_agent.workflows import workflow
 
 from utils import gen_utils as gen_utils

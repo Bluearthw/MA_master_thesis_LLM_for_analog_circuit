@@ -15,7 +15,7 @@ from scipy.integrate import trapezoid
 import sys
 sys.path.append("./genai_agent")
 ##### local
-from genai_agent import local_config
+from genai_agent.data import local_config
 DEFAULT_W = "0.5u"
 DEFAULT_L = "90n"
 DEFAULT_M = "1"

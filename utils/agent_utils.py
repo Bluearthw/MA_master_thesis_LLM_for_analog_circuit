@@ -3,7 +3,7 @@ import traceback
 from google import genai
 from google.genai.types import HttpOptions
 from utils import gen_utils
-from genai_agent import local_config
+from genai_agent.data import local_config
 
 def get_client():
     return genai.Client(http_options=HttpOptions(api_version="v1"))

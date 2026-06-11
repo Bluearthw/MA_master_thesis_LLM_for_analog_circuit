@@ -3,7 +3,7 @@ import sys
 import yaml
 #local import
 from genai_agent.data import category_numbers
-from genai_agent.local_config import path_output 
+from genai_agent.data.local_config import path_output 
 from genai_agent.workflows import workflow
 from utils import gen_utils
 from genai_agent.workflows.type1_7_40_SISO_DISO_DIDO import root_agent_type1_7_40

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # local import
 sys.path.append(".")
 from ngspice_interface import dut_testbench
-from genai_agent import local_config
+from genai_agent.data import local_config
 from testbench import tb_netlist_simulation
 from utils import gen_utils
 path_id_69 =  {18: './genai_agent/output/69/ac_gain.csv', 1: './genai_agent/output/69/ac_gain.csv', 6: './genai_agent/output/69/ac_gain.csv', 3: './genai_agent/output/69/noise.csv', 4: './genai_agent/output/69/tran_SR.csv', 22: './genai_agent/output/69/dc_current.csv', 23: './genai_agent/output/69/dc_current.csv'}

@@ -1,5 +1,5 @@
-from genai_agent import local_config
-from genai_agent import tools
+from genai_agent.data import local_config
+from genai_agent.data import tools
 from utils import agent_utils
 def debug_agent_flow(netlist, error_message, cir_num, spec_sims):
     print("==netlist in debug agent\n", netlist)

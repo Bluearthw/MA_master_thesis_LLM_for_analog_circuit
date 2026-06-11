@@ -11,10 +11,10 @@ from pathlib import Path
 ######################
 # local import
 sys.path.append("./genai")
-import local_config
+import genai_agent.data.local_config as local_config
 import utils
-import tools
-import debug_agent
+import genai_agent.data.tools as tools
+import genai_agent.workflows.debug_agent as debug_agent
 
 
 def test_make_cir_sim(cir_num):

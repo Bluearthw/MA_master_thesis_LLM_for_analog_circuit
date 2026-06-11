@@ -10,7 +10,7 @@ import pandas as pd
 import genai_agent.data.saved_netlist as saved_netlist
 sys.path.append('.')
 from utils import gen_utils
-from genai_agent import local_config
+from genai_agent.data import local_config
 import debug_agent
 from workflows import cmfb_agent
 def test_clean():

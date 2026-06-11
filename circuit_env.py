@@ -8,7 +8,7 @@ import shutil
 import utils.saving as saving
 from ngspice_interface import DUT as DUT_NGSpice
 from utils.plotting import plotLearning, plot_running_maximum, solutions2pareto
-from genai_agent.local_config import list_targets_to_min
+from genai_agent.data.local_config import list_targets_to_min
 
 class CircuitEnv(gym.Env):
     PER_LOW, PER_HIGH = -np.inf, +np.inf

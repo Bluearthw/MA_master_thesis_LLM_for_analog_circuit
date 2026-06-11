@@ -1,6 +1,6 @@
 import sys
 sys.path.append('.')
-from genai_agent import local_config
+from genai_agent.data import local_config
 from genai_agent.data import saved_netlist
 from utils import gen_utils
 
