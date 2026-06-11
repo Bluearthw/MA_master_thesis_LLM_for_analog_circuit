@@ -2,6 +2,7 @@ import time
 import traceback
 from google import genai
 from google.genai.types import HttpOptions
+##local import
 from utils import gen_utils
 from genai_agent.data import local_config
 
@@ -76,3 +77,34 @@ def call_agent(contents: str,
             # If not transient or exceeded retries, re-raise with context
             tb = traceback.format_exc()
             raise RuntimeError(f"call_agent failed after {attempt} attempts: {err}\n{tb}") from e
+
+import json
+
+def update_master_registry(category_num, agent_output_str):
+    # Load the agent's structured suggestion
+    update_data = json.loads(agent_output_str)
+    
+    # Load your existing master JSON
+    master_kb = gen_utils.load_json_to_dict('categories.json')
+    cat_entry = master_kb["categories"][str(category_num)]
+    
+    # 1. Handle Generation Guidelines Update
+    g_update = update_data["generation_guidelines_updates"]
+    if g_update["action"] == "APPEND":
+        cat_entry["generation_guidelines"].append(g_update["rule_text"])
+    elif g_update["action"] == "MODIFY":
+        # Logic to replace or optimize an existing rule string
+        pass
+
+    # 2. Handle Debug Knowledge Base Update
+    d_update = update_data["debug_kb_updates"]
+    if d_update["action"] == "APPEND":
+        new_entry = {
+            "error_keywords": d_update["target_keywords"],
+            "action_rule": d_update["action_rule"]
+        }
+        cat_entry["debug_knowledge_base"].append(new_entry)
+        
+    # Save the updated "brain" back to disk
+    gen_utils.save_dict_to_json(master_kb, 'categories.json')
+    print(f"Successfully compressed and integrated knowledge for category {category_num}!")

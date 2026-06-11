@@ -7,8 +7,8 @@ from genai_agent.workflows import netlist_builder
 
 def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False):
     counter = 0
-    fix_info = []
-    error_msg = []
+    debug_history = []
+    
     while True:
         sim_output = gen_utils.run_ngspice_direct(netlist)
         print("=====sim output", sim_output)
@@ -23,26 +23,41 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             netlist_path = path_output_num + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
-            saving.save_error_info(path_output_num, cir_num, counter, error_msg, fix_info, "success", is_CMFB)
+            saving.save_error_info(path_output_num, cir_num, counter, debug_history, "success", is_CMFB)
             measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout, netlist_path=netlist_path).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
             for mr in measurement_results:
                 print("Measurement results:", mr)
             return measurement_results, struct_path_id
         else:
             print(f"==================bug found!!!!======={counter}===============")
-            error_msg.append(f"iteration{counter}: {sim_output['message']}")# more efficient
-            error_msg_input = "\n".join(error_msg)
-            print(error_msg_input)
-            gen_utils.test_delay(30*(counter + 1), "debug")  # Wait 10 seconds before retrying
-            struct_debug = debug_agent_flow(netlist, error_msg_input, cir_num, spec_sims)
+
+            formatted_history_input = ""
+            for h in debug_history:
+                formatted_history_input += f"### Iteration {h['iteration']}\n- **SPICE Error:** {h['error']}\n- **Fix Applied:** {h['fix']}\n\n"
+            
+            # Append the brand new error to the prompt input
+            formatted_history_input += f"### Current Iteration {counter}\n- **SPICE Error:** {sim_output['message']}\n- **Fix Applied:** [To be determined by you]"
+            
+            print(formatted_history_input)
+            gen_utils.test_delay(30*(counter + 1), "debug")  
+            
+            # 2. Feed the clean, non-compounding history to the debug agent
+            struct_debug = debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims)
+            
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims
             new_fix_info = struct_debug.fix_info
-            fix_info.append("fixing info:\n" + new_fix_info)
-            error_msg.append(f"iteration{counter}, fixing info:\n" + new_fix_info)
+            
+            # 3. Save this iteration's clean data into our history tracking object
+            debug_history.append({
+                "iteration": counter,
+                "error": sim_output['message'],
+                "fix": new_fix_info
+            })
+
         counter += 1
         if counter > 5:
-            saving.save_error_info(path_output_num, cir_num, counter, error_msg, fix_info, "failed", is_CMFB)
+            saving.save_error_info(path_output_num, cir_num, counter, debug_history, "failed", is_CMFB)
             raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
 
 

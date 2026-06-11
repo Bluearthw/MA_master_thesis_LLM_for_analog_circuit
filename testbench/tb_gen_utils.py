@@ -67,7 +67,7 @@ def test_is_cir_debugged(nums):
         if gen_utils.is_cir_debugged(i):
             print(f"Circuit {i} is debugged.")
 
-def update_gen_rules_json():
+def test_update_gen_rules_json():
     """Scan the prompts directory and write a single `workflow_prompts.json` file.
 
     The JSON will map prompt basename (without extension) -> prompt contents.
@@ -92,6 +92,13 @@ def update_gen_rules_json():
     except Exception as e:
         print(f"update_prompts_json failed: {e}")
         return None
+    
+def test_reduce_duplicate(duplicate_str):
+    reduced =gen_utils.reduce_duplicate(duplicate_str)
+    
+    print("Original:\n", duplicate_str)
+    print("Reduced:\n", reduced)
+
 charge_pump_nums = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump\
 bandgap_nums = category_numbers.num_class_6_without_IIN1
 amplifier_nums = category_numbers.num_class_40_samples_tested
@@ -106,4 +113,5 @@ bandgap_nums_old = category_numbers.num_class_6
 # test_get_prompt()
 # test_is_cir_debugged(charge_pump_nums)
 
-update_gen_rules_json()
+# test_update_gen_rules_json()
+test_reduce_duplicate("")

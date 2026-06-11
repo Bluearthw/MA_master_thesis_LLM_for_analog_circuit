@@ -1354,6 +1354,43 @@ def trim_spec_table(text):
             
     return trimmed_dict
 
+def reduce_duplicate(duplicate_str):
+    # duplicate_str = "error: no such parameter res.\nerror: no such parameter res.\nerror: no such parameter res."
+    # Collapse consecutive duplicate lines and annotate repetitions, e.g.
+    # 'msg\nmsg\nmsg' -> 'msg (x3)'
+    lines = duplicate_str.splitlines()
+    if not lines:
+        return ""
+
+    out_lines = []
+    prev = lines[0]
+    count = 1
+    max_count = 0
+    for line in lines[1:]:
+        if line == prev:
+            count += 1
+        else:
+            if count > 1:
+                out_lines.append(f"{prev} (x{count})")
+            else:
+                out_lines.append(prev)
+            prev = line
+            max_count = max(max_count, count)
+            count = 1
+
+    # flush last
+    if count > 1:
+        out_lines.append(f"{prev} (x{count})")
+    else:
+        out_lines.append(prev)
+    
+    max_count = max(max_count, count)
+    print(f"Maximum consecutive duplicates: {max_count}")
+    
+    reduced = "\n".join(out_lines)
+    # print("Original:\n", duplicate_str)
+    # print("Reduced:\n", reduced)
+    return reduced
 
 
 
