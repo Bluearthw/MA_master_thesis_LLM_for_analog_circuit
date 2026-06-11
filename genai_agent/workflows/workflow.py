@@ -6,7 +6,6 @@ from ngspice_interface import dut_testbench
 from genai_agent.workflows import netlist_builder
 
 def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False):
-    
     counter = 0
     fix_info = []
     error_msg = []
@@ -31,13 +30,10 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             return measurement_results, struct_path_id
         else:
             print(f"==================bug found!!!!======={counter}===============")
-            # error_msg.append(f"iteration{counter}:")
-            # error_msg.append(sim_output["message"] + "")
             error_msg.append(f"iteration{counter}: {sim_output['message']}")# more efficient
             error_msg_input = "\n".join(error_msg)
             print(error_msg_input)
-            print("wait 60s before debug")
-            gen_utils.test_delay(30*(counter + 1))  # Wait 10 seconds before retrying
+            gen_utils.test_delay(30*(counter + 1), "debug")  # Wait 10 seconds before retrying
             struct_debug = debug_agent_flow(netlist, error_msg_input, cir_num, spec_sims)
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims

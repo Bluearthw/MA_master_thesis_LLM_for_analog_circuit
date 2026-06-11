@@ -1,12 +1,9 @@
-from google import genai
-
 from genai_agent import local_config
 from genai_agent import tools
-from utils import gen_utils
+from utils import agent_utils
 def debug_agent_flow(netlist, error_message, cir_num, spec_sims):
     print("==netlist in debug agent\n", netlist)
     print("==error_message\n", error_message)
-    client = gen_utils.get_client()
     contents = f"""You are an expert Analog IC Designer and NGSpice Specialist.
 Your goal is to fix a netlist with error or warning: {netlist} based on the error message: "{error_message}". You are also given a specification id table: {local_config.table_specs_id} and the specification-simulation needed from previous agent:{spec_sims}. 
 You should output the fixed netlist and simply the fixing info. Also, if the specification-simulation relationship is not enought or redundant, you should output updated it.
@@ -39,42 +36,14 @@ wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
     alter @vla1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
     alter @vlb1[pulse] = [ 0 1.2 10n 50p 50p 1n 100n ]
 """
-    max_retries = 5  # Optional: prevent infinite loops if the server is truly down
-    retry_count = 0
-    while True:
-        try:
-            response = client.models.generate_content(
-            model=local_config.agent_model,
-            contents=contents,
-            config={
-                "response_mime_type": "application/json",
-                "response_schema": tools.Struct_debug,
-                # "response_json_schema": Struct_flow.model_json_schema(),
-            },
-            )
-            struc = response.parsed
-            print("==netlist after debug",struc.netlist)
-            # print(str.sims)
-            print("==debug agent spec sims", struc.spec_sims)
-            print("==debug agent fix info", struc.fix_info)
-            return struc
-        except Exception as e:
-            error_msg = str(e)
-                
-            if "503" in error_msg or "ResourceExhausted" in error_msg:
-                retry_count += 1
-                wait_sec = 60*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
-                print(f"Model busy (503). Retry #{retry_count}. ")
-                gen_utils.test_delay(wait_sec)  # Wait before retrying
-            elif "429" in error_msg or "TooManyRequests" in error_msg:
-                retry_count += 1
-                wait_sec = 120*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
-                print(f"Rate limit exceeded (429). Retry #{retry_count}. ")
-                gen_utils.test_delay(wait_sec)  # Wait before retrying
-            else:
-                # If it's a different error (like a syntax error in your code), 
-                # we want to see it immediately rather than looping.
-                print(f"An unexpected error occurred: {e}")
-                raise e
-        if retry_count >= max_retries:
-            raise RuntimeError("Max retries reached. The model may be unavailable.")
+    # Delegate retry/backoff and error handling to a central helper.
+    try:
+        struc = agent_utils.call_agent(contents=contents, response_schema=tools.Struct_debug, model=local_config.agent_model)
+        print("==netlist after debug", struc.netlist)
+        print("==debug agent spec sims", struc.spec_sims)
+        print("==debug agent fix info", struc.fix_info)
+        return struc
+    except Exception as e:
+        # Re-raise so upstream code can decide how to handle persistent failures.
+        print(f"debug_agent_flow: call_agent failed: {e}")
+        raise

@@ -11,11 +11,9 @@ import scipy.optimize as sciopt
 from PySpice.Spice.NgSpice.Shared import NgSpiceShared
 import matplotlib.pyplot as plt
 import json
-from google import genai
 from scipy.integrate import trapezoid
 import sys
 sys.path.append("./genai_agent")
-from google.genai.types import HttpOptions
 ##### local
 from genai_agent import local_config
 DEFAULT_W = "0.5u"
@@ -24,8 +22,6 @@ DEFAULT_M = "1"
 DEFAULT_R = "1k"
 DEFAULT_C = "3p"
 
-def get_client():
-    return genai.Client(http_options=HttpOptions(api_version="v1"))
 
 # region for file IO
 def get_file_to_str(path, str=""):
@@ -158,6 +154,27 @@ def save_dict_to_json(dict, path):
 def get_dict_from_json(path):
     with open(path, "r") as f:
         return json.load(f)
+    
+def is_cir_debugged(cir_num):
+    path = local_config.path_output + f"{cir_num}/debug_metadata.json"
+    try:
+        if not os.path.isfile(path):
+            return False
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        # If retry_count exists and is not zero, consider it debugged
+        retry = data.get('retry_count')
+        if retry is None:
+            return False
+        try:
+            return int(retry) != 0
+        except Exception:
+            # Non-integer retry value: fallback to truthiness
+            return bool(retry)
+    except Exception as e:
+        print(f"is_cir_debugged: could not read '{path}': {e}")
+        return False
 # endregion for file IO
 
 
@@ -1341,8 +1358,8 @@ def trim_spec_table(text):
 
 
 
-def test_delay(sec):
-    print(f"Waited for {sec} seconds")
+def test_delay(sec, msg = ""):
+    print(f"{msg}: Waited for {sec} seconds")
     time.sleep(sec)
 
 def print_status(is_with_RL):

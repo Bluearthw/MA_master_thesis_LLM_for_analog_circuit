@@ -42,6 +42,7 @@ Vinput aid VSS dc=0.0 ac=1.0 PULSE({{-VHIGH*0.5}}
 """
     gen_utils.save_str_to_file(contents, prompt_path)
     return prompt_path
+
 def test_get_prompt():
     f_end = "1T"
     prompt_dir = local_config.path_prompts 
@@ -60,6 +61,11 @@ def test_get_prompt():
                                                            )
     print(result)
 
+
+def test_is_cir_debugged(nums):
+    for i in nums:
+        if gen_utils.is_cir_debugged(i):
+            print(f"Circuit {i} is debugged.")
 charge_pump_nums = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump\
 bandgap_nums = category_numbers.num_class_6_without_IIN1
 amplifier_nums = category_numbers.num_class_40_samples_tested
@@ -71,4 +77,5 @@ bandgap_nums_old = category_numbers.num_class_6
 
 # test_trim_spec_table(1)
 # test_save_load_prompt()
-test_get_prompt()
+# test_get_prompt()
+test_is_cir_debugged(charge_pump_nums)
