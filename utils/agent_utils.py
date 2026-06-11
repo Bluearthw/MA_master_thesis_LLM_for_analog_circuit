@@ -37,7 +37,7 @@ def call_agent(contents: str,
         model = local_config.agent_model
 
     if client is None:
-        client = gen_utils.get_client()
+        client = get_client()
 
     attempt = 0
     while True:

@@ -1,5 +1,5 @@
 git add .
-git commit -m "update input, trim category str to json
+git commit -m "prepare debug agent for self-improving
 "
 git push
 

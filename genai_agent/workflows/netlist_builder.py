@@ -8,8 +8,8 @@ import sys
 from genai_agent import local_config
 import os
 from genai_agent import tools
-from genai_agent.workflows import workflow
 from utils import gen_utils as gen_utils
+from utils import agent_utils
 
 path_output = local_config.path_output
 
@@ -43,43 +43,17 @@ def netlist_builder(netlist, category, category_num, cir_num=4, trimmed_spec_tab
                                                             cir_num = cir_num
                                                             )
 
-    max_retries = 5  # Optional: prevent infinite loops if the server is truly down
-    retry_count = 0
-    
-    while True:
-        try:
-            response = client.models.generate_content(
-                model=local_config.agent_model,
-                contents=contents,
-                config={
-                    "response_mime_type": "application/json",
-                    "response_schema": tools.Struct_flow,
-                },
-            )
-            # If successful, return the parsed data
-            return response.parsed
+    try:
+        struc = agent_utils.call_agent(contents=contents, response_schema=tools.Struct_flow)
 
-        except Exception as e:
-            # Check if the error is a 503 (Service Unavailable)
-            # Note: Depending on your library version, 'e' might have a .code or .status_code
-            error_msg = str(e)
-            
-            retry_count += 1
-            if "503" in error_msg or "ResourceExhausted" in error_msg:
-                wait_sec = 40*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
-                print(f"Model busy (503). Retry #{retry_count}. ")
-                gen_utils.test_delay(wait_sec)  # Wait before retrying
-            elif "429" in error_msg or "TooManyRequests" in error_msg:
-                wait_sec = 60*retry_count  # Exponential backoff: 60s, 120s, 180s, etc.
-                print(f"Rate limit exceeded (429). Retry #{retry_count}. ")
-                gen_utils.test_delay(wait_sec)  # Wait before retrying
-            else:
-                # If it's a different error (like a syntax error in your code), 
-                # we want to see it immediately rather than looping.
-                print(f"An unexpected error occurred: {e}")
-                raise e
-        if retry_count >= max_retries:
-            raise RuntimeError("Max retries reached. The model may be unavailable.")
+        return struc
+    except Exception as e:
+        # Re-raise so upstream code can decide how to handle persistent failures.
+        print(f"debug_agent_flow: call_agent failed: {e}")
+        raise
+
+    
+
 
 
 

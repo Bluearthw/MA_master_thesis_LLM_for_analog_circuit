@@ -38,7 +38,7 @@ wrdata ./1genai/output/{cir_num}/noise.csv inoise_total
 """
     # Delegate retry/backoff and error handling to a central helper.
     try:
-        struc = agent_utils.call_agent(contents=contents, response_schema=tools.Struct_debug, model=local_config.agent_model)
+        struc = agent_utils.call_agent(contents=contents, response_schema=tools.Struct_debug)
         print("==netlist after debug", struc.netlist)
         print("==debug agent spec sims", struc.spec_sims)
         print("==debug agent fix info", struc.fix_info)
