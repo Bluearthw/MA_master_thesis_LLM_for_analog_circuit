@@ -16,7 +16,6 @@ path_output = local_config.path_output
 def netlist_builder(netlist, category, category_num, cir_num=4, trimmed_spec_table=None, is_diff=False):
     line_wrdata_path_num = "wrdata " + path_output + str(cir_num)
     
-    client = gen_utils.get_client()
     f_end= "1T"
     general_rules = local_config.general_rules.replace('{f_end}', f_end)
 

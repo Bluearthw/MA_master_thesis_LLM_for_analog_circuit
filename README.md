@@ -1,7 +1,6 @@
 git add .
-git commit -m "genai_agent/data/* instead of genai_agent/data. Also, it is sequential
+git commit -m "add changed netlist part
 "
-
 git push
 
 

@@ -3,8 +3,8 @@ from genai_agent.workflows.debug_agent import debug_agent_flow
 from utils import gen_utils 
 from utils import saving 
 from ngspice_interface import dut_testbench
-from genai_agent.workflows import netlist_builder
-
+from genai_agent.workflows import make_netlist_agent
+from genai_agent.workflows import compress_err_info_agent
 def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False):
     counter = 0
     debug_history = []
@@ -24,9 +24,12 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             with open(netlist_path, "w") as f:
                 f.write(netlist)
             saving.save_error_info(path_output_num, cir_num, counter, debug_history, "success", is_CMFB)
+            # maybe another loop here due to possible error in DUT
             measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout, netlist_path=netlist_path).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
             for mr in measurement_results:
                 print("Measurement results:", mr)
+            if counter > 0:
+                compress_err_info_agent.compress_agent_flow()
             return measurement_results, struct_path_id
         else:
             print(f"==================bug found!!!!======={counter}===============")
@@ -74,7 +77,7 @@ def generate_netlist(cir_num, path_output_num, category_str, netlist, has_input,
     """
     # If a category number is provided, use the central netlist builder
     if category_num is not None:
-        struc = netlist_builder.netlist_builder(netlist=netlist, category=category_str, category_num=category_num, cir_num=cir_num, trimmed_spec_table=trimmed_spec_table, is_diff=is_diff)
+        struc = make_netlist_agent.netlist_builder(netlist=netlist, category=category_str, category_num=category_num, cir_num=cir_num, trimmed_spec_table=trimmed_spec_table, is_diff=is_diff)
     else:
         raise ValueError("Category number is required.")
 
