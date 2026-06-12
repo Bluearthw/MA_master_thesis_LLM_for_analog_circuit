@@ -12,7 +12,16 @@ class Struct_flow(BaseModel):
     is_diff: bool = Field(description="If the circuit is differential output, this field is True.")
     is_CMFB: bool = Field(description="If the circuit has CMFB, this field is True.")
     target_dc_vout: float = Field(description="Define a target DC output voltage based on the circuit.")
-        
+
+class Struct_debug(BaseModel):
+    # 1. Force the model to reason FIRST
+    bug_analysis: str = Field(description="A clear analysis of the SPICE error message. Explain exactly why the current netlist failed.")
+    fix_plan: str = Field(description="A step-by-step technical plan of what parameters, nodes, or models need to be modified to resolve the bug. Be concise"    )
+    # 2. Output the payload SECOND
+    netlist: str = Field(description="The complete, corrected SPICE netlist incorporating the fix plan. Use standard newlines (\\n)."    )
+    spec_sims: List[Struct_specs_sim] = Field(description="The list of simulations needed and why"    )
+    fix_info: str = Field(description="A concise summary of the final changes made. This will be archived into the permanent knowledge base."    )
+
 class Struct_debug(BaseModel):
     netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
     spec_sims : list[Struct_specs_sim] = Field(description="simulations needed and why")

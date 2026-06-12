@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import json
 from scipy.integrate import trapezoid
 import sys
+import difflib
 sys.path.append("./genai_agent")
 ##### local
 from genai_agent.data import local_config
@@ -1393,6 +1394,34 @@ def reduce_duplicate(duplicate_str):
     return reduced
 
 
+
+def get_netlist_diff(error_netlist: str, fixed_netlist: str, context_lines: int = 3) -> str:
+    """
+    Compares two netlists and returns a compact string showing only the differences
+    plus a few lines of surrounding context.
+    """
+    # Split the netlists into lists of lines
+    error_lines = error_netlist.splitlines()
+    fixed_lines = fixed_netlist.splitlines()
+    
+    # Generate a unified diff (like git diff)
+    diff = difflib.unified_diff(
+        error_lines, 
+        fixed_lines, 
+        fromfile='error_netlist', 
+        tofile='fixed_netlist',
+        n=context_lines,  # Number of context lines to show around changes
+        lineterm=''
+    )
+    
+    # Join the diff generator into a single string
+    diff_string = "\n".join(diff)
+    
+    # If there are absolutely no differences, return a note
+    if not diff_string:
+        return "No differences found between the netlists."
+        
+    return diff_string
 
 
 def test_delay(sec, msg = ""):
