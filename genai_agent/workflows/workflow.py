@@ -1,8 +1,8 @@
 from genai_agent.data import local_config
-from genai_agent.workflows.debug_agent import debug_agent_flow
 from utils import gen_utils 
 from utils import saving 
 from ngspice_interface import dut_testbench
+from genai_agent.workflows.debug_agent import debug_agent_flow
 from genai_agent.workflows import make_netlist_agent
 from genai_agent.workflows import compress_err_info_agent
 def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False, general_rules = None):

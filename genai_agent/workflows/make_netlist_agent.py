@@ -1,12 +1,11 @@
 from google import genai
 import sys
-# import os
+import os
 # import sys
 
 ######################
 # local import
 from genai_agent.data import local_config
-import os
 from genai_agent.data import response_schema
 from utils import gen_utils as gen_utils
 from utils import agent_utils

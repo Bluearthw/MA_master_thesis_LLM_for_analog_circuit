@@ -4,6 +4,7 @@ sys.path.append(".")
 from utils import gen_utils
 from genai_agent.data import local_config
 from genai_agent.data import category_numbers
+from genai_agent.workflows.compress_err_info_agent import backup_prompts
 def test_count_retry_info(cir_nums):
     total, average, zero_retry_count = gen_utils.count_retry_info(cir_nums)
     print(f"Total retries: {total}, Average retries: {average}, Zero retries: {zero_retry_count}")
@@ -104,6 +105,13 @@ def test_get_wf_p():
     dict = gen_utils.get_dict_from_json(prompts_path)
     general_rules = dict.get('general_rules')
     print(general_rules)
+
+def test_backup_prompt():
+    prompts_path = os.path.join(local_config.path_prompts, 'workflow_prompts.json')
+    backup_path = backup_prompts(prompts_path)
+    if os.path.isfile(backup_path):
+        print(f"Prompt backup created successfully: {backup_path}")
+
 charge_pump_nums = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump\
 bandgap_nums = category_numbers.num_class_6_without_IIN1
 amplifier_nums = category_numbers.num_class_40_samples_tested
@@ -121,4 +129,6 @@ bandgap_nums_old = category_numbers.num_class_6
 # test_update_gen_rules_json()
 # test_reduce_duplicate("")
 
-test_get_wf_p()
+# test_get_wf_p()
+
+test_backup_prompt()

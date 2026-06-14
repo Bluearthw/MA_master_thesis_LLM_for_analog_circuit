@@ -1,13 +1,13 @@
-from genai_agent.data import local_config
-from genai_agent.data import response_schema
-from utils import agent_utils
 import os
 import shutil
 import datetime
-from utils import gen_utils
 import tempfile
 from typing import Optional, Dict, Any
 from pydantic import BaseModel
+from genai_agent.data import local_config
+from genai_agent.data import response_schema
+from utils import agent_utils
+from utils import gen_utils
 
 def compress_agent_flow(debug_history, general_rules, category_num):
     contents = f"""## INPUT DATA
@@ -37,7 +37,7 @@ You are an advanced Knowledge Curator for an automated SPICE circuit design and 
 
         prompts_path = os.path.join(local_config.path_prompts, 'workflow_prompts.json')
         # Backup existing prompts json
-        backup_path = _backup_prompts(prompts_path)
+        backup_path = backup_prompts(prompts_path)
 
         # Load current prompts structure or create base
         prompts = gen_utils.get_dict_from_json(prompts_path)
@@ -102,7 +102,7 @@ def validate_struct_compress(struc: Any) -> Dict[str, Any]:
     return {"analysis": "", "generation_guidelines_updates": None, "debug_kb_updates": None}
 
 
-def _backup_prompts(prompts_path: str) -> Optional[str]:
+def backup_prompts(prompts_path: str) -> Optional[str]:
     try:
         os.makedirs(os.path.dirname(prompts_path), exist_ok=True)
         if os.path.exists(prompts_path):
@@ -110,7 +110,8 @@ def _backup_prompts(prompts_path: str) -> Optional[str]:
             shutil.copyfile(prompts_path, backup_path)
             return backup_path
     except Exception as e:
-        print(f"Warning: could not backup prompts file: {e}")
+        # print(f"Warning: could not backup prompts file: {e}")
+        raise ValueError("Failed to backup prompts file")
     return None
 
 
@@ -215,7 +216,7 @@ def compress_agent_flow(debug_history, general_rules, category_num):
 
     # Then apply updates using the helper functions
     prompts_path = os.path.join(local_config.path_prompts, 'workflow_prompts.json')
-    _backup_prompts(prompts_path)
+    backup_prompts(prompts_path)
     prompts = gen_utils.get_dict_from_json(prompts_path)
     cat_key = f'category_{category_num}'
     _ensure_prompt_structure(prompts, cat_key)
@@ -241,7 +242,7 @@ def compress_agent_flow_with_struct(struct_obj: Any, category_num: int, prompts_
     if prompts_path is None:
         prompts_path = os.path.join(local_config.path_prompts, 'workflow_prompts.json')
 
-    _backup_prompts(prompts_path)
+    backup_prompts(prompts_path)
     prompts = gen_utils.get_dict_from_json(prompts_path)
     cat_key = f'category_{category_num}'
     _ensure_prompt_structure(prompts, cat_key)

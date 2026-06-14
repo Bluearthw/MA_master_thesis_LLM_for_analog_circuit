@@ -77,7 +77,7 @@ else:
 
         dict = agent_utils.get_workflow_prompts()# should update for every circuit, in the future, some flag to control
         general_rules = "\n".join(dict.get('general_rules'))
-
+        print("general_rules =", general_rules)
         results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = workflow.generate_netlist(
         cir_num=i, 
         path_output_num=path_output_num, 
