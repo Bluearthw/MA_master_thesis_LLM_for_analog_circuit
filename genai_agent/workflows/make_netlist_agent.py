@@ -42,7 +42,7 @@ def netlist_builder(netlist, category, category_num, cir_num=4, trimmed_spec_tab
 
     try:
         struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_flow)
-
+        print("==struc_netlist_builder", struc)
         return struc
     except Exception as e:
         # Re-raise so upstream code can decide how to handle persistent failures.

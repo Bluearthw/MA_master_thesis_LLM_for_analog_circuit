@@ -29,7 +29,7 @@ You are an advanced Knowledge Curator for an automated SPICE circuit design and 
     # Delegate retry/backoff and error handling to a central helper.
     try:
         struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_compress)
-
+        print("==struc_compress", struc)
         # Validate structure
         normalized = validate_struct_compress(struc)
         gen_updates = normalized.get('generation_guidelines_updates')

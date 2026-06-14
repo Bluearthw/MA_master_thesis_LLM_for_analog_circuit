@@ -1,8 +1,12 @@
 import os
+import re
+import sys
 import csv
 import json
 from pathlib import Path
 from google.genai import types
+sys.path.append(".")
+from gen_utils import local_config
 
 def save_solutions_csv(run_id, simulation_step, circuit_params, specs, reward):
     # Define the CSV file name based on the run_id to keep it unique
@@ -86,3 +90,162 @@ def writeMd(response: types.GenerateContentResponse, filename: str = "output.md"
     print("\n" + "="*30)
     print(f"\n{file_uri}\n")
     print("="*30 + "\n")
+
+# region for file IO
+def get_file_to_str(path, str=""):
+    if os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as file: # https://www.geeksforgeeks.org/python/read-file-as-string-in-python/
+                
+                circuit_string = file.read() 
+                    
+                if len(str) > 0:
+                    circuit_string = str + circuit_string
+                # print(f"Circuit loaded successfully from: {cir_path}")
+                return circuit_string
+                
+        except FileNotFoundError:
+            print(f"Error: no files at: {path}")
+            raise FileNotFoundError(" No File")
+    else:
+        return False
+
+def get_full_circuit_string(cir_num):
+    # Prioritize the most complete files first
+    filenames = [f"{cir_num}_full.cir", f"{cir_num}.cir"]
+    
+    for filename in filenames:
+        cir_path = os.path.join(local_config.path_dataset, str(cir_num), filename)
+        content = get_file_to_str(cir_path)
+        if content:
+            print("==cir_path\n", cir_path)
+            return content  # Returns the first one it successfully finds
+            
+    raise ValueError("File not found")
+        
+def get_file_to_lines(path, n_line, start_from_end = False):
+    if os.path.isfile(path):
+        lines = []
+        try:
+            with open(path, "r", encoding="utf-8") as file: 
+                if start_from_end: # .remove("\n")
+                    lines = file.readlines()[-n_line:]
+                    # lines.remove('\n') # it removes only 1
+
+                else:
+                    lines = file.readlines()[:n_line]
+                return lines
+                ##################
+                # don't use your own function, very slow #
+                ###########################
+                # line = file.readline()
+                # counter = 0
+                # while line:
+                #     lines.append(line)
+                #     line = file.readline()
+                #     counter += 1
+                #     if counter > n_line:
+                #         return lines
+                
+        except FileNotFoundError:
+            print(f"Error: no files at: {path}")
+            raise FileNotFoundError(" No File")            
+    return []       
+
+def save_file_overwrite(path, content):# the file type is defined in path
+    with open(f"{path}", "w") as file:
+        file.write(f"{content}")
+
+def are_ports_all_exist(path, target_ports=["VIN1"]):
+    if os.path.isfile(path):
+        with open(path, 'r') as f:
+            content = f.read()
+        for target_port in target_ports:
+            pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
+            
+            if re.search(pattern, content):
+                continue
+            return False
+        return True
+# if 1 of theses exists, return True
+def is_port_exist(path, target_ports=["VIN1"]):
+    with open(path, 'r') as f:
+        content = f.read()
+    print("content\n",content)
+    for target_port in target_ports:
+        pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
+        
+        if re.search(pattern, content):
+            return True
+    return False
+    
+def delete_all_files_except_dir(folder_path):
+    """
+    Deletes all files in the specified folder.
+    Does not remove subdirectories or the folder itself.
+    """
+    # Validate folder path
+    if not os.path.exists(folder_path):
+        print(f"Error: The folder '{folder_path}' does not exist.")
+        return
+    if not os.path.isdir(folder_path):
+        print(f"Error: '{folder_path}' is not a directory.")
+        return
+
+    deleted_count = 0
+    failed_count = 0
+
+    # Iterate over all items in the folder
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+
+        # Only delete files, skip directories!!!!!
+        if os.path.isfile(file_path):
+            try:
+                os.remove(file_path)
+                deleted_count += 1
+            except Exception as e:
+                print(f"Failed to delete '{file_path}': {e}")
+                failed_count += 1
+
+    print(f"Deleted {deleted_count} file(s).")
+    if failed_count > 0:
+        print(f"Failed to delete {failed_count} file(s).")        
+
+def save_str_to_file(str, path = local_config.path_output + "final_netlist.cir"):
+    with open(path, "w") as f:
+        f.write(str)
+def save_dict_to_json(dict, path):
+    with open(path, "w") as f:
+        json.dump(dict, f, indent=4)
+
+def get_dict_from_json(path):
+    if os.path.exists(path):
+        try:
+            with open(path, "r") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Failed to read existing prompts JSON: {e}")
+            dict = {}
+    return dict
+def is_cir_debugged(cir_num):
+    path = local_config.path_output + f"{cir_num}/debug_metadata.json"
+    try:
+        if not os.path.isfile(path):
+            return False
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        # If retry_count exists and is not zero, consider it debugged
+        retry = data.get('retry_count')
+        if retry is None:
+            return False
+        try:
+            return int(retry) != 0
+        except Exception:
+            # Non-integer retry value: fallback to truthiness
+            return bool(retry)
+    except Exception as e:
+        print(f"is_cir_debugged: could not read '{path}': {e}")
+        return False
+# endregion for file IO
