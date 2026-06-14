@@ -8,6 +8,7 @@ from google.genai import types
 sys.path.append(".")
 from gen_utils import local_config
 
+# region for saving
 def save_solutions_csv(run_id, simulation_step, circuit_params, specs, reward):
     # Define the CSV file name based on the run_id to keep it unique
     csv_file_name = f'./solutions/{run_id}/{run_id}.csv'
@@ -47,7 +48,7 @@ def save_error_info(path_output_num, cir_num, retry_count, debug_history, status
     print("path_retry", metadata_path)
     with open(metadata_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2)
-
+# endregion for saving
 
 
 # from Mohsen
@@ -91,7 +92,7 @@ def writeMd(response: types.GenerateContentResponse, filename: str = "output.md"
     print(f"\n{file_uri}\n")
     print("="*30 + "\n")
 
-# region for file IO
+# region for get ############################
 def get_file_to_str(path, str=""):
     if os.path.isfile(path):
         try:
@@ -248,4 +249,4 @@ def is_cir_debugged(cir_num):
     except Exception as e:
         print(f"is_cir_debugged: could not read '{path}': {e}")
         return False
-# endregion for file IO
+# endregion for get ############################

@@ -17,7 +17,7 @@ import difflib
 sys.path.append(".")
 ##### local
 from genai_agent.data import local_config
-from utils import saving
+from utils import file_utils
 DEFAULT_W = "0.5u"
 DEFAULT_L = "90n"
 DEFAULT_M = "1"
@@ -57,11 +57,11 @@ def find_OPAMP_num_from_file(dataset_path):
         # print("path_nl",path_nl)
         # let's check cir file first, only when it has vin
             ports_name_to_check = ["VIN1","VOUT1"]
-            if saving.are_ports_all_exist(path_nl,ports_name_to_check):
+            if file_utils.are_ports_all_exist(path_nl,ports_name_to_check):
                 # if VIN1 exists, continue
                 path = dataset_path + f"/{i}/edited_explanation.md"
                 # print("path",path)
-                lines = saving.get_file_to_lines(path, lines_to_read)
+                lines = file_utils.get_file_to_lines(path, lines_to_read)
                 for line in lines:
                     if "amplifier" in line or "Amplifier" in line :
                         exist_nums.append(i)
@@ -85,7 +85,7 @@ def find_OPAMPs_without_clk(dataset_path, nums):
         # let's check cir file first, only when it has vin
             ports_name_to_check = local_config.mixer_comparator_ports 
             # print(ports_name_to_check)
-            if not saving.is_port_exist(path_nl,ports_name_to_check):
+            if not file_utils.is_port_exist(path_nl,ports_name_to_check):
                 exist_nums.append(i)
 
     return exist_nums
@@ -100,7 +100,7 @@ def find_SISOs_from_OPAMPs(dataset_path, nums):
         # let's check cir file first, only when it has vin
             ports_name_to_check = local_config.differential_ports
             # print(ports_name_to_check)
-            if not saving.is_port_exist(path_nl,ports_name_to_check):
+            if not file_utils.is_port_exist(path_nl,ports_name_to_check):
                 exist_nums.append(i)
 
     return exist_nums
@@ -119,7 +119,7 @@ def find_cir_num_without_pattern(dataset_path,name_to_check,nums = local_config.
         if os.path.isfile(path_nl):
             # let's check cir file first, only when it has vin
         
-            if not saving.is_port_exist(path_nl,name_to_check):
+            if not file_utils.is_port_exist(path_nl,name_to_check):
                 exist_nums.append(i)
             # counter part
     return exist_nums
@@ -133,7 +133,7 @@ def find_cir_num_with_pattern(dataset_path,name_to_check,nums = local_config.num
         if os.path.isfile(path_nl):
             # let's check cir file first, only when it has vin
         
-            if saving.is_port_exist(path_nl,name_to_check):
+            if file_utils.is_port_exist(path_nl,name_to_check):
                 exist_nums.append(i)
             # counter part
     
@@ -143,12 +143,12 @@ def find_RF_from_cir_str(path_exaplain, cir_string):
     # start_time = time.perf_counter()
     if "L0" in cir_string:
         return True
-    lines = saving.get_file_to_lines(path_exaplain,10,True)
+    lines = file_utils.get_file_to_lines(path_exaplain,10,True)
     
     for line in lines:
         if "RF" in line:
             return True
-    lines2 = saving.get_file_to_lines(path_exaplain,8)
+    lines2 = file_utils.get_file_to_lines(path_exaplain,8)
     string = "".join(lines2)
     if "RF" in string:
         # end_time = time.perf_counter()
@@ -192,7 +192,7 @@ def find_num_from_class(class_id):
     for i in local_config.num_all:
 
         path = local_config.path_classified_dataset + f"/{i}/detected_class.txt"
-        if int(saving.get_file_to_str(path)) == class_id:
+        if int(file_utils.get_file_to_str(path)) == class_id:
             exist_nums.append(i)
             # counter part
         
@@ -200,7 +200,7 @@ def find_num_from_class(class_id):
 
 def find_cat_from_num(num):
     path = local_config.path_classified_dataset+ f"/{num}/detected_class.txt"
-    return int(saving.get_file_to_str(path))
+    return int(file_utils.get_file_to_str(path))
 # endregion for classification
 
 
@@ -860,12 +860,12 @@ def pre_process_circuit(cir_num):
     category_num = find_cat_from_num(cir_num) 
     path_category = local_config.path_category + f"{category_num}.md"
     # or the cat_num is already known, so just +"4.md"
-    category_str = saving.get_file_to_str(path_category)
+    category_str = file_utils.get_file_to_str(path_category)
 
     path_output_num = local_config.path_output + f"{cir_num}/"
     # circuit_string = get_full_circuit_string(cir_num)
     cir_path = local_config.path_dataset+f"/{cir_num}/{cir_num}.cir"
-    circuit_string = saving.get_file_to_str(cir_path)
+    circuit_string = file_utils.get_file_to_str(cir_path)
     has_input = has_port_from_nl(circuit_string) #if opamp does not have, there is problem
     is_diff = has_port_from_nl(circuit_string, target_ports=["VOUT2"])
     circuit_string = modify_duplicate_component(circuit_string) # remove duplicate component names like 2 C1 in 167
@@ -936,7 +936,7 @@ def pyspice_op_sim(circuit, node="vout1"):
 
 def pyspice_op_sim_final(circuit):
     pyspice_op_sim_simple(circuit)
-    saving.delete_all_files_except_dir(local_config.path_output)
+    file_utils.delete_all_files_except_dir(local_config.path_output)
     # Use a single string buffer for all stdout/stderr
     log_capture = io.StringIO()
     

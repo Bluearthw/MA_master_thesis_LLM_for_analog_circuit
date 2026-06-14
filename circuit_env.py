@@ -5,7 +5,7 @@ import os
 import yaml
 import math
 import shutil
-import utils.saving as saving
+import utils.file_utils as file_utils
 from ngspice_interface import DUT as DUT_NGSpice
 from utils.plotting import plotLearning, plot_running_maximum, solutions2pareto
 from genai_agent.data.local_config import list_targets_to_min
@@ -241,7 +241,7 @@ class CircuitEnv(gym.Env):
 
         if hard_satisfied:
             plot_running_maximum(self.reward_history, self.run_id)
-            csvName = saving.save_solutions_csv(self.run_id, self.env_steps, self.param_values, self.real_specs, reward)
+            csvName = file_utils.save_solutions_csv(self.run_id, self.env_steps, self.param_values, self.real_specs, reward)
             solutions2pareto(csvName, self.run_id, True)
 
             # =======================

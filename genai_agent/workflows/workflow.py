@@ -1,6 +1,6 @@
 from genai_agent.data import local_config
 from utils import gen_utils 
-from utils import saving 
+from utils import file_utils 
 from ngspice_interface import dut_testbench
 from genai_agent.workflows.debug_agent import debug_agent_flow
 from genai_agent.workflows import make_netlist_agent
@@ -24,7 +24,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             netlist_path = path_output_num + "final_netlist.cir"
             with open(netlist_path, "w") as f:
                 f.write(netlist)
-            saving.save_error_info(path_output_num, cir_num, counter, debug_history, "success", is_CMFB)
+            file_utils.save_error_info(path_output_num, cir_num, counter, debug_history, "success", is_CMFB)
             # maybe another loop here due to possible error in DUT
             measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout, netlist_path=netlist_path).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
             for mr in measurement_results:
@@ -66,7 +66,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
 
         counter += 1
         if counter > 5:
-            saving.save_error_info(path_output_num, cir_num, counter, debug_history, "failed", is_CMFB)
+            file_utils.save_error_info(path_output_num, cir_num, counter, debug_history, "failed", is_CMFB)
             raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
 
 

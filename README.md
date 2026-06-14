@@ -1,5 +1,5 @@
 git add .
-git commit -m "backup checked. bug, 2 struc_debug in response_schema.py. get compress out of sim_debug loop
+git commit -m "save and get
 "
 git push
 
