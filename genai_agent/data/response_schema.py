@@ -22,12 +22,6 @@ class Struct_debug(BaseModel):
     spec_sims: List[Struct_specs_sim] = Field(description="The list of simulations needed and why"    )
     fix_info: str = Field(description="A concise summary of the final changes made. This will be archived into the permanent knowledge base."    )
 
-class Struct_debug(BaseModel):
-    netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
-    spec_sims : list[Struct_specs_sim] = Field(description="simulations needed and why")
-    
-    # sim_file_names : list[str] =Field(description="list of names of simulations output files. Here are .csv files, e.g., ac_gain.csv and noise.csv")
-    fix_info: str = Field(description="what is fixed in the netlist based on the error message and why")
 
 class Struct_cmfb_agent(BaseModel):
     netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")

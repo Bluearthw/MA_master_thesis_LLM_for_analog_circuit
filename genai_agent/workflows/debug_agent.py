@@ -1,7 +1,7 @@
 from genai_agent.data import local_config
 from genai_agent.data import response_schema
 from utils import agent_utils
-
+from utils import gen_utils
 def debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, general_rules = None):
     """Call the debug agent to fix a netlist and return the parsed response model.
 
@@ -43,7 +43,9 @@ General Rules:{general_rules}
             print("==bug analysis:\n", getattr(struc, 'bug_analysis'))
         if hasattr(struc, 'fix_plan'):
             print("==fix plan:\n", getattr(struc, 'fix_plan'))
-
+        debug_netlist_path = local_config.debug_netlist_path
+        print("==netlist after debug path", debug_netlist_path)
+        gen_utils.save_str_to_file(struc.netlist, debug_netlist_path)
         print("==netlist after debug", getattr(struc, 'netlist', None))
         print("==debug agent spec sims", getattr(struc, 'spec_sims', None))
         print("==debug agent fix info", getattr(struc, 'fix_info', None))

@@ -31,6 +31,7 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 # #DIDO
 # test = [182] #dido cmfb
 # test = [69] #dido 
+test = [1005]
 # test = category_numbers.num_class_40_samples
 # #DISO
 # test = category_numbers.num_class_7_samples
@@ -41,12 +42,12 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 # tested_set = set(tested)
 # test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
 
-print(len(test))
+
 is_with_RL = 0 # only with netlist gen
 # is_with_RL = 1 # whole workflow
 # is_with_RL = 2 # only with RL sizer
 # is_with_RL = 3 # only with yaml creation
-gen_utils.print_status(is_with_RL)
+gen_utils.print_status(is_with_RL, test)
 # sys.exit(0)
 
 if is_with_RL == 2:

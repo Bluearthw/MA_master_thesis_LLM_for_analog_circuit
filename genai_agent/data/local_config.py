@@ -8,6 +8,7 @@ path_categories = "./genai_agent/data/categories/"
 path_output = "./genai_agent/output/"
 path_yaml = "./ngspice_interface/files/yaml_files/" 
 path_prompts = "./genai_agent/data/prompts/"
+debug_netlist_path = path_output + "debug_netlist.cir"
 path_project = os.getcwd()
 path_yaml_two_stage = os.path.join(path_project, 'ngspice_interface', 'files', 'yaml_files', 'TwoStage.yaml')
 
