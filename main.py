@@ -12,6 +12,7 @@ from genai_agent.workflows.type6_bandgap import root_agent_type6
 from genai_agent.workflows.type23_charge_pump import root_agent_type23
 from utils import yaml_creation
 from utils import agent_utils
+from utils import file_utils
 import td3_runner
 test = category_numbers.num_class_40[:10]
 test = [69, 182] # cmfb or without cmfb
@@ -72,7 +73,7 @@ else:
         output_dir.mkdir(parents=True, exist_ok=True)
         path_output_num, category_num, category_str, netlist, has_input, is_diff = gen_utils.pre_process_circuit(i)
         print("is_diff =", is_diff)
-        gen_utils.delete_all_files_except_dir(path_output_num)
+        file_utils.delete_all_files_except_dir(path_output_num)
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
         print("trimmed_spec_table",trimmed_spec_table)
 

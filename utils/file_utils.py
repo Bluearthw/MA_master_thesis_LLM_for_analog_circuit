@@ -6,9 +6,9 @@ import json
 from pathlib import Path
 from google.genai import types
 sys.path.append(".")
-from gen_utils import local_config
+from genai_agent.data import local_config
 
-# region for saving
+# region for saving ############################
 def save_solutions_csv(run_id, simulation_step, circuit_params, specs, reward):
     # Define the CSV file name based on the run_id to keep it unique
     csv_file_name = f'./solutions/{run_id}/{run_id}.csv'
@@ -48,7 +48,19 @@ def save_error_info(path_output_num, cir_num, retry_count, debug_history, status
     print("path_retry", metadata_path)
     with open(metadata_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2)
-# endregion for saving
+
+def save_file_overwrite(path, content):# the file type is defined in path
+    with open(f"{path}", "w") as file:
+        file.write(f"{content}")
+
+def save_str_to_file(str, path = local_config.path_output + "final_netlist.cir"):
+    with open(path, "w") as f:
+        f.write(str)
+def save_dict_to_json(dict, path):
+    with open(path, "w") as f:
+        json.dump(dict, f, indent=4)
+
+# endregion for saving ############################
 
 
 # from Mohsen
@@ -111,18 +123,6 @@ def get_file_to_str(path, str=""):
     else:
         return False
 
-def get_full_circuit_string(cir_num):
-    # Prioritize the most complete files first
-    filenames = [f"{cir_num}_full.cir", f"{cir_num}.cir"]
-    
-    for filename in filenames:
-        cir_path = os.path.join(local_config.path_dataset, str(cir_num), filename)
-        content = get_file_to_str(cir_path)
-        if content:
-            print("==cir_path\n", cir_path)
-            return content  # Returns the first one it successfully finds
-            
-    raise ValueError("File not found")
         
 def get_file_to_lines(path, n_line, start_from_end = False):
     if os.path.isfile(path):
@@ -153,33 +153,21 @@ def get_file_to_lines(path, n_line, start_from_end = False):
             raise FileNotFoundError(" No File")            
     return []       
 
-def save_file_overwrite(path, content):# the file type is defined in path
-    with open(f"{path}", "w") as file:
-        file.write(f"{content}")
 
-def are_ports_all_exist(path, target_ports=["VIN1"]):
-    if os.path.isfile(path):
-        with open(path, 'r') as f:
-            content = f.read()
-        for target_port in target_ports:
-            pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
-            
-            if re.search(pattern, content):
-                continue
-            return False
-        return True
-# if 1 of theses exists, return True
-def is_port_exist(path, target_ports=["VIN1"]):
-    with open(path, 'r') as f:
-        content = f.read()
-    print("content\n",content)
-    for target_port in target_ports:
-        pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
-        
-        if re.search(pattern, content):
-            return True
-    return False
-    
+
+
+def get_dict_from_json(path):
+    if os.path.exists(path):
+        try:
+            with open(path, "r") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Failed to read existing prompts JSON: {e}")
+            dict = {}
+    return dict
+
+# endregion for get ############################
+
 def delete_all_files_except_dir(folder_path):
     """
     Deletes all files in the specified folder.
@@ -213,22 +201,29 @@ def delete_all_files_except_dir(folder_path):
     if failed_count > 0:
         print(f"Failed to delete {failed_count} file(s).")        
 
-def save_str_to_file(str, path = local_config.path_output + "final_netlist.cir"):
-    with open(path, "w") as f:
-        f.write(str)
-def save_dict_to_json(dict, path):
-    with open(path, "w") as f:
-        json.dump(dict, f, indent=4)
-
-def get_dict_from_json(path):
-    if os.path.exists(path):
-        try:
-            with open(path, "r") as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"Failed to read existing prompts JSON: {e}")
-            dict = {}
-    return dict
+def are_ports_all_exist(path, target_ports=["VIN1"]):
+    if os.path.isfile(path):
+        with open(path, 'r') as f:
+            content = f.read()
+        for target_port in target_ports:
+            pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
+            
+            if re.search(pattern, content):
+                continue
+            return False
+        return True
+# if 1 of theses exists, return True
+def is_port_exist(path, target_ports=["VIN1"]):
+    with open(path, 'r') as f:
+        content = f.read()
+    print("content\n",content)
+    for target_port in target_ports:
+        pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
+        
+        if re.search(pattern, content):
+            return True
+    return False
+    
 def is_cir_debugged(cir_num):
     path = local_config.path_output + f"{cir_num}/debug_metadata.json"
     try:
@@ -249,4 +244,3 @@ def is_cir_debugged(cir_num):
     except Exception as e:
         print(f"is_cir_debugged: could not read '{path}': {e}")
         return False
-# endregion for get ############################

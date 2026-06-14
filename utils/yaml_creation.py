@@ -335,7 +335,7 @@ def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multipl
 
     content = "\n\n".join(yaml_sections)
     path_yaml = local_config.path_yaml+f"{cir_name}.yaml"
-    gen_utils.save_file_overwrite(path_yaml, content)
+    file_utils.save_file_overwrite(path_yaml, content)
     return path_yaml
 
 def update_yaml_targets(yaml_path, targets_dict):

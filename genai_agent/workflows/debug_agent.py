@@ -45,7 +45,7 @@ General Rules:{general_rules}
             print("==fix plan:\n", getattr(struc, 'fix_plan'))
         debug_netlist_path = local_config.debug_netlist_path
         print("==netlist after debug path", debug_netlist_path)
-        gen_utils.save_str_to_file(struc.netlist, debug_netlist_path)
+        file_utils.save_str_to_file(struc.netlist, debug_netlist_path)
         print("==netlist after debug", getattr(struc, 'netlist', None))
         print("==debug agent spec sims", getattr(struc, 'spec_sims', None))
         print("==debug agent fix info", getattr(struc, 'fix_info', None))

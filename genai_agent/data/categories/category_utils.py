@@ -5,6 +5,7 @@ sys.path.append(".")
 from utils import gen_utils
 from genai_agent.data.local_config import path_category
 from genai_agent.data.local_config import path_categories
+from utils import file_utils
 def split_category():
     # Read the source file
     with open('classes_final_revised.md', 'r') as f:
@@ -121,6 +122,6 @@ def make_category_json():
         # print(cat_str)
         cat_dict = category_str_extract(cat_str)
         print(cat_dict)
-        gen_utils.save_dict_to_json(cat_dict, json_path + f'category{i}.json')
+        file_utils.save_dict_to_json(cat_dict, json_path + f'category{i}.json')
 
 make_category_json()

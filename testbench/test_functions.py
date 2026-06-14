@@ -244,7 +244,7 @@ def test_find_num_from_class(id=None):
             # print(f"Class {class_id}: # {len(nums):3d} circuits - {nums[:10]}{'...' if len(nums) > 10 else ''}")
             content = "\n\n".join(lines)
             path_yaml = ".\\genai_agent\\memory\\"+f"class.yaml"
-            gen_utils.save_file_overwrite(path_yaml, content)
+            file_utils.save_file_overwrite(path_yaml, content)
     else:
         # Find for single class
         nums = gen_utils.find_num_from_class(id)

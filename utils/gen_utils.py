@@ -1,17 +1,17 @@
 import re
 import time
 import os
-import pandas as pd
+# import pandas as pd
 import subprocess
 import io
 import contextlib
 import numpy as np
-import scipy.interpolate as interp
-import scipy.optimize as sciopt
+# import scipy.interpolate as interp
+# import scipy.optimize as sciopt
 from PySpice.Spice.NgSpice.Shared import NgSpiceShared
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import json
-from scipy.integrate import trapezoid
+# from scipy.integrate import trapezoid
 import sys
 import difflib
 sys.path.append(".")
@@ -1108,6 +1108,10 @@ def ensure_data_format_settings(netlist):
     Returns:
         str: Modified netlist with settings added if necessary.
     """
+
+    #0 replace \\n to \n when it is too long texts
+    netlist = netlist.replace('\\n', '\n')
+    # 1
     lines = netlist.split('\n')
     has_units = False
     has_wr_vecnames = False

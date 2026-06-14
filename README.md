@@ -1,5 +1,5 @@
 git add .
-git commit -m "save and get
+git commit -m "fix .control error. and some refactor errors
 "
 git push
 

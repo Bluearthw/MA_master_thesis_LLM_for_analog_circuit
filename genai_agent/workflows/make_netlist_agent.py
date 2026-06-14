@@ -9,7 +9,7 @@ from genai_agent.data import local_config
 from genai_agent.data import response_schema
 from utils import gen_utils as gen_utils
 from utils import agent_utils
-
+from utils import file_utils
 
 def netlist_builder(netlist, category, category_num, cir_num=4, trimmed_spec_table=None, is_diff=False, general_rules=None):
     line_wrdata_path_num = "wrdata " + local_config.path_output + str(cir_num)
@@ -30,7 +30,7 @@ def netlist_builder(netlist, category, category_num, cir_num=4, trimmed_spec_tab
         print(f"Warning: prompt for category {category_num} not found, using minimal inline prompt.")
         contents = f"You are given a netlist: {netlist}\nPlease produce a ready-to-run netlist and a list of spec simulations."
     
-    contents = gen_utils.get_file_to_str(prompt_path).format(general_rules=general_rules,
+    contents = file_utils.get_file_to_str(prompt_path).format(general_rules=general_rules,
                                                             f_end=f_end, 
                                                             line_wrdata_path_num=line_wrdata_path_num, 
                                                             netlist=netlist,

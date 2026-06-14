@@ -18,7 +18,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             # gather all generated file paths; use a set to ensure uniqueness
             struct_path_id = gen_utils.make_path_id(spec_sims, path_output_num)
             print(f"===  path_id_{cir_num} = ", struct_path_id)
-            gen_utils.save_dict_to_json(struct_path_id, path_output_num + "struct_path_id.json")
+            file_utils.save_dict_to_json(struct_path_id, path_output_num + "struct_path_id.json")
             print("Simulation successful and output files verified!")
             # save the netlist
             netlist_path = path_output_num + "final_netlist.cir"
@@ -46,7 +46,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             
             # 2. Feed the clean, non-compounding history to the debug agent
             struct_debug = debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, general_rules)
-            gen_utils.save_dict_to_json(struct_debug, local_config.path_output + f"debug_struct_{counter}.json")
+            file_utils.save_dict_to_json(struct_debug, local_config.path_output + f"debug_struct_{counter}.json")
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims
             new_fix_info = struct_debug.fix_info

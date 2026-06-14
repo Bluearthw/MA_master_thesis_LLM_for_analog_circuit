@@ -1,11 +1,14 @@
+import sys
+
 import time
 import traceback
 from google import genai
 from google.genai.types import HttpOptions
+sys.path.append('.')
 ##local import
 from utils import gen_utils
 from genai_agent.data import local_config
-
+from utils import file_utils
 def get_client():
     return genai.Client(http_options=HttpOptions(api_version="v1"))
 
@@ -85,7 +88,7 @@ def update_master_registry(category_num, agent_output_str):
     update_data = json.loads(agent_output_str)
     
     # Load your existing master JSON
-    master_kb = gen_utils.load_json_to_dict('categories.json')
+    master_kb = file_utils.get_dict_from_json('categories.json')
     cat_entry = master_kb["categories"][str(category_num)]
     
     # 1. Handle Generation Guidelines Update
@@ -106,11 +109,11 @@ def update_master_registry(category_num, agent_output_str):
         cat_entry["debug_knowledge_base"].append(new_entry)
         
     # Save the updated "brain" back to disk
-    gen_utils.save_dict_to_json(master_kb, 'categories.json')
+    file_utils.save_dict_to_json(master_kb, 'categories.json')
     print(f"Successfully compressed and integrated knowledge for category {category_num}!")
 
 def get_workflow_prompts():
     prompts_path = local_config.path_prompts + "workflow_prompts.json"
-    dict = gen_utils.get_dict_from_json(prompts_path)
+    dict = file_utils.get_dict_from_json(prompts_path)
     
     return dict

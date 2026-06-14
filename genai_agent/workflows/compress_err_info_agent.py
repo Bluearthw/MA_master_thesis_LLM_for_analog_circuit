@@ -8,6 +8,7 @@ from genai_agent.data import local_config
 from genai_agent.data import response_schema
 from utils import agent_utils
 from utils import gen_utils
+from utils import file_utils
 
 def compress_agent_flow(debug_history, general_rules, category_num):
     contents = f"""## INPUT DATA
@@ -188,7 +189,7 @@ def _apply_debug_kb_updates(prompts: Dict[str, Any], kb_updates: Any, cat_key: s
 
 def _save_prompts(prompts: Dict[str, Any], prompts_path: str):
     try:
-        gen_utils.save_dict_to_json(prompts, prompts_path)
+        file_utils.save_dict_to_json(prompts, prompts_path)
     except Exception as e:
         print(f"Failed to write updated prompts JSON: {e}")
 
@@ -267,7 +268,7 @@ def test_compress_flow_with_dummy_json():
     prompts_path = os.path.join(tmpdir, 'workflow_prompts.json')
     # seed with minimal structure
     seed = {'general_rules': ['existing rule 1'], 'category_1': {'generation_guidelines': [], 'debug_knowledge_base': {}}}
-    gen_utils.save_dict_to_json(seed, prompts_path)
+    file_utils.save_dict_to_json(seed, prompts_path)
 
     dummy = {
         'analysis': 'Dummy analysis: mismatch in model naming',
@@ -277,7 +278,7 @@ def test_compress_flow_with_dummy_json():
 
     applied = compress_agent_flow_with_struct(dummy, category_num=1, prompts_path=prompts_path)
     print('Dummy applied:', applied)
-    print('Resulting prompts file:', gen_utils.get_dict_from_json(prompts_path))
+    print('Resulting prompts file:', file_utils.get_dict_from_json(prompts_path))
     return applied
 
 
