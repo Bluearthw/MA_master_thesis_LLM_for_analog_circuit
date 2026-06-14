@@ -2,7 +2,7 @@ from genai_agent.data import local_config
 from genai_agent.data import response_schema
 from utils import agent_utils
 
-def debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, general_rules):
+def debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, general_rules = None):
     """Call the debug agent to fix a netlist and return the parsed response model.
 
     - `general_rules` is expected to be a list of rule lines (from workflow_prompts.json).
@@ -13,11 +13,8 @@ def debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, gener
     print("==error_message\n", formatted_history_input)
 
     # Ensure general_rules is a string block when interpolated into the prompt.
-    if isinstance(general_rules, (list, tuple)):
-        general_rules_block = "\n".join(general_rules)
-    else:
-        general_rules_block = str(general_rules)
-
+    if general_rules is None:
+        raise ValueError("general_rules cannot be None")
     contents = f"""You are an expert Analog IC Designer, Circuit Architect, and NGSpice Specialist. 
 Your task is to analyze a failed SPICE simulation, review any past debugging attempts, and output a corrected, fully functional netlist.
 
@@ -28,16 +25,13 @@ Your task is to analyze a failed SPICE simulation, review any past debugging att
 2. **Simulation History & Errors:**
 {formatted_history_input}
 
-3. **Global Design Rules:**
-{general_rules_block}
-
-4. **Reference Specifications:**
+3. **Reference Specifications:**
 
 Specification ID Table: {local_config.table_specs_id}
 
 Required Simulations (from previous agent): {spec_sims}
 
-General Rules:{general_rules_block}
+General Rules:{general_rules}
 """
 
     # Delegate retry/backoff and error handling to a central helper.

@@ -108,3 +108,9 @@ def update_master_registry(category_num, agent_output_str):
     # Save the updated "brain" back to disk
     gen_utils.save_dict_to_json(master_kb, 'categories.json')
     print(f"Successfully compressed and integrated knowledge for category {category_num}!")
+
+def get_workflow_prompts():
+    prompts_path = local_config.path_prompts + "workflow_prompts.json"
+    dict = gen_utils.get_dict_from_json(prompts_path)
+    
+    return dict

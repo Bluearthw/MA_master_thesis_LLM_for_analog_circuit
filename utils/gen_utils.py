@@ -153,9 +153,14 @@ def save_dict_to_json(dict, path):
         json.dump(dict, f, indent=4)
 
 def get_dict_from_json(path):
-    with open(path, "r") as f:
-        return json.load(f)
-    
+    if os.path.exists(path):
+        try:
+            with open(path, "r") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Failed to read existing prompts JSON: {e}")
+            dict = {}
+    return dict
 def is_cir_debugged(cir_num):
     path = local_config.path_output + f"{cir_num}/debug_metadata.json"
     try:

@@ -99,6 +99,11 @@ def test_reduce_duplicate(duplicate_str):
     print("Original:\n", duplicate_str)
     print("Reduced:\n", reduced)
 
+def test_get_wf_p():
+    prompts_path = local_config.path_prompts + "workflow_prompts.json"
+    dict = gen_utils.get_dict_from_json(prompts_path)
+    general_rules = dict.get('general_rules')
+    print(general_rules)
 charge_pump_nums = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump\
 bandgap_nums = category_numbers.num_class_6_without_IIN1
 amplifier_nums = category_numbers.num_class_40_samples_tested
@@ -114,4 +119,6 @@ bandgap_nums_old = category_numbers.num_class_6
 # test_is_cir_debugged(charge_pump_nums)
 
 # test_update_gen_rules_json()
-test_reduce_duplicate("")
+# test_reduce_duplicate("")
+
+test_get_wf_p()

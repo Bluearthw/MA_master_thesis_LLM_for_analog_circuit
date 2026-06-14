@@ -1,5 +1,5 @@
 git add .
-git commit -m "add changed netlist part
+git commit -m "refine argument passing
 "
 git push
 

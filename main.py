@@ -4,12 +4,14 @@ import yaml
 #local import
 from genai_agent.data import category_numbers
 from genai_agent.data.local_config import path_output 
+from genai_agent.data.local_config import path_prompts 
 from genai_agent.workflows import workflow
 from utils import gen_utils
 from genai_agent.workflows.type1_7_40_SISO_DISO_DIDO import root_agent_type1_7_40
 from genai_agent.workflows.type6_bandgap import root_agent_type6
 from genai_agent.workflows.type23_charge_pump import root_agent_type23
 from utils import yaml_creation
+from utils import agent_utils
 import td3_runner
 test = category_numbers.num_class_40[:10]
 test = [69, 182] # cmfb or without cmfb
@@ -73,7 +75,9 @@ else:
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
         print("trimmed_spec_table",trimmed_spec_table)
 
-            
+        dict = agent_utils.get_workflow_prompts()# should update for every circuit, in the future, some flag to control
+        general_rules = "\n".join(dict.get('general_rules'))
+
         results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = workflow.generate_netlist(
         cir_num=i, 
         path_output_num=path_output_num, 
@@ -82,7 +86,8 @@ else:
         has_input=has_input, 
         trimmed_spec_table=trimmed_spec_table,
         is_diff=is_diff,
-        category_num=category_num
+        category_num=category_num,
+        general_rules = general_rules
         )
         struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 15} # remove some array results
         print("====netlist generation done=======",i)
