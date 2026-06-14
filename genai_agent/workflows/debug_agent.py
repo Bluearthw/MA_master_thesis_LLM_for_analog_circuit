@@ -1,7 +1,7 @@
 from genai_agent.data import local_config
 from genai_agent.data import response_schema
 from utils import agent_utils
-from utils import gen_utils
+from utils import file_utils
 def debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, general_rules = None):
     """Call the debug agent to fix a netlist and return the parsed response model.
 

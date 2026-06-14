@@ -166,6 +166,15 @@ def get_dict_from_json(path):
             dict = {}
     return dict
 
+def get_dict_from_json_with_int_keys(path):
+    if os.path.exists(path):
+        try:
+            with open(path, "r") as f:
+                return {int(k): v for k, v in json.load(f).items()}
+        except Exception as e:
+            print(f"Failed to read existing prompts JSON: {e}")
+            dict = {}
+    return dict
 # endregion for get ############################
 
 def delete_all_files_except_dir(folder_path):

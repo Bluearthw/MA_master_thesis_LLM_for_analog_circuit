@@ -68,7 +68,7 @@ def test_get_prompt():
 
 def test_is_cir_debugged(nums):
     for i in nums:
-        if gen_utils.is_cir_debugged(i):
+        if file_utils.is_cir_debugged(i):
             print(f"Circuit {i} is debugged.")
 
 def test_update_gen_rules_json():

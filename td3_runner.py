@@ -8,7 +8,8 @@ from datetime import datetime
 import shutil
 from pathlib import Path
 
-from utils import gen_utils as utils_agent
+from utils import gen_utils 
+from utils import file_utils 
 warmup_step = 1000
 def readParser():
     parser = argparse.ArgumentParser(description='TD3-based RL for Circuit Sizing')
@@ -78,7 +79,7 @@ def train(args, env, agent, env_pool):
             print(f"==total_steps{total_steps}")
             # clean up the no_backup folder every 100 steps
             if total_steps % 100 == 0:
-                utils_agent.delete_all_files_except_dir("./no_backup/output_netlists/")
+                file_utils.delete_all_files_except_dir("./no_backup/output_netlists/")
                 # os.system('./clean.sh')
 
 def warmup_exploration(args, env, env_pool, agent):

@@ -72,10 +72,10 @@ class DUT(NgspiceWrapper):
 
 
         for spec_id, path in struct_path_id.items():
-            # print(spec_id)
+            print(spec_id)
             if spec_id == 0:  # DC gain 
                 a = self.get_dc_gain(path)
-                # print(f"DC gain: {a}")
+                print(f"DC gain: {a}")
                 name = table_target_id[0]# you should not use '0' but 0 since the key is int
                 spec_dict[name] = float(a) # this is the magnitude you do not the whether it is inverted.
             elif spec_id == 1:  # Bandwidth (if separate from gain) or other AC sim
@@ -829,8 +829,8 @@ class DUT(NgspiceWrapper):
     def get_dc_vout_relative_err(self, path, dc_vout_target=0.1):
         """Return the relative DC output voltage from a DC measurement file."""
         data = np.genfromtxt(path, autostrip=True, skip_header=1)
-        print("DUT",data)
-        print("DUT",path)
+        # print("DUT",data)
+        # print("DUT",path)
         if data.size == 0:
             data = np.genfromtxt(path, autostrip=True, skip_header=0) # sometimes no header
             if data.size == 0:
@@ -841,7 +841,7 @@ class DUT(NgspiceWrapper):
                 vout = float(data[1])
             else:
                 vout = float(data[-1]) 
-                raise ValueError(f"Data dc vout has {data.shape[0]} cols????")
+                print("4cols differential?:", vout)
             return abs((vout - dc_vout_target) / dc_vout_target)
         
         raise ValueError(f"Unexpected data format in DC output file: {path}")

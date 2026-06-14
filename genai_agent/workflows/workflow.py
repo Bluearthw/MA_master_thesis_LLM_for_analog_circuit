@@ -18,7 +18,10 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             # gather all generated file paths; use a set to ensure uniqueness
             struct_path_id = gen_utils.make_path_id(spec_sims, path_output_num)
             print(f"===  path_id_{cir_num} = ", struct_path_id)
-            file_utils.save_dict_to_json(struct_path_id, path_output_num + "struct_path_id.json")
+            dict_to_save = {"path_id": struct_path_id,
+                    "is_differential": is_differential_output,
+                    "has_input": has_input}
+            file_utils.save_dict_to_json(dict_to_save, path_output_num + "struct_path_id.json")
             print("Simulation successful and output files verified!")
             # save the netlist
             netlist_path = path_output_num + "final_netlist.cir"

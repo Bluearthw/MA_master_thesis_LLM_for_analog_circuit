@@ -1053,6 +1053,17 @@ def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.p
     except Exception as e:
         return {"success": False, "message": str(e)}
 
+def run_ngspice_direct_from_final_netlist(num = 4):
+    path_nl = local_config.path_output +  f"{num}/final_netlist.cir"
+    netlist = file_utils.get_file_to_str(path_nl)
+    # utils.delete_all_files_skip_dir(local_config.path_output) # delete all previous output to avoid confusion
+    
+    success = run_ngspice_direct(netlist, False, path_nl) # will not overwrite temp_netlist
+    print("==netlist",netlist)
+    if success["success"]:
+        print("Simulation successful!")
+    else:
+        print("Simulation failed with message:", success["message"])
 # endregion pyspice
 
 
