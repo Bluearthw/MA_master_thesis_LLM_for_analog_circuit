@@ -203,7 +203,7 @@ def make_circuit_multipliers(param_names, multiplier_value=2):
         lines.append(f"  {name}: !!int {multiplier_value}")
     return "\n".join(lines)
 
-def make_path_id(path_id_dict, root_name='path_id'):
+def make_path_id_to_yaml(path_id_dict, root_name='path_id'):
     """
     Convert a path ID dictionary into YAML text.
 
@@ -277,7 +277,7 @@ def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multipl
         make_targets_lines(targets_dict),
         make_spec_weights_lines(spec_weights),
         make_circuit_multipliers(params, multiplier_value),
-        make_path_id(path_ids),
+        make_path_id_to_yaml(path_ids),
         make_dut_yaml_lines(data_for_dut_yaml)
     ]
 

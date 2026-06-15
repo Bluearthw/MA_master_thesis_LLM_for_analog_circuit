@@ -1,6 +1,7 @@
 import sys
 import os
 import time
+# region print
 def print_status(is_with_RL, test):
     print(len(test))
     if is_with_RL == 0:
@@ -12,6 +13,8 @@ def print_status(is_with_RL, test):
     elif is_with_RL == 3:
         print("Only yaml creation is enabled.")
 
+# endregion print
+# region user input
 
 def user_modify_input(v_name, v_old):
     """Prompt the user to accept or modify a given value.
@@ -146,5 +149,6 @@ def user_input_targets(targets):
         print(f"  {i}. {key}: {value}")
     
     return targets
+# endregion user input
 
 

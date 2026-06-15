@@ -1,12 +1,13 @@
 
 *.pyc
-genai_agent/data/*
-!genai_agent/data/local_config.py
-!genai_agent/data/response_schema.py
-!genai_agent/data/category_numbers.py
-!genai_agent/data/class.yaml
-!genai_agent/data/prompts/
-!genai_agent/data/categories/
+genai_agent/before2026_py_files/
+# genai_agent/data/*
+# !genai_agent/data/local_config.py
+# !genai_agent/data/response_schema.py
+# !genai_agent/data/category_numbers.py
+# !genai_agent/data/class.yaml
+# !genai_agent/data/prompts/
+# !genai_agent/data/categories/
 
 genai_agent/output
 genai_agent/before2026_py_files/CAD/

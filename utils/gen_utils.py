@@ -53,7 +53,7 @@ def find_OPAMP_num_from_file(dataset_path):
         # print("path_nl",path_nl)
         # let's check cir file first, only when it has vin
             ports_name_to_check = ["VIN1","VOUT1"]
-            if file_utils.are_ports_all_exist(path_nl,ports_name_to_check):
+            if are_ports_all_exist(path_nl,ports_name_to_check):
                 # if VIN1 exists, continue
                 path = dataset_path + f"/{i}/edited_explanation.md"
                 # print("path",path)
@@ -81,7 +81,7 @@ def find_OPAMPs_without_clk(dataset_path, nums):
         # let's check cir file first, only when it has vin
             ports_name_to_check = local_config.mixer_comparator_ports 
             # print(ports_name_to_check)
-            if not file_utils.is_port_exist(path_nl,ports_name_to_check):
+            if not is_port_exist(path_nl,ports_name_to_check):
                 exist_nums.append(i)
 
     return exist_nums
@@ -96,7 +96,7 @@ def find_SISOs_from_OPAMPs(dataset_path, nums):
         # let's check cir file first, only when it has vin
             ports_name_to_check = local_config.differential_ports
             # print(ports_name_to_check)
-            if not file_utils.is_port_exist(path_nl,ports_name_to_check):
+            if not is_port_exist(path_nl,ports_name_to_check):
                 exist_nums.append(i)
 
     return exist_nums
@@ -115,7 +115,7 @@ def find_cir_num_without_pattern(dataset_path,name_to_check,nums = local_config.
         if os.path.isfile(path_nl):
             # let's check cir file first, only when it has vin
         
-            if not file_utils.is_port_exist(path_nl,name_to_check):
+            if not is_port_exist(path_nl,name_to_check):
                 exist_nums.append(i)
             # counter part
     return exist_nums
@@ -129,7 +129,7 @@ def find_cir_num_with_pattern(dataset_path,name_to_check,nums = local_config.num
         if os.path.isfile(path_nl):
             # let's check cir file first, only when it has vin
         
-            if file_utils.is_port_exist(path_nl,name_to_check):
+            if is_port_exist(path_nl,name_to_check):
                 exist_nums.append(i)
             # counter part
     
@@ -793,7 +793,6 @@ def pre_process_circuit(cir_num):
 
 
 
-# region functions
 def make_path_id(spec_sims, path_output_num):
     struct_path_id = {}  # id: path
     # has_list_flag = False
@@ -830,7 +829,50 @@ def has_port_from_nl(netlist, target_ports = ["VIN1", "IIN1"]):
             return True
     return False
 
-# endregion functions
+def are_ports_all_exist(path, target_ports=["VIN1"]):
+    if os.path.isfile(path):
+        with open(path, 'r') as f:
+            content = f.read()
+        for target_port in target_ports:
+            pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
+            
+            if re.search(pattern, content):
+                continue
+            return False
+        return True
+# if 1 of theses exists, return True
+def is_port_exist(path, target_ports=["VIN1"]):
+    with open(path, 'r') as f:
+        content = f.read()
+    print("content\n",content)
+    for target_port in target_ports:
+        pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
+        
+        if re.search(pattern, content):
+            return True
+    return False
+    
+def is_cir_debugged(cir_num):
+    path = local_config.path_output + f"{cir_num}/debug_metadata.json"
+    try:
+        if not os.path.isfile(path):
+            return False
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        # If retry_count exists and is not zero, consider it debugged
+        retry = data.get('retry_count')
+        if retry is None:
+            return False
+        try:
+            return int(retry) != 0
+        except Exception:
+            # Non-integer retry value: fallback to truthiness
+            return bool(retry)
+    except Exception as e:
+        print(f"is_cir_debugged: could not read '{path}': {e}")
+        return False
+
 
 
 def ensure_data_format_settings(netlist):
