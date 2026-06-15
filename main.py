@@ -33,7 +33,7 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 # #DIDO
 # test = [182] #dido cmfb
 # test = [69] #dido 
-test = [1005]
+# test = [1005]
 # test = category_numbers.num_class_40_samples
 # #DISO
 # test = category_numbers.num_class_7_samples
@@ -43,6 +43,7 @@ test = [1005]
 # tested = category_numbers.num_class_40_samples_tested
 # tested_set = set(tested)
 # test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
+test = [549]
 
 
 is_with_RL = 0 # only with netlist gen
@@ -68,7 +69,7 @@ elif is_with_RL == 3:
     print("yaml path = ", path_yaml)
 else:
     for i in test:
-        print("=====*======",i)
+        print("######*======",i)
 
         output_dir = Path(f"{path_output}{i}")
         output_dir.mkdir(parents=True, exist_ok=True)

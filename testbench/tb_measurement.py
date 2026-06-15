@@ -63,7 +63,9 @@ def test_measurement_spice_result_new(path_id):
 def test_DUT(cir_num, is_differential_output=False, has_input = False, target_dc_vout=0.6, pid=None):
     path_output_num = local_config.path_output + f"{cir_num}/"
     if pid is None:
-        p_id = file_utils.get_dict_from_json_with_int_keys(path_output_num + "struct_path_id.json")
+        path = path_output_num + "struct_path_id.json"
+        print("Path:", path)
+        p_id = file_utils.get_dict_from_json_with_int_keys(path)
     else:
         p_id = pid
     print("p_id:", p_id)
@@ -253,7 +255,8 @@ def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
 # test_DUT_180_phase_problem(path_id_9_phase, 9)
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
-test_DUT(1005, has_input=True, is_differential_output=True)
+# test_DUT(1005, has_input=True, is_differential_output=True)
+test_DUT(549)
 # test_v_compliance_range(sim = True)
 # test_v_compliance_range(sim = False)
 

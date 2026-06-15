@@ -3,7 +3,7 @@ import io
 import contextlib
 import numpy as np
 from PySpice.Spice.NgSpice.Shared import NgSpiceShared
-import file_utils
+from utils import file_utils
 from genai_agent.data import local_config
 
 # region for pyspice

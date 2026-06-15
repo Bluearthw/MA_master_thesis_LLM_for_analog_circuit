@@ -68,7 +68,7 @@ def test_get_prompt():
 
 def test_is_cir_debugged(nums):
     for i in nums:
-        if file_utils.is_cir_debugged(i):
+        if gen_utils.is_cir_debugged(i):
             print(f"Circuit {i} is debugged.")
 
 def test_update_gen_rules_json():
@@ -125,14 +125,14 @@ bandgap_nums = category_numbers.num_class_6_without_IIN1
 amplifier_nums = category_numbers.num_class_40_samples_tested
 # test_count_retry_info(bandgap_nums)
 
-bandgap_nums_old = category_numbers.num_class_6
+# bandgap_nums_old = category_numbers.num_class_6
 # test_find_cir_num_without_pattern(bandgap_nums_old,["IIN1"])
 
 
 # test_trim_spec_table(1)
 # test_save_load_prompt()
 # test_get_prompt()
-# test_is_cir_debugged(charge_pump_nums)
+test_is_cir_debugged(charge_pump_nums)
 
 # test_update_gen_rules_json()
 # test_reduce_duplicate("")
@@ -140,4 +140,4 @@ bandgap_nums_old = category_numbers.num_class_6
 # test_get_wf_p()
 
 # test_backup_prompt()
-test_ensure_format()
+# test_ensure_format()

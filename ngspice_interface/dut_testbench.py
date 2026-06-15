@@ -14,8 +14,9 @@ from .ngspice_wrapper import NgspiceWrapper
 import sys
 from scipy.integrate import trapezoid
 sys.path.append(".")
+
 from genai_agent.data.local_config import table_target_id 
-from utils import gen_utils
+from utils import file_utils
 class DUT(NgspiceWrapper):
     def __init__(self, path_yaml = "", is_differential = False, has_input = True, dc_vout_target = None, netlist_path = None):
         super().__init__(path_yaml)
@@ -561,6 +562,7 @@ class DUT(NgspiceWrapper):
             self.path_trans = path
             data_trans = np.genfromtxt(path, autostrip=True, skip_header=1)
             self.data_trans = data_trans
+            print(data_trans)
         vout_tran = self.data_trans[:, 1] #  vout is the second column
         time = self.data_trans[:, 0] #  time is the first column
 
@@ -1083,7 +1085,7 @@ class DUT(NgspiceWrapper):
             The value string assigned to the first matching vdd parameter,
             or None if no matching .param assignment is found.
         """
-        netlist = gen_utils.get_file_to_str(self.netlist_path)
+        netlist = file_utils.get_file_to_str(self.netlist_path)
         if not isinstance(netlist, str):
             return None
         

@@ -2,12 +2,13 @@ import os
 import shutil
 import datetime
 import tempfile
+import pprint
 from typing import Optional, Dict, Any
 from pydantic import BaseModel
 from genai_agent.data import local_config
 from genai_agent.data import response_schema
 from utils import agent_utils
-from utils import gen_utils
+# from utils import gen_utils
 from utils import file_utils
 
 def compress_agent_flow(debug_history, general_rules, category_num):
@@ -30,7 +31,7 @@ You are an advanced Knowledge Curator for an automated SPICE circuit design and 
     # Delegate retry/backoff and error handling to a central helper.
     try:
         struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_compress)
-        print("==struc_compress", struc)
+        pprint("==struc_compress", struc)
         # Validate structure
         normalized = validate_struct_compress(struc)
         gen_updates = normalized.get('generation_guidelines_updates')
@@ -41,7 +42,7 @@ You are an advanced Knowledge Curator for an automated SPICE circuit design and 
         backup_path = backup_prompts(prompts_path)
 
         # Load current prompts structure or create base
-        prompts = gen_utils.get_dict_from_json(prompts_path)
+        prompts = file_utils.get_dict_from_json(prompts_path)
 
         # Ensure top-level structure
         # if category_num == 40 or category_num == 7:# no need to combine
@@ -218,7 +219,7 @@ def compress_agent_flow(debug_history, general_rules, category_num):
     # Then apply updates using the helper functions
     prompts_path = os.path.join(local_config.path_prompts, 'workflow_prompts.json')
     backup_prompts(prompts_path)
-    prompts = gen_utils.get_dict_from_json(prompts_path)
+    prompts = file_utils.get_dict_from_json(prompts_path)
     cat_key = f'category_{category_num}'
     _ensure_prompt_structure(prompts, cat_key)
 
@@ -244,7 +245,7 @@ def compress_agent_flow_with_struct(struct_obj: Any, category_num: int, prompts_
         prompts_path = os.path.join(local_config.path_prompts, 'workflow_prompts.json')
 
     backup_prompts(prompts_path)
-    prompts = gen_utils.get_dict_from_json(prompts_path)
+    prompts = file_utils.get_dict_from_json(prompts_path)
     cat_key = f'category_{category_num}'
     _ensure_prompt_structure(prompts, cat_key)
 

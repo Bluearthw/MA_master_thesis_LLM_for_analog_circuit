@@ -3,7 +3,7 @@ import os
 import time
 # region print
 def print_status(is_with_RL, test):
-    print(len(test))
+    print("##test length:",len(test))
     if is_with_RL == 0:
         print("Only netlist generation is enabled.")
     elif is_with_RL == 1:

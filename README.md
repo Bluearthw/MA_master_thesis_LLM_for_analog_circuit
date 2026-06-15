@@ -1,8 +1,7 @@
 git add .
-git commit -m "refactor user input and print
+git commit -m "fix json load bug
 "
 git push
-
 
 
 ## entrance: main.py!!
