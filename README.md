@@ -1,5 +1,5 @@
 git add .
-git commit -m "refactor. copilot does not seem to have good control
+git commit -m "refactor user input and print
 "
 git push
 

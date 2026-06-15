@@ -6,7 +6,7 @@ import string
 import time 
 import sys
 sys.path.append(".")
-from utils import gen_utils as utils_agent
+from utils import sim_utils 
 from genai_agent.data import local_config 
 class NgspiceWrapper(object):
     
@@ -134,9 +134,9 @@ class NgspiceWrapper(object):
 
     def simulate(self, netlist_path):
         succeed = 0 # this means no error occurred
-        nl = utils_agent.get_file_to_str(netlist_path)
+        nl = sim_utils.get_file_to_str(netlist_path)
         # print(netlist_path)
-        sim_output = utils_agent.run_ngspice_direct(nl, False, netlist_path)
+        sim_output = sim_utils.run_ngspice_direct(nl, False, netlist_path)
         # print(sim_output)
         if not sim_output["success"]:
             # raise RuntimeError('program {} failed!'.format(command))

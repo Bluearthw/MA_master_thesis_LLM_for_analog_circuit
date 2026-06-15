@@ -5,7 +5,8 @@ import numpy as np
 from PySpice.Spice.NgSpice.Shared import NgSpiceShared
 import file_utils
 from genai_agent.data import local_config
-# region for simulation
+
+# region for pyspice
 def get_vector_and_make_array(plot, name):
 
     array = np.array(plot[name]._data)
@@ -97,6 +98,9 @@ def pyspice_op_sim_final(circuit):
         return {"success": False, "message": f"Python Exception: {str(e)}"}
     finally:
         log_capture.close()
+# endregion pyspice
+
+# region ngspice
 
 def run_ngspice_direct(netlist_content, is_save = True, path_nl = local_config.path_output +  "test_netlist.cir"):
     # 1. Save netlist to a temporary file
@@ -189,5 +193,5 @@ def run_ngspice_direct_from_final_netlist(num = 4):
         print("Simulation successful!")
     else:
         print("Simulation failed with message:", success["message"])
-# endregion pyspice
+# endregion ngspice
 

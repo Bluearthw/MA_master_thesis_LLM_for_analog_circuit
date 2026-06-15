@@ -3,12 +3,12 @@ sys.path.append('.')
 from genai_agent.data import local_config
 from genai_agent.data import saved_netlist
 from utils import gen_utils
-
+from utils import sim_utils
 def test_run_ngspice_direct(nl = ""):
     # Write the netlist to a temporary file
-    gen_utils.pyspice_op_sim_simple(nl)
+    sim_utils.pyspice_op_sim_simple(nl)
     print("===direct::")
-    success = gen_utils.run_ngspice_direct(nl)
+    success = sim_utils.run_ngspice_direct(nl)
     print("===success::", success["success"])
     print("===success::", success["message"])
 

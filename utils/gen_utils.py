@@ -764,90 +764,6 @@ def _parse_time_value(time_str):
             print(f"Warning: Could not parse time value '{time_str}', using 0")
             return 0.0
 
-def user_modify_input(v_name, v_old):
-    """Prompt the user to accept or modify a given value.
-
-    Args:
-        v_name (str): The name of the value being modified.
-        v_old: The current value that may be changed.
-    Returns:
-        The original value if the user does not modify it, otherwise the new value.
-    """
-    print(f"Current value: {v_old}")
-    choice = _input_with_timeout(f"Do you want to modify {v_name}? [y/n]: ", timeout=10, default="n")
-    choice = choice.strip().lower()
-    if choice not in ("y", "yes"):
-        return v_old
-
-    v_new = _input_with_timeout("Enter new value: ", timeout=10, default="").strip()
-    if v_new == "":
-        print("No new value entered. Keeping the original value.")
-        return v_old
-    return v_new
-
-def _input_with_timeout(prompt, timeout=1, default=""):
-    """Read input with a timeout, returning default if no response."""
-    sys.stdout.write(prompt)
-    sys.stdout.flush()
-
-    # Windows implementation using msvcrt avoids hanging stdin threads.
-    if os.name == 'nt':
-        try:
-            import msvcrt
-        except ImportError:
-            msvcrt = None
-
-        if msvcrt is not None:
-            line = ''
-            end_time = time.time() + timeout
-            while time.time() < end_time:
-                if msvcrt.kbhit():
-                    ch = msvcrt.getwch()
-                    if ch == '\r' or ch == '\n':
-                        sys.stdout.write('\n')
-                        sys.stdout.flush()
-                        return line
-                    if ch == '\x08':
-                        if line:
-                            line = line[:-1]
-                            sys.stdout.write('\b \b')
-                            sys.stdout.flush()
-                        continue
-                    line += ch
-                    sys.stdout.write(ch)
-                    sys.stdout.flush()
-                time.sleep(0.01)
-            sys.stdout.write('\n')
-            return default
-
-    # Fallback for non-Windows or if msvcrt is unavailable.
-    from threading import Event, Thread
-
-    user_input = {'value': default}
-    done = Event()
-
-    def read_input():
-        try:
-            user_input['value'] = sys.stdin.readline().rstrip('\n')
-        except Exception:
-            user_input['value'] = default
-        finally:
-            done.set()
-
-    thread = Thread(target=read_input, daemon=True)
-    thread.start()
-
-    for remaining in range(timeout, 0, -1):
-        if done.wait(1):
-            break
-        sys.stdout.write(f"\r{prompt}(auto selecting default in {remaining}s) ")
-        sys.stdout.flush()
-
-    sys.stdout.write('\n')
-    if done.is_set():
-        return user_input['value']
-    return default
-
 
 
 def pre_process_circuit(cir_num):
@@ -951,7 +867,7 @@ def ensure_data_format_settings(netlist):
     
     # If .control not found, return unchanged
     if control_index == -1:
-        raise ValueError("'.control' line not found in netlist")
+        return netlist
     
     # If both settings present, return unchanged
     if has_units and has_wr_vecnames:
@@ -1101,13 +1017,3 @@ def test_delay(sec, msg = ""):
     print(f"{msg}: Waited for {sec} seconds")
     time.sleep(sec)
 
-def print_status(is_with_RL, test):
-    print(len(test))
-    if is_with_RL == 0:
-        print("Only netlist generation is enabled.")
-    elif is_with_RL == 1:
-        print("Whole workflow is enabled.")
-    elif is_with_RL == 2:
-        print("Only RL sizer is enabled.")
-    elif is_with_RL == 3:
-        print("Only yaml creation is enabled.")

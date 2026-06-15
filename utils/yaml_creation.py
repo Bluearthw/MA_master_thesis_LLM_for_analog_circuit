@@ -4,7 +4,8 @@ import yaml
 sys.path.append(".")
 from genai_agent.data import local_config
 from utils import gen_utils
-
+from utils import file_utils
+from utils import user_interation_utils
 def make_technology_line(tech = "45nm"):
     return f"technology: {tech}" 
 def make_cir_name_line(name = 9):
@@ -115,7 +116,7 @@ def get_targets(spec_ids):
     if 'area' not in targets:
         targets['area'] = 2.0e-6
 
-    targets = user_input_target(targets)
+    targets = user_interation_utils.user_input_targets(targets)
     
     # Not Always include current 
     # if 'current' not in targets:
@@ -123,49 +124,7 @@ def get_targets(spec_ids):
     
     return targets
 
-def user_input_target(targets):
-    """
-    Interactive interface for user to review and modify target values.
-    
-    Args:
-        targets (dict): Dictionary of target metrics with default values
-        
-    Returns:
-        dict: Updated targets dictionary with user modifications
-    """
-    print("\n=== Target Values Review ===")
-    print("Current target values:")
-    sorted_targets = sorted(targets.items())
-    for i, (key, value) in enumerate(sorted_targets, 1):
-        print(f"  {i}. {key}: {value}")
-    
-    while True:
-        modify = _prompt_input("\nDo you want to modify any target values? (y/n): ").strip().lower()
-        if modify not in ['y', 'yes']:
-            break
-            
-        try:
-            target_num = int(_prompt_input(f"Enter the number of the target to modify (1-{len(sorted_targets)}): ").strip())
-            if target_num < 1 or target_num > len(sorted_targets):
-                print(f"Error: Please enter a number between 1 and {len(sorted_targets)}.")
-                continue
-            target_name = sorted_targets[target_num - 1][0]
-        except ValueError:
-            print("Error: Please enter a valid number.")
-            continue
-            
-        try:
-            new_value = float(_prompt_input(f"Enter new value for '{target_name}' (current: {targets[target_name]}): ").strip())
-            targets[target_name] = new_value
-            print(f"Updated {target_name} to {new_value}")
-        except ValueError:
-            print("Error: Please enter a valid number.")
-    
-    print("\nFinal target values:")
-    for i, (key, value) in enumerate(sorted_targets, 1):
-        print(f"  {i}. {key}: {value}")
-    
-    return targets
+
 def _format_value(value):# start with underline, this will not be imported
     """Format a value for YAML: use scientific notation for very small/large, normal for rest."""
     fval = float(value)
@@ -176,16 +135,6 @@ def _format_value(value):# start with underline, this will not be imported
         # For normal range, use appropriate precision
         return f"{fval:.2f}" 
  
-def _prompt_input(prompt):
-    # Use the shared timeout-enabled prompt helper from utils.gen_utils.
-    # This keeps interactive behavior consistent and avoids hanging forever.
-    try:
-        return gen_utils._input_with_timeout(prompt, timeout=10, default="").strip()
-    except Exception:
-        # Fall back to a normal prompt if the timeout helper is unavailable.
-        sys.stdout.write(prompt)
-        sys.stdout.flush()
-        return sys.stdin.readline().rstrip('\n')
 
 def make_targets_lines(targets_dict):
     """
@@ -368,7 +317,6 @@ def update_yaml_targets(yaml_path, targets_dict):
             lines = f.readlines()
         
         # Find the targets section and update values
-        in_targets_section = False
         updated_lines = []
         i = 0
         
@@ -377,7 +325,6 @@ def update_yaml_targets(yaml_path, targets_dict):
             
             # Check if we're entering the targets section
             if line.strip().startswith('targets:'):
-                in_targets_section = True
                 updated_lines.append(line)
                 i += 1
                 
@@ -387,7 +334,6 @@ def update_yaml_targets(yaml_path, targets_dict):
                     
                     # Check if we've left the targets section (next section starts)
                     if current_line.strip() and not current_line.startswith('  ') and current_line.strip() != 'targets:':
-                        in_targets_section = False
                         break
                     
                     # If it's a target entry (starts with 2 spaces and contains ':')

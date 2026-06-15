@@ -1,6 +1,8 @@
 from genai_agent.data import local_config
 from utils import gen_utils 
 from utils import file_utils 
+from utils import sim_utils
+from utils import user_interation_utils
 from ngspice_interface import dut_testbench
 from genai_agent.workflows.debug_agent import debug_agent_flow
 from genai_agent.workflows import make_netlist_agent
@@ -11,7 +13,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
     
     while True:
         old_netlist = netlist
-        sim_output = gen_utils.run_ngspice_direct(netlist)
+        sim_output = sim_utils.run_ngspice_direct(netlist)
         print("=====sim output", sim_output)
         if sim_output["success"]: 
             # check files
@@ -91,10 +93,11 @@ def generate_netlist(cir_num, path_output_num, category_str, netlist, has_input,
         raise ValueError("Category number is required.")
 
     target_dc_vout = getattr(struc, 'target_dc_vout', None)
-    if target_dc_vout is None:
-        raise ValueError("Target DC output voltage is not specified.")
+    if target_dc_vout is None: # not needed since there it user input
+        print("Target DC output voltage is not specified. Using default value of 0.6V.")
+        target_dc_vout = 0.6
     # Allow the user to override target interactively (non-blocking helper may be used)
-    target_dc_vout = gen_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
+    target_dc_vout = user_interation_utils.user_modify_input("Target DC Output Voltage", target_dc_vout)
 
     netlist = struc.netlist
 

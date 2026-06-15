@@ -13,6 +13,7 @@ from genai_agent.workflows.type23_charge_pump import root_agent_type23
 from utils import yaml_creation
 from utils import agent_utils
 from utils import file_utils
+from utils import user_interation_utils
 import td3_runner
 test = category_numbers.num_class_40[:10]
 test = [69, 182] # cmfb or without cmfb
@@ -48,7 +49,7 @@ is_with_RL = 0 # only with netlist gen
 # is_with_RL = 1 # whole workflow
 # is_with_RL = 2 # only with RL sizer
 # is_with_RL = 3 # only with yaml creation
-gen_utils.print_status(is_with_RL, test)
+user_interation_utils.print_status(is_with_RL, test)
 # sys.exit(0)
 
 if is_with_RL == 2:
