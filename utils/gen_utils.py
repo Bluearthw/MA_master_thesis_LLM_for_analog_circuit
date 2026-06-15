@@ -1024,7 +1024,18 @@ def reduce_duplicate(duplicate_str):
     # print("Reduced:\n", reduced)
     return reduced
 
-
+def get_biggest_rule_number(rules_list):
+    numbers = []
+    
+    for rule in rules_list:
+        # Match digits at the absolute start (^) of the string followed by a dot
+        match = re.match(r"^(\d+)\.", rule.strip())
+        if match:
+            # Convert the matched string digit to an actual integer
+            numbers.append(int(match.group(1)))
+            
+    # Return the maximum number found, or 0 if the list was empty
+    return max(numbers) if numbers else 0
 
 def get_netlist_diff(error_netlist: str, fixed_netlist: str, context_lines: int = 3) -> str:
     """

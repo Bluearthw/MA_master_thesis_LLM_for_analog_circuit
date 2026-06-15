@@ -70,6 +70,7 @@ def test_is_cir_debugged(nums):
     for i in nums:
         if gen_utils.is_cir_debugged(i):
             print(f"Circuit {i} is debugged.")
+    print(f"No more circuits in {nums} are debugged.")
 
 def test_update_gen_rules_json():
     """Scan the prompts directory and write a single `workflow_prompts.json` file.
@@ -105,8 +106,8 @@ def test_reduce_duplicate(duplicate_str):
 
 def test_get_wf_p():
     prompts_path = local_config.path_prompts + "workflow_prompts.json"
-    dict = gen_utils.get_dict_from_json(prompts_path)
-    general_rules = dict.get('general_rules')
+    prompt_dict = file_utils.get_dict_from_json(prompts_path)
+    general_rules = prompt_dict.get('general_rules')
     print(general_rules)
 
 def test_backup_prompt():
@@ -123,6 +124,7 @@ def test_ensure_format():
 charge_pump_nums = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump\
 bandgap_nums = category_numbers.num_class_6_without_IIN1
 amplifier_nums = category_numbers.num_class_40_samples_tested
+SISO = category_numbers.num_class_1_with_VDD_tested
 # test_count_retry_info(bandgap_nums)
 
 # bandgap_nums_old = category_numbers.num_class_6
@@ -132,7 +134,7 @@ amplifier_nums = category_numbers.num_class_40_samples_tested
 # test_trim_spec_table(1)
 # test_save_load_prompt()
 # test_get_prompt()
-test_is_cir_debugged(charge_pump_nums)
+test_is_cir_debugged(bandgap_nums)
 
 # test_update_gen_rules_json()
 # test_reduce_duplicate("")

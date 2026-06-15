@@ -2,7 +2,7 @@ import os
 import shutil
 import datetime
 import tempfile
-import pprint
+from pprint import pprint
 from typing import Optional, Dict, Any
 from pydantic import BaseModel
 from genai_agent.data import local_config
@@ -31,7 +31,7 @@ You are an advanced Knowledge Curator for an automated SPICE circuit design and 
     # Delegate retry/backoff and error handling to a central helper.
     try:
         struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_compress)
-        pprint("==struc_compress", struc)
+        pprint("###struc_compress = ", struc)
         # Validate structure
         normalized = validate_struct_compress(struc)
         gen_updates = normalized.get('generation_guidelines_updates')
@@ -105,12 +105,14 @@ def validate_struct_compress(struc: Any) -> Dict[str, Any]:
 
 
 def backup_prompts(prompts_path: str) -> Optional[str]:
+    import time
+    backup_path = local_config.path_prompts + f'backup/workflow_prompts_{int(time.time())}.json'
     try:
         os.makedirs(os.path.dirname(prompts_path), exist_ok=True)
+        os.makedirs(os.path.dirname(backup_path), exist_ok=True)
         if os.path.exists(prompts_path):
-            backup_path = prompts_path + '.bak'
             shutil.copyfile(prompts_path, backup_path)
-            return backup_path
+            print(f"#####Prompts backed up to: {backup_path}")
     except Exception as e:
         # print(f"Warning: could not backup prompts file: {e}")
         raise ValueError("Failed to backup prompts file")
@@ -134,8 +136,8 @@ def _apply_generation_updates(prompts: Dict[str, Any], gen_updates: Any, cat_key
 
     if action == 'APPEND' and rule_text:
         text = rule_text.strip()
-        if text not in prompts['general_rules']:
-            prompts['general_rules'].append(text)
+        # if text not in prompts['general_rules']:
+        #     prompts['general_rules'].append(text)
         if text not in prompts[cat_key].get('generation_guidelines', []):
             prompts[cat_key].setdefault('generation_guidelines', []).append(text)
         applied = {'action': 'APPEND', 'rule': text}

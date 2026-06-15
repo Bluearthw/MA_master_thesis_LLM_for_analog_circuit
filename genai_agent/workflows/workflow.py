@@ -8,25 +8,28 @@ from ngspice_interface import dut_testbench
 from genai_agent.workflows.debug_agent import debug_agent_flow
 from genai_agent.workflows import make_netlist_agent
 from genai_agent.workflows import compress_err_info_agent
-def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False, general_rules = None, cat_json = None):
+def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False, general_rules = None):
     counter = 0
     debug_history = []
     
     while True:
         old_netlist = netlist
         sim_output = sim_utils.run_ngspice_direct(netlist)
-        print("=====sim output", sim_output)
+        print("#####sim_output = ", sim_output)
+        original_msg = sim_output["message"]# if not here , what if False originally?
+        sim_output['message'] = gen_utils.reduce_duplicate(original_msg)
+        print("#####reduced_message = ", sim_output['message'])
         is_sim_success = sim_output["success"]
         if not agent_utils.check_current_simulation(spec_sims):
             is_sim_success = False
-            original_msg = sim_output["message"]# if not here , what if False originally?
+            original_msg = sim_output["message"]
             sim_output['message'] = "Mandatory VDD Current simulation (.op) not found. Originial message: " + original_msg
         if is_sim_success:
              
             # check files
             # gather all generated file paths; use a set to ensure uniqueness
             struct_path_id = gen_utils.make_path_id(spec_sims, path_output_num)
-            print(f"===  path_id_{cir_num} = ", struct_path_id)
+            print(f"##### path_id_{cir_num} = ", struct_path_id)
             dict_to_save =  struct_path_id
                     
             dict_to_save2 = {"is_differential": is_differential_output,
@@ -60,7 +63,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             
             # 2. Feed the clean, non-compounding history to the debug agent
             struct_debug = debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, general_rules)
-            file_utils.save_dict_to_json(struct_debug, local_config.path_output + f"debug_struct_{counter}.json")
+            file_utils.save_dict_to_json(struct_debug.model_dump(), local_config.path_output + f"debug_struct_{counter}.json")
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims
             new_fix_info = struct_debug.fix_info
@@ -120,18 +123,20 @@ def generate_netlist(cir_num, path_output_num, category_str, netlist, has_input,
     ####################
     for spec_sim in spec_sims:
         print("==spec_sims", spec_sim)
-    print("======sim netlist = ")
-    print(netlist)
-    print(is_differential_output)
-    print("is CMFB:", is_CMFB)
+    print("####sim_netlist = ", netlist)
+    print("####is_differential_output = ", is_differential_output)
+    print("####is_CMFB = ", is_CMFB)
     ####################
 
     # Run sim-debug-measure loop
-    results_original, struct_path_id, counter, debug_history = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB, general_rules=general_rules, cat_json=cat_json)
+    
+    obj_for_sim_debug = {"netlist": netlist, "spec_sims": spec_sims, "cir_num": cir_num, "path_output_num": path_output_num, "is_differential_output": is_differential_output, "target_dc_vout": target_dc_vout, "has_input": has_input, "is_CMFB": is_CMFB, "general_rules": general_rules}
+    print("###obj_for_sim_debug = ", obj_for_sim_debug)
+    results_original, struct_path_id, counter, debug_history = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB, general_rules=general_rules)
     # if debug, let's see compress
     if counter > 0:
         gen_utils.test_delay(30*(counter + 1), "compress")  
-        compress_err_info_agent.compress_agent_flow(debug_history, general_rules)
+        compress_err_info_agent.compress_agent_flow(debug_history, general_rules, category_num)
     
     path_netlist = path_output_num + "final_netlist.cir"
     data_for_dut_yaml = (is_differential_output, has_input, target_dc_vout)

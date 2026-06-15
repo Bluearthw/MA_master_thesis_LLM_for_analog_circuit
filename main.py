@@ -1,5 +1,4 @@
 from pathlib import Path
-import sys
 import yaml
 #local import
 from genai_agent.data import category_numbers
@@ -7,9 +6,9 @@ from genai_agent.data.local_config import path_output
 from genai_agent.data.local_config import path_prompts 
 from genai_agent.workflows import workflow
 from utils import gen_utils
-from genai_agent.workflows.type1_7_40_SISO_DISO_DIDO import root_agent_type1_7_40
-from genai_agent.workflows.type6_bandgap import root_agent_type6
-from genai_agent.workflows.type23_charge_pump import root_agent_type23
+# from genai_agent.workflows.type1_7_40_SISO_DISO_DIDO import root_agent_type1_7_40
+# from genai_agent.workflows.type6_bandgap import root_agent_type6
+# from genai_agent.workflows.type23_charge_pump import root_agent_type23
 from utils import yaml_creation
 from utils import agent_utils
 from utils import file_utils
@@ -28,13 +27,16 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 #bandgap
 # test = [6] 
 # test = category_numbers.num_class_6_without_IIN1
+
 # #SISO
 # test = category_numbers.num_class_1_with_VDD_tested
+
 # #DIDO
 # test = [182] #dido cmfb
 # test = [69] #dido 
 # test = [1005]
 # test = category_numbers.num_class_40_samples
+
 # #DISO
 # test = category_numbers.num_class_7_samples
 # test = [9]
@@ -43,7 +45,7 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 # tested = category_numbers.num_class_40_samples_tested
 # tested_set = set(tested)
 # test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
-test = [549]
+test = [860]
 
 
 is_with_RL = 0 # only with netlist gen
@@ -74,13 +76,13 @@ else:
         output_dir = Path(f"{path_output}{i}")
         output_dir.mkdir(parents=True, exist_ok=True)
         path_output_num, category_num, category_str, netlist, has_input, is_diff, cat_json = gen_utils.pre_process_circuit(i)
-        print("is_diff =", is_diff)
+        print("####is_diff =", is_diff)
         file_utils.delete_all_files_except_dir(path_output_num)
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
-        print("trimmed_spec_table",trimmed_spec_table)
+        # print("###trimmed_spec_table",trimmed_spec_table)
 
-        dict = agent_utils.get_workflow_prompts()# should update for every circuit, in the future, some flag to control
-        general_rules = "\n".join(dict.get('general_rules'))
+        prompt_dict = agent_utils.get_workflow_prompts()# should update for every circuit, in the future, some flag to control
+        general_rules = "\n".join(prompt_dict.get('general_rules'))
         print("general_rules =", general_rules)
         results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = workflow.generate_netlist(
         cir_num=i, 
