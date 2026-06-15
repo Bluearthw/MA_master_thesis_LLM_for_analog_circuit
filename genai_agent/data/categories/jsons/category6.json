@@ -1,4 +1,12 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "DC Voltage References (e.g., Bandgap)",
+    "required_specs": [
+        "DC Output Voltage",
+        "Line Regulation",
+        "Load Regulation",
+        "Temperature Coefficient (TC)",
+        "Power Supply Rejection Ratio (PSRR)",
+        "Startup Behavior",
+        "Output Noise"
+    ]
 }

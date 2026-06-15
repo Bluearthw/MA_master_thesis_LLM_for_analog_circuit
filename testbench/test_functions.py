@@ -321,7 +321,7 @@ def test_find_cat_from_num(num = 4):
 
 def test_cmfb_check_agent(netlist, cir_num=4):
     category_num = gen_utils.find_cat_from_num(cir_num) # for now we only have one category. In the future, we can have more categories and the sim agent will read the requirement of the category and decide what simulations to add.
-    path_category = local_config.path_category + f"{category_num}.md"
+    path_category = local_config.path_category_md + f"{category_num}.md"
     # or the cat_num is already known, so just +"4.md"
     category = gen_utils.get_file_to_str(path_category)
     client = gen_utils.get_client()

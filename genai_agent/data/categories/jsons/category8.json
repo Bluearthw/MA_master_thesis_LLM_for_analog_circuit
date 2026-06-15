@@ -1,4 +1,8 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Variable-Gain Amplifiers (VGA/PGA) and Analog Multipliers",
+    "required_specs": [
+        "Gain Control Characterization",
+        "Bandwidth",
+        "Linearity (IIP3, P1dB) and Noise Figure (NF)"
+    ]
 }

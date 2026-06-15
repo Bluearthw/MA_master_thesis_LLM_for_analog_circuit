@@ -1,4 +1,8 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Rectifiers, Clippers, and Clamps",
+    "required_specs": [
+        "DC Transfer Curve",
+        "Transient Analysis",
+        "Frequency Response"
+    ]
 }

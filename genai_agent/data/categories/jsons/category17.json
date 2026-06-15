@@ -1,4 +1,9 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Phase-Locked Loops (PLL)",
+    "required_specs": [
+        "Transient analysis",
+        "Lock Range / Capture Range",
+        "Output Jitter / Phase Noise",
+        "Reference Spurs"
+    ]
 }

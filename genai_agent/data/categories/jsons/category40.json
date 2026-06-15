@@ -1,4 +1,10 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Fully Differential Amplifiers (DIDO)",
+    "required_specs": [
+        "Differential-Mode Gain (A{dm})",
+        "Common-Mode Gain (A{cm})",
+        "Output Balance",
+        "CMFB Loop Stability",
+        "Settling Time"
+    ]
 }

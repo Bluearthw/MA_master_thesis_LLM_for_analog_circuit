@@ -3,7 +3,7 @@ import os
 import sys
 sys.path.append(".")
 from utils import gen_utils
-from genai_agent.data.local_config import path_category
+from genai_agent.data.local_config import path_category_md
 from genai_agent.data.local_config import path_categories
 from utils import file_utils
 def split_category():
@@ -48,7 +48,8 @@ def category_str_extract(category_str):
         if m:
             category = m.group(1).strip()
             break
-
+    print("lines:", lines)
+    print("category:", category)
     # 2) Find a Measurements (or Stimuli/Measurements) section and collect bullets
     start_idx = None
     end_idx = None
@@ -62,7 +63,10 @@ def category_str_extract(category_str):
             end_idx = i
             
             break
-
+        if 'rule' in line.lower():
+            end_idx = i
+            
+            break
     
     if start_idx is not None:
         i = start_idx
@@ -116,9 +120,9 @@ def category_str_extract(category_str):
 def make_category_json():
     json_path = path_categories + "jsons/"
     print("dir exists:", os.path.isdir(json_path))
-    for i in range(1,2):
+    for i in range(10,41):
         print(i)
-        cat_str = gen_utils.get_file_to_str(path_category + f'{i}.md')
+        cat_str = file_utils.get_file_to_str(path_category_md + f'{i}.md')
         # print(cat_str)
         cat_dict = category_str_extract(cat_str)
         print(cat_dict)

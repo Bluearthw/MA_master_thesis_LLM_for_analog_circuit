@@ -17,7 +17,8 @@
         "- Always prioritize using the E-source behavioral modeling approach (ein1/ein2 linked to a central vdm/vcm setup) as shown in Rule 9. It is cleaner and scales to all AC/Tran analyses without needing complex resetting.",
         "- Ideal block is accetable if it is not a big difference to the result.",
         "- Try to align the end frequency for all ac simulations:{f_end}",
-        "13. **You must ONLY simulate and analyze the specifications explicitly required in the requirement**: Do NOT assume, infer, or add any other measurements unless they are explicitly required by the requirement, even if they show in the table."
+        "13. **Mandatory VDD Power Measurement**: Regardless of the specific category requirements, you must ALWAYS explicitly include a current (.op) measurement for the primary supply rail (VDD) to track static power consumption.",
+        "14. **Strict Specification Isolation (Zero Spec-Creep)**: Beyond the mandatory VDD measurement, do NOT assume, infer, or add any other test circuits, stimuli, or `.meas` commands. Simulate and analyze ONLY the specifications explicitly listed in the provided requirement. Disregard any peripheral or optional metrics mentioned in reference descriptions."
     ],
     "category_1": {
     "generation_guidelines": [

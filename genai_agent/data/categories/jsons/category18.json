@@ -1,4 +1,9 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "ESD Protection Circuits",
+    "required_specs": [
+        "I-V Clamping Curve (TLP)",
+        "Failure Current (`It2`)",
+        "Transient Clamping Voltage",
+        "Impact on Signal Integrity"
+    ]
 }

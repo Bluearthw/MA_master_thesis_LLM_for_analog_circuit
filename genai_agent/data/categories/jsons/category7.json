@@ -1,4 +1,11 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Differential-to-Single-Ended Amplifiers (Operational Amplifiers / DISO)",
+    "required_specs": [
+        "Open-Loop Voltage Gain (A{vol})",
+        "Input Common-Mode Range (ICMR)",
+        "Common-Mode Rejection Ratio (CMRR)",
+        "Power Supply Rejection Ratio (PSRR)",
+        "Output Swing",
+        "Slew Rate"
+    ]
 }

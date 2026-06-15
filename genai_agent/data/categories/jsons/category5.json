@@ -1,4 +1,11 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Sample-and-Hold / Track-and-Hold Circuits",
+    "required_specs": [
+        "Acquisition Time",
+        "Hold Step (Pedestal Error)",
+        "Droop Rate",
+        "Aperture Jitter/Uncertainty",
+        "Signal Feedthrough",
+        "Distortion (SFDR, THD)"
+    ]
 }

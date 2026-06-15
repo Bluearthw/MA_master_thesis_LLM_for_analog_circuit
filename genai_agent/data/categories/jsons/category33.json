@@ -1,4 +1,7 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Tunable Active-RC Filters",
+    "required_specs": [
+        "AC analysis at different control voltage settings to plot the transfer function (gain and phase vs. frequency) and show the tuning of the cutoff frequency.",
+        "Transient analysis with a step input to measure settling time and verify that the time constant changes with the control voltage."
+    ]
 }

@@ -1,4 +1,9 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Passive Filters and Attenuators",
+    "required_specs": [
+        "Frequency Response",
+        "S-parameters",
+        "Transient Response",
+        "Input/Output Impedance"
+    ]
 }

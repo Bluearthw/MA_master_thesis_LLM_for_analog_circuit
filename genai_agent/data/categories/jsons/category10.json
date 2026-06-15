@@ -1,4 +1,8 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Negative Impedance Converters / Oscillator Cores",
+    "required_specs": [
+        "Output Impedance",
+        "Stability Analysis",
+        "Oscillation Verification"
+    ]
 }

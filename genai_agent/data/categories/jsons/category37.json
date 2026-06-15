@@ -1,4 +1,7 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Analog Folding Circuits / Waveshapers",
+    "required_specs": [
+        "DC Transfer Curve",
+        "Bandwidth / Frequency Response"
+    ]
 }

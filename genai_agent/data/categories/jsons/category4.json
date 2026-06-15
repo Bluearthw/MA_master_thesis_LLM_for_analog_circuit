@@ -1,4 +1,6 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Transimpedance Amplifiers (TIA)",
+    "required_specs": [
+        "Transimpedance Gain (`RT = Vout / Iin`)"
+    ]
 }

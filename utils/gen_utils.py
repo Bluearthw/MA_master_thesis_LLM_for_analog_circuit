@@ -770,7 +770,7 @@ def pre_process_circuit(cir_num):
     
     
     category_num = find_cat_from_num(cir_num) 
-    path_category = local_config.path_category + f"{category_num}.md"
+    path_category = local_config.path_category_md + f"{category_num}.md"
     # or the cat_num is already known, so just +"4.md"
     category_str = file_utils.get_file_to_str(path_category)
 
@@ -784,11 +784,11 @@ def pre_process_circuit(cir_num):
     circuit_string = clean_netlist(circuit_string)# ADD .include here. remove (). nmos4' to 'nmos' and 'pmos4' to 'pmos'. REMOVE 'resistor' and 'capacitor'
     circuit_string = add_params(circuit_string) #ADD .param. ADD w,l,m to mos. ADD {value} for R and C
     circuit_string = add_DC_source(circuit_string)
-
+    cat_json = file_utils.get_dict_from_json(local_config.path_category_jsons + f"{category_num}.json")
     netlist = add_control(circuit_string)
     print("==cir_str\n", netlist)
 
-    return path_output_num, category_num, category_str, netlist, has_input, is_diff
+    return path_output_num, category_num, category_str, netlist, has_input, is_diff, cat_json
 # endregion modify
 
 

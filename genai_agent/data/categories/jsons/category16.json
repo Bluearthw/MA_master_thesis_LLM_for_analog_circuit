@@ -1,4 +1,9 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Switched-Capacitor (SC) / Switched-Resistor (SR) Amplifiers & Integrators",
+    "required_specs": [
+        "Gain Accuracy",
+        "Settling Time",
+        "Charge Injection, Clock Feedthrough & Residual Offset",
+        "Frequency Response"
+    ]
 }

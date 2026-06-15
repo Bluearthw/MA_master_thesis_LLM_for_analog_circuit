@@ -1,5 +1,5 @@
 from google import genai
-import sys
+import json
 import os
 # import sys
 
@@ -29,7 +29,7 @@ def netlist_builder(netlist, category, category_num, cir_num=4, trimmed_spec_tab
         ## !! or create one with agent!
         print(f"Warning: prompt for category {category_num} not found, using minimal inline prompt.")
         contents = f"You are given a netlist: {netlist}\nPlease produce a ready-to-run netlist and a list of spec simulations."
-    
+    category = json.dumps(category, indent=4)
     contents = file_utils.get_file_to_str(prompt_path).format(general_rules=general_rules,
                                                             f_end=f_end, 
                                                             line_wrdata_path_num=line_wrdata_path_num, 
@@ -39,7 +39,7 @@ def netlist_builder(netlist, category, category_num, cir_num=4, trimmed_spec_tab
                                                             category = category,
                                                             cir_num = cir_num
                                                             )
-
+    print("###contents netlist builder ", contents)
     try:
         struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_flow)
         print("==struc_netlist_builder", struc)

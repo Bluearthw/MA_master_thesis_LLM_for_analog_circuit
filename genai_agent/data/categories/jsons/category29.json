@@ -1,4 +1,9 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Voltage Comparators and Schmitt Triggers",
+    "required_specs": [
+        "DC Transfer Curve / Hysteresis",
+        "Input Offset Voltage",
+        "Propagation Delay",
+        "Power Supply Rejection Ratio (PSRR)."
+    ]
 }

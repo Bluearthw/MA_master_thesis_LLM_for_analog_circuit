@@ -1,4 +1,12 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Clocked Sequential Logic (Latches, Flip-Flops, Frequency Dividers)",
+    "required_specs": [
+        "For Flip-Flops/Latches",
+        "Setup Time",
+        "Hold Time",
+        "Clock-to-Q Delay (Propagation Delay)",
+        "For all types (including dividers)",
+        "Maximum Clock Frequency (`fmax`)",
+        "Functionality Verification"
+    ]
 }

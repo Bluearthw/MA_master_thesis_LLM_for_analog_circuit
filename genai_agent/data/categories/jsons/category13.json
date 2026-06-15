@@ -1,4 +1,8 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Common-Mode Feedback (CMFB) Circuits",
+    "required_specs": [
+        "DC Transfer Curve",
+        "Loop Stability (in context)",
+        "Settling Time (in context)"
+    ]
 }

@@ -1,4 +1,7 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Voltage-Controlled Variable Capacitors (Varactors)",
+    "required_specs": [
+        "C-V Curve",
+        "Quality Factor (Q)"
+    ]
 }

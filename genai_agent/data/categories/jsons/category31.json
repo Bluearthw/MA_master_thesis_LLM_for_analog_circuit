@@ -1,4 +1,9 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Timing Circuits (e.g., 555 Timer)",
+    "required_specs": [
+        "Astable Mode",
+        "Monostable Mode",
+        "Threshold and Trigger Voltage Levels",
+        "Output Voltage Levels (`VOH`, `VOL`) and current drive capability."
+    ]
 }

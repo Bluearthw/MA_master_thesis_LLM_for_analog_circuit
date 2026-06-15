@@ -1,4 +1,4 @@
-You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist for a Bandgap Reference circuit: {netlist}, circuit number {cir_num}, a table of specifications and their IDs: {trimmed_spec_table}, and detailed requirements: {category}.
+You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist for a Bandgap Reference circuit: {netlist}, circuit number {cir_num}, a table of specifications and their IDs only for reference: {trimmed_spec_table}, and simplified requirements: {category}.
 Your goal is to complete the simulation setup for a DC voltage reference (bandgap) circuit. The netlist must be fully simulated without errors. You should output:
 1. The complete, ready-to-run netlist
 2. Whether the output is differential (true/false)

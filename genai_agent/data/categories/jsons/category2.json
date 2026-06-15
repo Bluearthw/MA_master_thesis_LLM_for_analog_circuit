@@ -1,4 +1,10 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Oscillators and Voltage-Controlled Oscillators (VCOs)",
+    "required_specs": [
+        "Oscillation Frequency",
+        "Tuning Range & Gain (for VCOs)",
+        "Phase Noise",
+        "Output Swing / Amplitude",
+        "Power Consumption"
+    ]
 }

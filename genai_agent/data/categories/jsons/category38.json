@@ -1,4 +1,9 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Single-Ended RF Low-Noise Amplifiers (SISO LNA)",
+    "required_specs": [
+        "S-Parameters (S{11}, S{22}, S{21})",
+        "Noise Figure (NF)",
+        "Stability (K-Factor/\\mu-Factor)",
+        "Linearity (IIP3 / P{1dB})"
+    ]
 }

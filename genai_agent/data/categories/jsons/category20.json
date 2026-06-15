@@ -1,4 +1,12 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Differential & Mixed-Mode RF Amplifiers (LNA, PA, Baluns)",
+    "required_specs": [
+        "Mixed-Mode S-Parameters",
+        "Differential Gain (S{dd21})",
+        "Single-to-Differential Gain (S{sd21})",
+        "Common-Mode Rejection",
+        "Noise Figure (NF)",
+        "Linearity",
+        "Balance/Phase Error"
+    ]
 }

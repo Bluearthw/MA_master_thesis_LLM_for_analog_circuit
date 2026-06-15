@@ -1,4 +1,9 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Regenerative Frequency Dividers",
+    "required_specs": [
+        "Operating Frequency Range (Lock Range)",
+        "Functionality Verification",
+        "Phase Noise",
+        "Power Consumption."
+    ]
 }

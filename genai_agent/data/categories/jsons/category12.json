@@ -1,4 +1,9 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Current Amplifiers and Current Mirrors",
+    "required_specs": [
+        "DC Transfer Characteristics",
+        "AC Analysis",
+        "Input/Output Impedance",
+        "Transient Analysis"
+    ]
 }

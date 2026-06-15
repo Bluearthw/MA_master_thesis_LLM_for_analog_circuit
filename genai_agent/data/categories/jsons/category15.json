@@ -1,4 +1,10 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Clock Generation and Distribution Logic",
+    "required_specs": [
+        "Transient analysis is the primary simulation method.",
+        "Measure propagation delay from input(s) to output(s).",
+        "Measure rise time, fall time, and duty cycle of the output clocks.",
+        "For multi-phase generators, measure the non-overlapping time between clock phases.",
+        "Measure clock skew between different output branches."
+    ]
 }

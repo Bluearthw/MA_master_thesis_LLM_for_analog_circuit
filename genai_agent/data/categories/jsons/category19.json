@@ -1,4 +1,9 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Analog Adder / Subtractor / Combiner",
+    "required_specs": [
+        "Transfer Function",
+        "Linearity (IMD)",
+        "Combining Efficiency/Power",
+        "Transient Verification"
+    ]
 }

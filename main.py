@@ -73,7 +73,7 @@ else:
 
         output_dir = Path(f"{path_output}{i}")
         output_dir.mkdir(parents=True, exist_ok=True)
-        path_output_num, category_num, category_str, netlist, has_input, is_diff = gen_utils.pre_process_circuit(i)
+        path_output_num, category_num, category_str, netlist, has_input, is_diff, cat_json = gen_utils.pre_process_circuit(i)
         print("is_diff =", is_diff)
         file_utils.delete_all_files_except_dir(path_output_num)
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
@@ -91,7 +91,8 @@ else:
         trimmed_spec_table=trimmed_spec_table,
         is_diff=is_diff,
         category_num=category_num,
-        general_rules = general_rules
+        general_rules = general_rules,
+        cat_json = cat_json
         )
         struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 15} # remove some array results
         print("====netlist generation done=======",i)

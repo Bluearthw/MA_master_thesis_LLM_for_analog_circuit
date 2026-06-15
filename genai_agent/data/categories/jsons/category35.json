@@ -1,4 +1,8 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Active Inductors / Gyrators",
+    "required_specs": [
+        "Impedance vs. Frequency",
+        "Equivalent Inductance (`Leq`)",
+        "Quality Factor (Q)"
+    ]
 }

@@ -1,4 +1,9 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Output Drivers & Power Amplifiers (Push-Pull / Class B / AB)",
+    "required_specs": [
+        "Total Harmonic Distortion (THD)",
+        "Efficiency (PAE / Drain Eff)",
+        "Load-Pull",
+        "Quiescent Current"
+    ]
 }

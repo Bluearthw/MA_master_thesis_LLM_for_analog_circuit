@@ -1,4 +1,10 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Digital Combinatorial Logic Gates",
+    "required_specs": [
+        "Transient analysis is the primary simulation.",
+        "Logical Function Verification",
+        "Propagation Delay",
+        "Rise/Fall Times",
+        "Power Consumption"
+    ]
 }

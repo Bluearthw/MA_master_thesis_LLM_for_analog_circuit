@@ -1,4 +1,12 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Digital-to-Analog Converters (DAC)",
+    "required_specs": [
+        "Static Linearity (DC Analysis)",
+        "Differential Non-Linerity (DNL)",
+        "Integral Non-Linerity (INL)",
+        "Gain Error & Offset Error",
+        "Dynamic Performance (for high-speed DACs)",
+        "Settling Time",
+        "Spurious-Free Dynamic Range (SFDR)"
+    ]
 }

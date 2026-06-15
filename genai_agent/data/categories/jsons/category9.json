@@ -1,4 +1,6 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Current Mirror Bias Generators / Reference Legs",
+    "required_specs": [
+        "DC analysis to find nominal output voltages."
+    ]
 }

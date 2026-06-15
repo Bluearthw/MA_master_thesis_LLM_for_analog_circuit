@@ -1,4 +1,10 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Switching-Mode RF Power Amplifiers (e.g., Class D, E, F)",
+    "required_specs": [
+        "Power Added Efficiency (PAE) and Drain Efficiency (DE)",
+        "Output Power",
+        "Waveform Verification",
+        "Device Voltage Stress",
+        "Harmonic Content/Suppression"
+    ]
 }

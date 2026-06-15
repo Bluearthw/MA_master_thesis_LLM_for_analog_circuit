@@ -1,4 +1,9 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "RF Mixers",
+    "required_specs": [
+        "Conversion Gain (CG)",
+        "Linearity (IIP3, P1dB)",
+        "Noise Figure (NF)",
+        "Port-to-Port Isolation"
+    ]
 }

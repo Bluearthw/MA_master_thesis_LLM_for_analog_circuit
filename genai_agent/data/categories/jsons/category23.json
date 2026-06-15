@@ -1,4 +1,8 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Charge Pump",
+    "required_specs": [
+        "Current Matching",
+        "Output Ripple",
+        "Voltage Compliance Range"
+    ]
 }

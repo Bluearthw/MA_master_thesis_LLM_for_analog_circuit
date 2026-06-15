@@ -1,4 +1,8 @@
 {
-    "category": "",
-    "required_specs": []
+    "category": "Current Comparators",
+    "required_specs": [
+        "DC Transfer Curve / Hysteresis",
+        "Input Offset Current",
+        "Propagation Delay"
+    ]
 }
