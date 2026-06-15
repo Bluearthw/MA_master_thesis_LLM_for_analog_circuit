@@ -1,5 +1,5 @@
 git add .
-git commit -m "fix json load bug. now info are stored in metadata.json
+git commit -m "content updated
 "
 git push
 

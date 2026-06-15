@@ -3,6 +3,7 @@ from utils import gen_utils
 from utils import file_utils 
 from utils import sim_utils
 from utils import user_interation_utils
+from utils import agent_utils
 from ngspice_interface import dut_testbench
 from genai_agent.workflows.debug_agent import debug_agent_flow
 from genai_agent.workflows import make_netlist_agent
@@ -15,7 +16,13 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
         old_netlist = netlist
         sim_output = sim_utils.run_ngspice_direct(netlist)
         print("=====sim output", sim_output)
-        if sim_output["success"]: 
+        is_sim_success = sim_output["success"]
+        if not agent_utils.check_current_simulation(spec_sims):
+            is_sim_success = False
+            original_msg = sim_output["message"]# if not here , what if False originally?
+            sim_output['message'] = "Mandatory VDD Current simulation (.op) not found. Originial message: " + original_msg
+        if is_sim_success:
+             
             # check files
             # gather all generated file paths; use a set to ensure uniqueness
             struct_path_id = gen_utils.make_path_id(spec_sims, path_output_num)

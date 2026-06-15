@@ -1,4 +1,5 @@
 import sys
+import json
 
 import time
 import traceback
@@ -81,7 +82,6 @@ def call_agent(contents: str,
             tb = traceback.format_exc()
             raise RuntimeError(f"call_agent failed after {attempt} attempts: {err}\n{tb}") from e
 
-import json
 
 def update_master_registry(category_num, agent_output_str):
     # Load the agent's structured suggestion
@@ -117,3 +117,9 @@ def get_workflow_prompts():
     dict = file_utils.get_dict_from_json(prompts_path)
     
     return dict
+
+def check_current_simulation(spec_sims):
+    for spec_sim in spec_sims:
+        if spec_sim.spec_id == 22:#current is there:
+            return True
+    return False
