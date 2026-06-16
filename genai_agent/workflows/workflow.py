@@ -8,7 +8,7 @@ from ngspice_interface import dut_testbench
 from genai_agent.workflows.debug_agent import debug_agent_flow
 from genai_agent.workflows import make_netlist_agent
 from genai_agent.workflows import compress_err_info_agent
-def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False, general_rules = None):
+def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False, general_rules = None, category_debug_rules = None):
     counter = 0
     debug_history = []
     
@@ -62,7 +62,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             gen_utils.test_delay(30*(counter + 1), "debug")  
             
             # 2. Feed the clean, non-compounding history to the debug agent
-            struct_debug = debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, general_rules)
+            struct_debug = debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, general_rules, category_debug_rules)
             file_utils.save_dict_to_json(struct_debug.model_dump(), local_config.path_output + f"debug_struct_{counter}.json")
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims
@@ -87,7 +87,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
 
 
-def generate_netlist(cir_num, path_output_num, category_str, netlist, has_input, trimmed_spec_table,  is_diff=None, category_num=None, general_rules=None, cat_json=None):
+def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_table,  is_diff=None, category_num=None, general_rules=None, cat_json=None, category_gen_rules=None, category_debug_rules=None):
     """Generic test-maker that invokes a workflow-local `add_sim_agent` to prepare the netlist,
     then runs the sim-debug-measure loop.
 
@@ -100,7 +100,7 @@ def generate_netlist(cir_num, path_output_num, category_str, netlist, has_input,
     """
     # If a category number is provided, use the central netlist builder
     if category_num is not None:
-        struc = make_netlist_agent.netlist_builder(netlist=netlist, category=cat_json, category_num=category_num, cir_num=cir_num, trimmed_spec_table=trimmed_spec_table, is_diff=is_diff, general_rules=general_rules)
+        struc = make_netlist_agent.netlist_builder(netlist=netlist, category_json=cat_json, category_num=category_num, cir_num=cir_num, trimmed_spec_table=trimmed_spec_table, is_diff=is_diff, general_rules=general_rules, category_gen_rules=category_gen_rules)
     else:
         raise ValueError("Category number is required.")
 
@@ -132,7 +132,7 @@ def generate_netlist(cir_num, path_output_num, category_str, netlist, has_input,
     
     obj_for_sim_debug = {"netlist": netlist, "spec_sims": spec_sims, "cir_num": cir_num, "path_output_num": path_output_num, "is_differential_output": is_differential_output, "target_dc_vout": target_dc_vout, "has_input": has_input, "is_CMFB": is_CMFB, "general_rules": general_rules}
     print("###obj_for_sim_debug = ", obj_for_sim_debug)
-    results_original, struct_path_id, counter, debug_history = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB, general_rules=general_rules)
+    results_original, struct_path_id, counter, debug_history = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB, general_rules=general_rules, category_debug_rules=category_debug_rules)
     # if debug, let's see compress
     if counter > 0:
         gen_utils.test_delay(30*(counter + 1), "compress")  

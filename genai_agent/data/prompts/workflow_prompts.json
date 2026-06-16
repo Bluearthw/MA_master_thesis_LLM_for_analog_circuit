@@ -18,8 +18,7 @@
         "- Ideal block is accetable if it is not a big difference to the result.",
         "- Try to align the end frequency for all ac simulations:{f_end}",
         "13. **Mandatory VDD Power Measurement**: Regardless of the specific category requirements, you must ALWAYS explicitly include a current (.op) measurement for the primary supply rail (VDD) to track static power consumption.",
-        "14. **Strict Specification Isolation (Zero Spec-Creep)**: Beyond the mandatory VDD measurement, do NOT assume, infer, or add any other test circuits, stimuli, or `.meas` commands. Simulate and analyze ONLY the specifications explicitly listed in the provided requirement. Disregard any peripheral or optional metrics mentioned in reference descriptions.",
-        "Ensure every node has a valid DC path to supply or ground to prevent convergence failures and limit AC/Noise frequencies to a maximum of 100GHz to avoid simulation timeouts."
+        "14. **Strict Specification Isolation (Zero Spec-Creep)**: Beyond the mandatory VDD measurement, do NOT assume, infer, or add any other test circuits, stimuli, or `.meas` commands. Simulate and analyze ONLY the specifications explicitly listed in the provided requirement. Disregard any peripheral or optional metrics mentioned in reference descriptions."
     ],
     "category_1": {
         "generation_guidelines": [

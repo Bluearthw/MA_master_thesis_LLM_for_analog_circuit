@@ -2,7 +2,7 @@ from genai_agent.data import local_config
 from genai_agent.data import response_schema
 from utils import agent_utils
 from utils import file_utils
-def debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, general_rules = None):
+def debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, general_rules = None, category_debug_rules = None):
     """Call the debug agent to fix a netlist and return the parsed response model.
 
     - `general_rules` is expected to be a list of rule lines (from workflow_prompts.json).
@@ -32,8 +32,10 @@ Specification ID Table: {local_config.table_specs_id}
 Required Simulations (from previous agent): {spec_sims}
 
 General Rules:{general_rules}
-"""
 
+"""
+    if category_debug_rules != "":
+        contents += f"\n**More rules about this category**: {category_debug_rules}"
     # Delegate retry/backoff and error handling to a central helper.
     try:
         struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_debug)

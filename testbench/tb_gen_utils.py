@@ -121,6 +121,11 @@ def test_ensure_format():
     print(nl)
     new_nl = gen_utils.ensure_data_format_settings(nl)
     print(new_nl)
+
+# def test_contentcat():
+#     prompt_path = os.path.join(local_config.path_prompts, f"prompt_{c_num}.md")
+#     return ""
+
 charge_pump_nums = [439, 440, 549, 550, 551, 552, 553, 603] # charge pump\
 bandgap_nums = category_numbers.num_class_6_without_IIN1
 amplifier_nums = category_numbers.num_class_40_samples_tested

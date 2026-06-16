@@ -1,5 +1,5 @@
 git add .
-git commit -m "implement reduce sim msg
+git commit -m "use the upadatd prompot also. But does not improve 860
 "
 git push
 

@@ -82,19 +82,24 @@ else:
         # print("###trimmed_spec_table",trimmed_spec_table)
 
         prompt_dict = agent_utils.get_workflow_prompts()# should update for every circuit, in the future, some flag to control
-        general_rules = "\n".join(prompt_dict.get('general_rules'))
+        general_rules = "\n".join(prompt_dict.get('general_rules'))# list
+        category_rules = prompt_dict.get(f'category_{category_num}')# dict? obj?
+        category_gen_rules = "\n".join(category_rules.get('generation_guidelines', []))# list
+        category_debug_rules = "\n".join(category_rules.get('debug_knowledge_base', []))# list
+        
         print("general_rules =", general_rules)
         results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = workflow.generate_netlist(
         cir_num=i, 
         path_output_num=path_output_num, 
-        category_str=category_str, 
         netlist=netlist, 
         has_input=has_input, 
         trimmed_spec_table=trimmed_spec_table,
         is_diff=is_diff,
         category_num=category_num,
         general_rules = general_rules,
-        cat_json = cat_json
+        cat_json = cat_json,
+        category_gen_rules = category_gen_rules,
+        category_debug_rules = category_debug_rules
         )
         struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 15} # remove some array results
         print("====netlist generation done=======",i)
