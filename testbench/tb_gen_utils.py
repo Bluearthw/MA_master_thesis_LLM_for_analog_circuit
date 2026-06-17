@@ -99,7 +99,7 @@ def test_update_gen_rules_json():
         return None
     
 def test_reduce_duplicate(duplicate_str):
-    reduced =gen_utils.reduce_duplicate(duplicate_str)
+    reduced =gen_utils.reduce_duplicate_str(duplicate_str)
     
     print("Original:\n", duplicate_str)
     print("Reduced:\n", reduced)

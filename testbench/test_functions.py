@@ -11,7 +11,7 @@ import genai_agent.data.saved_netlist as saved_netlist
 sys.path.append('.')
 from utils import gen_utils
 from genai_agent.data import local_config
-from genai_agent.workflows import cmfb_agent
+from genai_agent.workflows import create_prompt_agent
 def test_clean():
     for i in range(2, 20):
         cir_path = f"../material/dataset/tb_dataset/{i}/{i}.cir"
@@ -340,7 +340,7 @@ def test_clean_before_CMFB(nl):
     print(nl2)
 
 def test_cmfb_agent(nl):
-    response = cmfb_agent.cmfb_agent(nl,182)
+    response = create_prompt_agent.cmfb_agent(nl,182)
     print(response)
 # region test
 start_time = time.perf_counter()

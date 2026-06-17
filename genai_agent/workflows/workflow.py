@@ -17,7 +17,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
         sim_output = sim_utils.run_ngspice_direct(netlist)
         print("#####sim_output = ", sim_output)
         original_msg = sim_output["message"]# if not here , what if False originally?
-        sim_output['message'] = gen_utils.reduce_duplicate(original_msg)
+        sim_output['message'] = gen_utils.reduce_duplicate_str(original_msg)
         print("#####reduced_message = ", sim_output['message'])
         is_sim_success = sim_output["success"]
         if not agent_utils.check_current_simulation(spec_sims):
@@ -135,7 +135,7 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
     results_original, struct_path_id, counter, debug_history = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB, general_rules=general_rules, category_debug_rules=category_debug_rules)
     # if debug, let's see compress
     if counter > 0:
-        gen_utils.test_delay(30*(counter + 1), "compress")  
+        gen_utils.test_delay(30*counter , "compress")  
         compress_err_info_agent.compress_agent_flow(debug_history, general_rules, category_num)
     
     path_netlist = path_output_num + "final_netlist.cir"

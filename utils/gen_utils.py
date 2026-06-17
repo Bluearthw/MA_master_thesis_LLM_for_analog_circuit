@@ -986,7 +986,7 @@ def trim_spec_table(text):
             
     return trimmed_dict
 
-def reduce_duplicate(duplicate_str):
+def reduce_duplicate_str(duplicate_str):
     # duplicate_str = "error: no such parameter res.\nerror: no such parameter res.\nerror: no such parameter res."
     # Collapse consecutive duplicate lines and annotate repetitions, e.g.
     # 'msg\nmsg\nmsg' -> 'msg (x3)'
@@ -1006,7 +1006,7 @@ def reduce_duplicate(duplicate_str):
                 out_lines.append(f"{prev} (x{count})")
             else:
                 out_lines.append(prev)
-            prev = line
+            prev = line # update check line!!!
             max_count = max(max_count, count)
             count = 1
 

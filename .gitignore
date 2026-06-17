@@ -1,6 +1,7 @@
 
 *.pyc
 genai_agent/before2026_py_files/
+genai_agent/data/prompts/backup/
 # genai_agent/data/*
 # !genai_agent/data/local_config.py
 # !genai_agent/data/response_schema.py

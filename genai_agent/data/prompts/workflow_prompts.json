@@ -30,10 +30,12 @@
     },
     "category_6": {
         "generation_guidelines": [
-            "Ensure every node has a valid DC path to supply or ground to prevent convergence failures and limit AC/Noise frequencies to a maximum of 100GHz to avoid simulation timeouts."
+            "Ensure every node has a valid DC path to supply or ground to prevent convergence failures and limit AC/Noise frequencies to a maximum of 100GHz to avoid simulation timeouts.",
+            "Cap maximum AC and Noise simulation frequencies at 10GHz and ensure all DC bias nodes have a valid sourcing path from VDD to prevent non-convergence and solver hangs."
         ],
         "debug_knowledge_base": {
-            "Simulation timed out|empty netlist|singular matrix|no simulations run": "Check for floating nodes (nodes with only current sources or capacitors), reduce unrealistic bias currents or frequency ranges, and ensure the netlist is formatted with physical newlines instead of literal '\\n' sequences."
+            "Simulation timed out|empty netlist|singular matrix|no simulations run": "Check for floating nodes (nodes with only current sources or capacitors), reduce unrealistic bias currents or frequency ranges, and ensure the netlist is formatted with physical newlines instead of literal '\\n' sequences.",
+            "Simulation timed out|convergence|time-step too small|singular matrix": "Verify bias current source directions (source from VDD, sink to VSS), ensure total I*R drops do not exceed VDD, and reduce the upper frequency limit of AC/Noise analyses to 10GHz."
         }
     }
 }
