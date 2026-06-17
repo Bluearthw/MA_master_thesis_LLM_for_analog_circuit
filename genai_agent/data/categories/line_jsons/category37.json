@@ -1,0 +1,7 @@
+{
+    "category": "### 37. Analog Folding Circuits / Waveshapers",
+    "required_specs": [
+        "DC Transfer Curve: The primary measurement. Plot the output voltage vs. the input voltage to verify the folded (e.g., triangle/sawtooth) characteristic. Key metrics are the locations of the fold points (determined by the reference voltages), the peak/valley voltages, and the linearity of each segment.",
+        "Bandwidth / Frequency Response: AC analysis to determine the small-signal bandwidth. For high-speed applications, transient analysis with a high-frequency sine wave input is used to check for distortion and verify the \"bandwidth multiplication\" effect where the output fundamental frequency can be a multiple of the input."
+    ]
+}

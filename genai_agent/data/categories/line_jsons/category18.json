@@ -1,0 +1,9 @@
+{
+    "category": "### 18. ESD Protection Circuits",
+    "required_specs": [
+        "I-V Clamping Curve (TLP): Plot the clamping voltage at the protected node (`POUT`) versus the injected ESD current at the external port (`PIN`).",
+        "Failure Current (`It2`): The peak current the device can withstand before permanent damage, determined from the TLP curve.",
+        "Transient Clamping Voltage: The peak voltage reached at the protected node during a specific ESD event (e.g., HBM pulse).",
+        "Impact on Signal Integrity: S-parameter analysis (`S21`, `S11`) to measure insertion loss and return loss during normal, small-signal operation."
+    ]
+}

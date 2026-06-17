@@ -1,0 +1,9 @@
+{
+    "category": "### 26. Regenerative Frequency Dividers",
+    "required_specs": [
+        "Operating Frequency Range (Lock Range): Sweep the input clock frequency and check the output for correct and stable division. This determines the range over which the divider operates.",
+        "Functionality Verification: Perform a transient analysis to confirm the output frequency is `f_in / N` (e.g., `f_in / 2`).",
+        "Phase Noise: PSS/PNOISE analysis to measure the phase noise of the output clock relative to the input.",
+        "Power Consumption."
+    ]
+}

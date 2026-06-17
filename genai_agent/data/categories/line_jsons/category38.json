@@ -1,0 +1,9 @@
+{
+    "category": "### 38. Single-Ended RF Low-Noise Amplifiers (SISO LNA)",
+    "required_specs": [
+        "S-Parameters ($S_{11}, S_{22}, S_{21}$): Critical. Verification of Input Return Loss ($S_{11} < -10\\text{dB}$), Output Return Loss, and Transducer Gain.",
+        "Noise Figure (NF): Critical. Measured in dB, accounting for source thermal noise.",
+        "Stability ($K$-Factor/$\\mu$-Factor): Stern stability analysis to ensure unconditional stability ($K>1$).",
+        "Linearity ($IIP3 / P_{1dB}$): Two-tone test."
+    ]
+}

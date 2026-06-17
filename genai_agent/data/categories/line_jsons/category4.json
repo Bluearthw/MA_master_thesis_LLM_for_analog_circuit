@@ -1,0 +1,6 @@
+{
+    "category": "### 4. Transimpedance Amplifiers (TIA)",
+    "required_specs": [
+        "Transimpedance Gain (`R_T = Vout / Iin`): AC analysis to measure the gain (single-ended or differential) and -3dB bandwidth."
+    ]
+}

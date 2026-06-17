@@ -1,0 +1,12 @@
+{
+    "category": "### 25. Clocked Sequential Logic (Latches, Flip-Flops, Frequency Dividers)",
+    "required_specs": [
+        "For Flip-Flops/Latches:",
+        "Setup Time: Minimum time the data input must be stable before the active clock edge/level.",
+        "Hold Time: Minimum time the data input must be stable after the active clock edge/level.",
+        "Clock-to-Q Delay (Propagation Delay): Time from the active clock edge to the corresponding change at the output.",
+        "For all types (including dividers):",
+        "Maximum Clock Frequency (`f_max`): The highest clock frequency at which the circuit operates correctly. For dividers, this means producing a stable, divided output.",
+        "Functionality Verification: For dividers, verify that the output frequency is the input frequency divided by the expected ratio (e.g., 2)."
+    ]
+}

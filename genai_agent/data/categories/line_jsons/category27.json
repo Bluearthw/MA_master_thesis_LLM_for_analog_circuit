@@ -1,0 +1,12 @@
+{
+    "category": "### 27. Digital-to-Analog Converters (DAC)",
+    "required_specs": [
+        "Static Linearity (DC Analysis): Perform a DC analysis at each input code and measure the corresponding analog output.",
+        "Differential Non-Linerity (DNL): The deviation in step size between adjacent codes from the ideal step size (LSB).",
+        "Integral Non-Linerity (INL): The maximum deviation of the actual transfer curve from an ideal straight line.",
+        "Gain Error & Offset Error: Deviations in the slope and y-intercept of the best-fit line through the transfer curve.",
+        "Dynamic Performance (for high-speed DACs):",
+        "Settling Time: Time for the output to settle to within a certain error band after a code transition.",
+        "Spurious-Free Dynamic Range (SFDR): Measured by applying a digital sine wave to the input and analyzing the output spectrum for the largest spurious tone relative to the fundamental."
+    ]
+}

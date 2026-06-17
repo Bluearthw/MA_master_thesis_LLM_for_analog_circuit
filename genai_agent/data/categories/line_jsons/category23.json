@@ -1,0 +1,8 @@
+{
+    "category": "### 23. Charge Pump",
+    "required_specs": [
+        "Current Matching: Apply long, separate pulses to the `UP` and `DN` inputs and measure the output current directly (in DC analysis) or the output voltage slew rate (`dV/dt`) across the load capacitor (in transient analysis) to verify that the sourced and sinked currents are equal.",
+        "Output Ripple: Apply simultaneous, narrow, and identical pulses to both inputs (simulating a locked PFD state) and measure the peak-to-peak voltage variation on the output node (with load capacitor).",
+        "Voltage Compliance Range: Sweep the DC voltage of the output node and measure the output current to determine the voltage range over which the charge pump currents remain matched and within specification."
+    ]
+}

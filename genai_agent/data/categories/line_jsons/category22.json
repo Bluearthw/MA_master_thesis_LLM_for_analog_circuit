@@ -1,0 +1,7 @@
+{
+    "category": "### 22. Voltage-Controlled Variable Capacitors (Varactors)",
+    "required_specs": [
+        "C-V Curve: At each step of the control voltage sweep, perform an AC analysis (or S-parameter analysis) to extract the capacitance between the capacitor terminals. Plot the capacitance versus the control voltage.",
+        "Quality Factor (Q): From the same AC/SP analysis, calculate the quality factor (`Q = imag(Y)/real(Y)`) of the varactor across frequency and as a function of the control voltage."
+    ]
+}

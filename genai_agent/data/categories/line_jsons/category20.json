@@ -1,0 +1,12 @@
+{
+    "category": "### 20. Differential & Mixed-Mode RF Amplifiers (LNA, PA, Baluns)",
+    "required_specs": [
+        "Mixed-Mode S-Parameters: This is the defining measurement set.",
+        "Differential Gain ($S_{dd21}$): For DIDO.",
+        "Single-to-Differential Gain ($S_{sd21}$): For Active Baluns.",
+        "Common-Mode Rejection: ($S_{cc21}$ and conversion parameters like $S_{cd21}$).",
+        "Noise Figure (NF): Differential Noise Figure.",
+        "Linearity: IIP3/P1dB using two-tone tests (handling differential drive levels).",
+        "Balance/Phase Error: Deviation from ideal $180^\\circ$ phase shift between differential output nodes."
+    ]
+}

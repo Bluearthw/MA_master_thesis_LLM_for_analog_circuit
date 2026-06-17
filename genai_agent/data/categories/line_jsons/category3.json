@@ -1,0 +1,9 @@
+{
+    "category": "### 3. RF Mixers",
+    "required_specs": [
+        "Conversion Gain (CG): The ratio of the desired IF output power/voltage to the RF input power/voltage. Measured using Harmonic Balance or PSS analysis.",
+        "Linearity (IIP3, P1dB): Characterizes distortion using a two-tone test at the RF input.",
+        "Noise Figure (NF): Measures the noise added by the mixer (single-sideband or double-sideband).",
+        "Port-to-Port Isolation: S-parameter measurements (e.g., LO-to-RF, RF-to-IF) to quantify signal leakage."
+    ]
+}

@@ -1,0 +1,9 @@
+{
+    "category": "### 12. Current Amplifiers and Current Mirrors",
+    "required_specs": [
+        "DC Transfer Characteristics: Sweep the input DC current and measure the output DC current to find the current transfer ratio (`Iout/Iin`). Sweep the output voltage (while holding input current constant) to determine the output compliance range (the voltage range where `Iout` is stable).",
+        "AC Analysis: Measure small-signal current gain (`Ai = i_out / i_in`). For differential amplifiers, measure both differential current gain (`Aid = i_out / (i_in_p - i_in_n)`) and common-mode current gain (`Acm = i_out / i_in_cm`) to calculate the Current-Mode Rejection Ratio (CMRR).",
+        "Input/Output Impedance: Measure input impedance (`Zin`) and output impedance (`Zout`). An ideal current amplifier has a low input impedance (for mirrors, `~1/gm` of the input device) and a high output impedance (for mirrors, `~rds` of the output device).",
+        "Transient Analysis: Apply an input current step to measure slew rate and settling time of the output current."
+    ]
+}

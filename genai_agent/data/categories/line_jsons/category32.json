@@ -1,0 +1,8 @@
+{
+    "category": "### 32. Rectifiers, Clippers, and Clamps",
+    "required_specs": [
+        "DC Transfer Curve: DC sweep of the input voltage to plot the output voltage, verifying the `Vout = |Vin|` (full-wave) or `Vout = max(0, Vin)` (half-wave) or clamping characteristic.",
+        "Transient Analysis: Apply a time-varying input to observe the rectified/clipped output waveform. Key metrics are crossover distortion (glitches near zero-crossing) and accuracy of the clamp/clip level.",
+        "Frequency Response: Sweep the frequency of the input sinusoid to determine the maximum operating frequency for which the waveshaping remains accurate."
+    ]
+}

@@ -64,7 +64,6 @@ class DUT(NgspiceWrapper):
         self.output_files_folder = "./no_backup/output_files"
         if is_init:
             self.random_name = self.circuit_name # this is for intermediate cir file for RL sizing
-        # self.parse_outputs()
         spec_dict = {}
         # post process raw data
         if self.with_yaml:
@@ -157,62 +156,6 @@ class DUT(NgspiceWrapper):
                 continue
         print(spec_dict)
         return spec_dict
-    
-    def parse_outputs(self):
-        tran_fname = os.path.join(self.output_files_folder, 'tran_'+self.random_name+'.csv')
-        ac_fname = os.path.join(self.output_files_folder, 'ac_'+self.random_name+'.csv')
-        dc_fname = os.path.join(self.output_files_folder, 'dc_'+self.random_name+'.csv')
-        noise_fname = os.path.join(self.output_files_folder, 'noise_'+self.random_name+'.csv')
-        # add these file names in a list
-        self.output_files = [tran_fname, ac_fname, dc_fname, noise_fname]
-        for file in self.output_files:
-            if not os.path.isfile(file):
-                print(f"{file} doesn't exist")
-        tran_raw_outputs = np.genfromtxt(tran_fname, skip_header=1)
-        ac_raw_outputs = np.genfromtxt(ac_fname, skip_header=1)
-        dc_raw_outputs = np.genfromtxt(dc_fname, skip_header=1)
-        noise_raw_outputs = np.genfromtxt(noise_fname, skip_header=1)
-
-        self.time = tran_raw_outputs[:, 0]
-        self.vout_tran = tran_raw_outputs[:, 1]
-        
-        self.freq = ac_raw_outputs[:, 0]
-        vout_real = ac_raw_outputs[:, 1]
-        vout_imag = ac_raw_outputs[:, 2]
-        self.vout_complex = vout_real + 1j*vout_imag
-        
-        self.current = - dc_raw_outputs[1]
-        self.netV = dc_raw_outputs[[3, 5, 7, 9, 11, 13, 15, 17]]
-
-        # print(f"current: {self.current}")
-
-        self.noise = noise_raw_outputs[0]
-        self.noise = np.nan_to_num(self.noise, nan=0.0, posinf=1e6, neginf=-1e6)
-        # print(f"noise: {self.noise}")
-
-        # # --- Plotting ---
-        # plt.figure(figsize=(12, 5))
-
-        # # Transient plot
-        # plt.subplot(1, 2, 1)
-        # plt.plot(self.time, self.vout_tran, label='Vout (Tran)')
-        # plt.xlabel('Time [s]')
-        # plt.ylabel('Voltage [V]')
-        # plt.title('Transient Response')
-        # plt.grid(True)
-        # plt.legend()
-
-        # # AC plot (magnitude in dB)
-        # plt.subplot(1, 2, 2)
-        # plt.semilogx(self.freq, 20*np.log10(np.abs(self.vout_complex)), label='Vout (AC)')
-        # plt.xlabel('Frequency [Hz]')
-        # plt.ylabel('Magnitude [V/V]')
-        # plt.title('AC Response')
-        # plt.grid(True, which='both', linestyle='--')
-        # plt.legend()
-
-        # plt.tight_layout()
-        # plt.show()
     
 
     def get_current(self, path_i=""):

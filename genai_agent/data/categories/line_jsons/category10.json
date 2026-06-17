@@ -1,0 +1,8 @@
+{
+    "category": "### 10. Negative Impedance Converters / Oscillator Cores",
+    "required_specs": [
+        "Output Impedance: AC analysis to plot the real and imaginary parts of the impedance versus frequency. The key metric is verifying a negative real part over the desired frequency range.",
+        "Stability Analysis: Use stability analysis tools (e.g., `stb` in Spectre) to check for potential oscillation by calculating loop gain.",
+        "Oscillation Verification: Transient analysis with a connected resonant tank (e.g., an LC load) to verify oscillation startup, frequency, and amplitude."
+    ]
+}

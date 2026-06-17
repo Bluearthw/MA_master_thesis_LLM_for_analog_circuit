@@ -1,0 +1,10 @@
+{
+    "category": "### 1. Single-Ended Baseband Voltage Amplifiers (Linear Gain Stages)",
+    "required_specs": [
+        "Voltage Gain ($A_v$) & Phase: AC analysis to determine DC gain and the -3dB corner frequency.",
+        "Stability (PM/GM): Critical. Analysis of Phase Margin and Gain Margin to ensure the amplifier does not oscillate when placed in a feedback loop.",
+        "PSRR: AC analysis of supply rejection (often critical in baseband precision circuits). (Note: CMRR is not applicable here as there is no accessible differential input pair).",
+        "Input-Referred Noise: Voltage noise density ($nV/\\sqrt{Hz}$) integration over the bandwidth.",
+        "Slew Rate: Transient analysis with a step response (strictly for settling time, not distortion)."
+    ]
+}

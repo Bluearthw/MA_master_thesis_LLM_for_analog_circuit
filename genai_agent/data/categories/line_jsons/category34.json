@@ -1,0 +1,9 @@
+{
+    "category": "### 34. Passive Filters and Attenuators",
+    "required_specs": [
+        "Frequency Response: AC analysis to plot the transfer function (gain and phase vs. frequency) to characterize it as low-pass, high-pass, band-pass, etc., and find cutoff frequencies.",
+        "S-parameters: For RF applications, measure insertion loss (`S21`) and return loss (`S11`, `S22`).",
+        "Transient Response: Transient analysis with a step or pulse input to measure the time-domain characteristics like rise time, settling time, and overshoot.",
+        "Input/Output Impedance: AC analysis to measure the impedance looking into the input and output ports."
+    ]
+}

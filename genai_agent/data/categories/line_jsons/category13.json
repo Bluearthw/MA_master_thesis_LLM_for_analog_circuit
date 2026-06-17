@@ -1,0 +1,8 @@
+{
+    "category": "### 13. Common-Mode Feedback (CMFB) Circuits",
+    "required_specs": [
+        "DC Transfer Curve: Plot the output control signal versus the input common-mode voltage. This characterizes the sensing gain and the valid input common-mode range for the CMFB circuit itself.",
+        "Loop Stability (in context): For full characterization, the CMFB circuit is simulated within the main amplifier. Stability analysis (e.g., `stb` in Spectre) is run on the CMFB loop to measure its loop gain, phase margin, and bandwidth.",
+        "Settling Time (in context): In a transient simulation with the full amplifier, apply a disturbance that shifts the output common-mode level (e.g., a current pulse injected into an output node) and measure the time it takes for the CMFB loop to restore the correct level."
+    ]
+}

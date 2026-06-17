@@ -1,0 +1,8 @@
+{
+    "category": "### 30. Current Comparators",
+    "required_specs": [
+        "DC Transfer Curve / Hysteresis: Perform a DC or transient analysis to plot the output voltage vs. the input current. Measure the input switching thresholds for rising and falling input currents to determine any hysteresis.",
+        "Input Offset Current: The differential input current required to make the output switch state.",
+        "Propagation Delay: Perform a transient analysis with a step in the input current (with a defined overdrive current) to measure the time from the input crossing the reference threshold to the output reaching 50% of its final value."
+    ]
+}

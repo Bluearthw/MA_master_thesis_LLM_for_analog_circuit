@@ -1,0 +1,12 @@
+{
+    "category": "### 6. DC Voltage References (e.g., Bandgap)",
+    "required_specs": [
+        "DC Output Voltage: The nominal output voltage at a reference temperature and supply.",
+        "Line Regulation: DC sweep of the supply voltage (`VDD`) to measure the change in output voltage (`\u0394Vout / \u0394Vdd`).",
+        "Load Regulation: DC sweep of a load current drawn from the output to measure the change in output voltage (`\u0394Vout / \u0394Iload`).",
+        "Temperature Coefficient (TC): DC sweep of temperature to plot the output voltage and calculate its drift (in ppm/\u00b0C).",
+        "Power Supply Rejection Ratio (PSRR): AC analysis on the supply rail to measure the rejection of supply noise to the output.",
+        "Startup Behavior: Transient analysis with VDD ramping up to ensure the circuit starts correctly and does not settle in an undesired stable state (e.g., zero-current).",
+        "Output Noise: Noise analysis to measure the integrated output voltage noise over a specified bandwidth."
+    ]
+}

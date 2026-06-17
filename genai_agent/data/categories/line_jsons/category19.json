@@ -1,0 +1,9 @@
+{
+    "category": "### 19. Analog Adder / Subtractor / Combiner",
+    "required_specs": [
+        "Transfer Function: Perform AC or S-parameter analysis from each input to the output to verify the gain and bandwidth for each path.",
+        "Linearity (IMD): For baseband adders, apply multiple tones and measure intermodulation distortion.",
+        "Combining Efficiency/Power: For RF power combiners, perform Harmonic Balance analysis to measure output power and efficiency as a function of the input signals' phase difference.",
+        "Transient Verification: Apply signals to all inputs simultaneously and observe the output waveform to verify the combination."
+    ]
+}

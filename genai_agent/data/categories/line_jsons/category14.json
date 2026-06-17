@@ -1,0 +1,10 @@
+{
+    "category": "### 14. Switched-Capacitor (SC) Biasing Circuits and References",
+    "required_specs": [
+        "DC operating point analysis (with clocks running in a PSS simulation) to find the nominal output current/voltage.",
+        "DC sweep of the supply voltage (`VDD`) and clock frequency (`f_clk`) to measure line regulation and frequency dependence.",
+        "DC sweep of temperature to measure the temperature coefficient (TC).",
+        "Transient analysis with VDD ramping up to ensure proper start-up (these circuits often have a zero-current stable state and may require a dedicated startup circuit).",
+        "Measure the transconductance (`gm`) of a designated transistor to verify the \"constant-Gm\" property."
+    ]
+}

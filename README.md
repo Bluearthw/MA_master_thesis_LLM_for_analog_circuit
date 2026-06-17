@@ -1,5 +1,5 @@
 git add .
-git commit -m "use the upadatd prompot also. But does not improve 860
+git commit -m "cate 36 is empty since topology shows first, check start_idx is empty or not
 "
 git push
 

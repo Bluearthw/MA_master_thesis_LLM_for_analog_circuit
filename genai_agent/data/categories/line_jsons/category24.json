@@ -1,0 +1,10 @@
+{
+    "category": "### 24. Digital Combinatorial Logic Gates",
+    "required_specs": [
+        "Transient analysis is the primary simulation.",
+        "Logical Function Verification: Verify that the output corresponds to the correct logical combination of the inputs for all states.",
+        "Propagation Delay: Measure the time from an input transition to the corresponding output transition (e.g., `t_pLH`, `t_pHL`).",
+        "Rise/Fall Times: Measure the 10%-90% or 20%-80% transition times of the output signals.",
+        "Power Consumption: Measure static and dynamic power consumption."
+    ]
+}

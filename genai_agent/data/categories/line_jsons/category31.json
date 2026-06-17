@@ -1,0 +1,9 @@
+{
+    "category": "### 31. Timing Circuits (e.g., 555 Timer)",
+    "required_specs": [
+        "Astable Mode: Measure the frequency, period, and duty cycle of the output waveform.",
+        "Monostable Mode: Apply a trigger pulse to the `Trigger` input and measure the resulting output pulse width.",
+        "Threshold and Trigger Voltage Levels: Verify the exact input voltage levels that cause the output to switch states.",
+        "Output Voltage Levels (`V_OH`, `V_OL`) and current drive capability."
+    ]
+}

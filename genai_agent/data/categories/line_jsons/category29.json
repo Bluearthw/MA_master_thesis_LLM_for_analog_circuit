@@ -1,0 +1,9 @@
+{
+    "category": "### 29. Voltage Comparators and Schmitt Triggers",
+    "required_specs": [
+        "DC Transfer Curve / Hysteresis: Perform a DC or transient analysis to plot `Vout` vs. `Vin`. Measure the input switching thresholds for rising and falling inputs to determine the hysteresis width.",
+        "Input Offset Voltage: The differential input voltage required to make the output switch when it is not in the middle of a hysteresis window.",
+        "Propagation Delay: Perform a transient analysis with a step input (with a defined overdrive voltage) to measure the time from the input crossing the threshold to the output reaching 50% of its final value.",
+        "Power Supply Rejection Ratio (PSRR)."
+    ]
+}

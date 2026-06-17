@@ -1,0 +1,9 @@
+{
+    "category": "### 17. Phase-Locked Loops (PLL)",
+    "required_specs": [
+        "Transient analysis: Apply a step in the input frequency to observe the locking process and measure the lock time.",
+        "Lock Range / Capture Range: Sweep the input frequency to determine the frequency range over which the PLL can acquire and maintain phase lock.",
+        "Output Jitter / Phase Noise: Measure the timing variations and spectral purity of the output clock using transient analysis (for jitter) or PSS/PNOISE analysis (for phase noise).",
+        "Reference Spurs: Measure the magnitude of unwanted spectral components at offsets equal to the reference frequency in the output spectrum using PSS/Harmonic Balance analysis."
+    ]
+}

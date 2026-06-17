@@ -1,0 +1,9 @@
+{
+    "category": "### 39. Output Drivers & Power Amplifiers (Push-Pull / Class B / AB)",
+    "required_specs": [
+        "Total Harmonic Distortion (THD): Critical. Transient analysis + Fourier Transform (FFT) to detect crossover distortion and clipping. Small-signal AC analysis hides these faults.",
+        "Efficiency (PAE / Drain Eff): Measurement of Power Out vs. DC Power Consumed.",
+        "Load-Pull: (For RF PAs) Varying load impedance to find optimal power/efficiency contours.",
+        "Quiescent Current: DC sweep to tune the \"dead zone\" in Class AB stages."
+    ]
+}

@@ -1,0 +1,9 @@
+{
+    "category": "### 16. Switched-Capacitor (SC) / Switched-Resistor (SR) Amplifiers & Integrators",
+    "required_specs": [
+        "Gain Accuracy: Measured in transient analysis by applying a known DC input and measuring the settled DC output at the end of the amplification phase.",
+        "Settling Time: The time required for the output to settle to within a specified error band of its final value during the amplification phase.",
+        "Charge Injection, Clock Feedthrough & Residual Offset: Measured as the offset error at the output, typically with the inputs grounded.",
+        "Frequency Response: Characterized using PSS/PAC analysis to get the discrete-time transfer function."
+    ]
+}

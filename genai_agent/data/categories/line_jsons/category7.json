@@ -1,0 +1,11 @@
+{
+    "category": "### 7. Differential-to-Single-Ended Amplifiers (Operational Amplifiers / DISO)",
+    "required_specs": [
+        "Open-Loop Voltage Gain ($A_{vol}$): AC magnitude and phase response ($V_{out} / V_{dm}$).",
+        "Input Common-Mode Range (ICMR): The range of DC input voltages over which the input differential pair remains in saturation and the circuit functions correctly.",
+        "Common-Mode Rejection Ratio (CMRR): The ratio of differential gain to common-mode gain. This is a critical metric for this class, quantifying how well the circuit rejects noise present on both inputs.",
+        "Power Supply Rejection Ratio (PSRR): AC analysis of the supply rail.",
+        "Output Swing: The linear voltage range of the single-ended output (limited by supply rails and saturation voltages of the output transistors).",
+        "Slew Rate: Transient analysis with a large-signal step to measure the maximum rate of change of the output voltage."
+    ]
+}

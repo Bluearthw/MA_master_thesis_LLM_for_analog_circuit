@@ -1,0 +1,8 @@
+{
+    "category": "### 8. Variable-Gain Amplifiers (VGA/PGA) and Analog Multipliers",
+    "required_specs": [
+        "Gain Control Characterization: Perform an AC analysis at each step of the control signal (swept voltage/current or stepped codes) to plot the amplifier's gain vs. the control value. For digital PGAs, this is used to measure gain step size and gain error.",
+        "Bandwidth: Measure the -3dB frequency at various gain settings (e.g., min, mid, max gain).",
+        "Linearity (IIP3, P1dB) and Noise Figure (NF): Characterize at various gain settings. For analog multipliers, linearity is a key metric and is often measured using a two-tone test with signals applied to both inputs."
+    ]
+}

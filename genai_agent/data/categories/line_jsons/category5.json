@@ -1,0 +1,11 @@
+{
+    "category": "### 5. Sample-and-Hold / Track-and-Hold Circuits",
+    "required_specs": [
+        "Acquisition Time: In transient analysis, the time required during the track/sample phase for the held voltage to settle within a specified error band of the input voltage.",
+        "Hold Step (Pedestal Error): The voltage error introduced at the output when transitioning from track to hold mode, caused by charge injection from the switch and clock feedthrough via parasitic capacitance.",
+        "Droop Rate: The rate at which the output voltage changes during the hold phase due to leakage currents discharging the hold capacitor.",
+        "Aperture Jitter/Uncertainty: The time variation in the exact sampling instant, which translates voltage-domain noise for high-frequency inputs. It is affected by both clock jitter and signal-dependent switch delays.",
+        "Signal Feedthrough: The amount of input signal that couples to the output during the hold phase.",
+        "Distortion (SFDR, THD): Non-linearity caused by signal-dependent charge injection and variations in the switch's on-resistance."
+    ]
+}

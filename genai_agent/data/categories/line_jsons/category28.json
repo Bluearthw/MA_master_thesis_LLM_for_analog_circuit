@@ -1,0 +1,10 @@
+{
+    "category": "### 28. Switching-Mode RF Power Amplifiers (e.g., Class D, E, F)",
+    "required_specs": [
+        "Power Added Efficiency (PAE) and Drain Efficiency (DE): This is the primary metric, measured using Harmonic Balance or a long transient simulation.",
+        "Output Power: The power delivered to the fundamental frequency component at the load.",
+        "Waveform Verification: Transient analysis to inspect the drain voltage and current waveforms of the switching transistor to verify optimal switching conditions (e.g., Zero Voltage Switching (ZVS) or Zero Current Switching (ZCS)).",
+        "Device Voltage Stress: The peak voltage across the main switching device, a critical reliability metric.",
+        "Harmonic Content/Suppression: The power level of harmonics at the output, measured with PSS/Harmonic Balance."
+    ]
+}

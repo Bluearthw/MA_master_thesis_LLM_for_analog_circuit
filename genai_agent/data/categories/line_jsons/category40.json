@@ -1,0 +1,10 @@
+{
+    "category": "### 40. Fully Differential Amplifiers (DIDO)",
+    "required_specs": [
+        "Differential-Mode Gain ($A_{dm}$): AC analysis of $(V_{outp} - V_{outn}) / (V_{inp} - V_{inn})$.",
+        "Common-Mode Gain ($A_{cm}$): The gain from a common-mode input to a common-mode output. Ideally close to zero or determined by the CMFB loop response.",
+        "Output Balance: Verification that $V_{outp}$ and $V_{outn}$ are 180\u00b0 out of phase.",
+        "CMFB Loop Stability: Stability analysis (`stb`) performed specifically on the common-mode feedback loop to ensure the output DC level does not oscillate.",
+        "Settling Time: Measuring how fast the output differential voltage settles and how fast the common-mode level settles after a disturbance."
+    ]
+}

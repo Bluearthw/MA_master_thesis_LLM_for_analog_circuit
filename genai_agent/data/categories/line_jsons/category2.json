@@ -1,0 +1,10 @@
+{
+    "category": "### 2. Oscillators and Voltage-Controlled Oscillators (VCOs)",
+    "required_specs": [
+        "Oscillation Frequency: Measured from transient analysis or PSS (Periodic Steady-State) analysis.",
+        "Tuning Range & Gain (for VCOs): Plot the output frequency versus the control voltage. The slope of this curve is the VCO gain (`K_O` in Hz/V or rad/s/V).",
+        "Phase Noise: PSS/PNOISE analysis to measure the spectral purity of the output signal. This is a critical metric for oscillators.",
+        "Output Swing / Amplitude: The peak-to-peak voltage of the output waveform.",
+        "Power Consumption: And its variation across the tuning range."
+    ]
+}

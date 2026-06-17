@@ -1,0 +1,8 @@
+{
+    "category": "### 35. Active Inductors / Gyrators",
+    "required_specs": [
+        "Impedance vs. Frequency: AC analysis to plot the real and imaginary parts of the input impedance (`Zin`) versus frequency.",
+        "Equivalent Inductance (`L_eq`): Calculated from the imaginary part of the impedance (`imag(Zin) / (2pif)`) in the operating frequency range.",
+        "Quality Factor (Q): Calculated from the ratio of the imaginary to the real part of the impedance (`imag(Zin) / real(Zin)`)."
+    ]
+}

@@ -1,0 +1,10 @@
+{
+    "category": "### 11. Transconductance Amplifiers (OTA)",
+    "required_specs": [
+        "Measurements:",
+        "AC analysis to measure transconductance gain (`Gm = Iout / Vin`), -3dB bandwidth, and input/output impedance.",
+        "DC sweep of the input voltage to characterize the output current's linear range.",
+        "Transient analysis with an input voltage step to measure the slew rate of the output current and settling time.",
+        "Noise analysis to measure input-referred voltage noise density."
+    ]
+}
