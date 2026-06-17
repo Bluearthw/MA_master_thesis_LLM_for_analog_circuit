@@ -83,16 +83,8 @@ else:
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
         # print("###trimmed_spec_table",trimmed_spec_table)
 
-        prompt_dict = agent_utils.get_workflow_prompts_json()# should update for every circuit, in the future, some flag to control
-        general_rules = "\n".join(prompt_dict.get('general_rules'))# list
-        category_rules = prompt_dict.get(f'category_{category_num}')# dict? obj?
-        if category_rules is None:
-             #add
-             pass
-        category_gen_rules = "\n".join(category_rules.get('generation_guidelines', []))# list
-        category_debug_rules = "\n".join(category_rules.get('debug_knowledge_base', []))# list
-        cat_prompt_path = path_prompts + f"prompt_{category_num}.md"
-        is_cat_propmt_exist = os.path.isfile(cat_prompt_path)
+        general_rules, category_gen_rules, category_debug_rules, is_cat_propmt_exist, cat_prompt_path = agent_utils.prepare_workflow_prompts_json(category_num)
+
         if not is_cat_propmt_exist:
              workflow.generate_prompt(cat_prompt_path, cat_json)
              sys.exit(0)

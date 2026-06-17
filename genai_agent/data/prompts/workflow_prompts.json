@@ -37,5 +37,9 @@
             "Simulation timed out|empty netlist|singular matrix|no simulations run": "Check for floating nodes (nodes with only current sources or capacitors), reduce unrealistic bias currents or frequency ranges, and ensure the netlist is formatted with physical newlines instead of literal '\\n' sequences.",
             "Simulation timed out|convergence|time-step too small|singular matrix": "Verify bias current source directions (source from VDD, sink to VSS), ensure total I*R drops do not exceed VDD, and reduce the upper frequency limit of AC/Noise analyses to 10GHz."
         }
+    },
+    "category_2": {
+        "generation_guidelines": [],
+        "debug_knowledge_base": {}
     }
 }

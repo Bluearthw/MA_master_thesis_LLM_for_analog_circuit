@@ -118,6 +118,30 @@ def get_workflow_prompts_json():
     dict = file_utils.get_dict_from_json(prompts_path)
     
     return dict
+def save_workflow_prompts_json(prompt_dict, cat_key):
+    # 1. Define the pristine structure for the new circuit category
+    category_rules = {
+        "generation_guidelines": [],
+        "debug_knowledge_base": {}
+    }
+    # 2. CRITICAL: Commit this placeholder back into the master prompt dictionary
+    prompt_dict[cat_key] = category_rules
+    prompts_path = local_config.path_prompts + "workflow_prompts.json"
+    file_utils.save_dict_to_json(prompt_dict, prompts_path)
+    return category_rules
+
+def prepare_workflow_prompts_json(category_num):
+    prompt_dict = get_workflow_prompts_json()# should update for every circuit, in the future, some flag to control
+    general_rules = "\n".join(prompt_dict.get('general_rules', []))# list
+    cat_key = f'category_{category_num}'
+    category_rules = prompt_dict.get(cat_key)# dict? obj?
+    if category_rules is None:
+        category_rules = save_workflow_prompts_json(prompt_dict, cat_key)
+    category_gen_rules = "\n".join(category_rules.get('generation_guidelines', []))# list
+    category_debug_rules = "\n".join(category_rules.get('debug_knowledge_base', []))# list
+    cat_prompt_path = local_config.path_prompts + f"prompt_{category_num}.md"
+    is_cat_propmt_exist = os.path.isfile(cat_prompt_path)
+    return general_rules, category_gen_rules, category_debug_rules, is_cat_propmt_exist, cat_prompt_path
 
 def check_current_simulation(spec_sims):
     for spec_sim in spec_sims:

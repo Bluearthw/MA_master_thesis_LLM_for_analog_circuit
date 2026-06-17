@@ -1,5 +1,5 @@
 git add .
-git commit -m "dut is possible. before a big change
+git commit -m "check missing things
 "
 git push
 
