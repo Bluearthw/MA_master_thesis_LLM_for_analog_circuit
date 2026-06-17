@@ -1,3 +1,4 @@
+import os
 import sys
 import json
 
@@ -112,7 +113,7 @@ def update_master_registry(category_num, agent_output_str):
     file_utils.save_dict_to_json(master_kb, 'categories.json')
     print(f"Successfully compressed and integrated knowledge for category {category_num}!")
 
-def get_workflow_prompts():
+def get_workflow_prompts_json():
     prompts_path = local_config.path_prompts + "workflow_prompts.json"
     dict = file_utils.get_dict_from_json(prompts_path)
     
@@ -123,3 +124,4 @@ def check_current_simulation(spec_sims):
         if spec_sim.spec_id == 22:#current is there:
             return True
     return False
+

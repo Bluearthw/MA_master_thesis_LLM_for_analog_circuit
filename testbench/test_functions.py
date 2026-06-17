@@ -340,7 +340,7 @@ def test_clean_before_CMFB(nl):
     print(nl2)
 
 def test_cmfb_agent(nl):
-    response = create_prompt_agent.cmfb_agent(nl,182)
+    response = create_prompt_agent.create_prompt_flow(nl,182)
     print(response)
 # region test
 start_time = time.perf_counter()

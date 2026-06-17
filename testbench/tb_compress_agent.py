@@ -15,7 +15,7 @@ category_num = gen_utils.find_cat_from_num(cir_num)
 path_output_num = local_config.path_output + f"{cir_num}/"
 path_metadata = path_output_num + "debug_metadata.json"
 debug_json = file_utils.get_dict_from_json(path_metadata)
-prompt_dict = agent_utils.get_workflow_prompts()# should update for every circuit, in the future, some flag to control
+prompt_dict = agent_utils.get_workflow_prompts_json()# should update for every circuit, in the future, some flag to control
 general_rules = "\n".join(prompt_dict.get('general_rules'))
 print("##debug_json =",debug_json)
 

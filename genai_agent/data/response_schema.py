@@ -23,9 +23,8 @@ class Struct_debug(BaseModel):
     fix_info: str = Field(description="A concise summary of the final changes made. This will be archived into the permanent knowledge base."    )
 
 
-class Struct_cmfb_agent(BaseModel):
-    netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
-    spec_sims : Struct_specs_sim = Field(description="CMFB stability. id is 20")
+class Struct_create_prompt(BaseModel):
+    prompt: str = Field(description="The prompt for the netlist generation agent.")
 
 class GenerationGuidelinesUpdates(BaseModel):
         action: Literal["APPEND", "MODIFY", "NONE"] = Field(description="Action to take on the generation guidelines.")

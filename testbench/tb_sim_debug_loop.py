@@ -58,7 +58,7 @@ noise v(VOUT1) Vdd dec 10 1 1T
 wrdata ./genai_agent/output/860/noise.csv onoise_total
 .endc
 .end"""
-prompt_dict = agent_utils.get_workflow_prompts()# should update for every circuit, in the future, some flag to control
+prompt_dict = agent_utils.get_workflow_prompts_json()# should update for every circuit, in the future, some flag to control
 general_rules = "\n".join(prompt_dict.get('general_rules'))
 is_diff = False
 is_CMFB = False

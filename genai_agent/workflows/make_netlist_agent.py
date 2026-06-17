@@ -36,7 +36,7 @@ def netlist_builder(netlist, category_json, category_num, cir_num=4, trimmed_spe
                                                             netlist=netlist,
                                                             is_diff = is_diff,
                                                             trimmed_spec_table = trimmed_spec_table,
-                                                            category = category_json,
+                                                            category_str = category_json,
                                                             cir_num = cir_num
                                                             )
     if category_gen_rules != "":

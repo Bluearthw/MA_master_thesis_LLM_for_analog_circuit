@@ -8,6 +8,10 @@ from ngspice_interface import dut_testbench
 from genai_agent.workflows.debug_agent import debug_agent_flow
 from genai_agent.workflows import make_netlist_agent
 from genai_agent.workflows import compress_err_info_agent
+from genai_agent.workflows import create_prompt_agent
+import os
+
+
 def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False, general_rules = None, category_debug_rules = None):
     counter = 0
     debug_history = []
@@ -142,3 +146,11 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
     data_for_dut_yaml = (is_differential_output, has_input, target_dc_vout)
 
     return results_original, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml
+
+
+
+def generate_prompt(cat_prompt_path, category_json):
+    create_prompt_agent.create_prompt_flow(category_json)
+    if not os.path.isfile(cat_prompt_path):
+        print("")
+    return ""
