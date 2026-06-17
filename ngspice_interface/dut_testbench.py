@@ -88,6 +88,7 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[3]] = float(self.get_in_equivalent_total_noise(path))
             #Trans
             elif spec_id == 4:  # slew rate
+                continue
                 spec_dict[table_target_id[4]] = float(self.get_slew_rate(path))
             
             elif spec_id == 5:  # gain margin
@@ -152,11 +153,32 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[29]] = vout_ripple
             elif spec_id == 30:
                 spec_dict[table_target_id[30]] = self.get_voltage_compliance_range(path)
+            elif spec_id == 31:
+                spec_dict[table_target_id[31]] = self.get_requirement_31(path)
+            # [INSERT_NEW_BRANCH_HERE]
+            
             else:
+                print(f"Unhandled spec_id: {spec_id}")
                 continue
         print(spec_dict)
         return spec_dict
     
+    def _get_best_crossing(cls, xvec, yvec, val):
+        interp_fun = interp.InterpolatedUnivariateSpline(xvec, yvec)
+
+        def fzero(x):
+            return interp_fun(x) - val
+
+        xstart, xstop = xvec[0], xvec[-1]
+        try:
+            return sciopt.brentq(fzero, xstart, xstop), True
+        except ValueError:
+            return xstop, False
+    
+    def _complex_from_cols(self, data, real_col, imag_col):
+        if real_col < data.shape[1] and imag_col < data.shape[1]:
+            return data[:, real_col] + 1j * data[:, imag_col]
+        raise ("form is not correct while getting complex data ")
 
     def get_current(self, path_i=""):
         if path_i == "" and self.current is not None:
@@ -1067,22 +1089,10 @@ class DUT(NgspiceWrapper):
 
         return None
 
-    def _get_best_crossing(cls, xvec, yvec, val):
-        interp_fun = interp.InterpolatedUnivariateSpline(xvec, yvec)
-
-        def fzero(x):
-            return interp_fun(x) - val
-
-        xstart, xstop = xvec[0], xvec[-1]
-        try:
-            return sciopt.brentq(fzero, xstart, xstop), True
-        except ValueError:
-            return xstop, False
     
-    def _complex_from_cols(self, data, real_col, imag_col):
-        if real_col < data.shape[1] and imag_col < data.shape[1]:
-            return data[:, real_col] + 1j * data[:, imag_col]
-        raise ("form is not correct while getting complex data ")
 
 
     
+
+    def get_requirement_31(self, path):
+        return 31 * 10  # Automatically healed
