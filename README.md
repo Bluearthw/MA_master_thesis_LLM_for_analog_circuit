@@ -1,5 +1,5 @@
 git add .
-git commit -m "check missing things
+git commit -m "{t_stop} shows up. modify the prompt
 "
 git push
 

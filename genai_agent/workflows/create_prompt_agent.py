@@ -20,12 +20,15 @@ You are an AI Prompt Engineer and Senior Analog IC Verification Architect. Your 
 3. **Formulate Topology Rules**: Translate the `raw_category_prose` into structural design guidelines (e.g., how ports should be handled, whether it typically uses Differential Outputs or Common-Mode Feedback (CMFB)).
 4. **Enforce Variables**: Ensure the final prompt text naturally contains the placeholders needed by the runtime runner: `{netlist}`, `{cir_num}`, `{trimmed_spec_table}`, `{category_str}`, `{line_wrdata_path_num}`, and `{general_rules}`. Example:`You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs to look up : {trimmed_spec_table}, and a brief requirement about this type of circuit : {category_str}. \\n\\nAlso, previous about differential output check is given: {is_diff}. If it is True: 1, the netlist is very likely to be differential output. 2, do not use DC gain but DM gain for measurement!\\n\\nYour goal is to ......`
 5. **Last Line**: The last line should be {general_rules}. Example:`### General Netlist Rules:\\n 0. **Circuit requirements**: ...... 1. **Differential check**: ...... 2. **CMFB stability**: ...... {general_rules} `
-
+6. **Dynamic Transient Time Estimation**: Instruct the downstream agent to calculate `t_step` and `t_stop` dynamically based on the frequency boundaries or bandwidth requirements of the circuit. Explicitly provide it with the engineering rules of thumb:
+   - Set the total simulation time (stop time) to cover at least 5 to 10 full cycles of the lowest operational frequency or signal period ($t_{stop} = 5 / f$).
+   - Set the step size small enough to capture at least 100 points per cycle of the highest frequency component to prevent simulator aliasing ($t_{step} = 1 / (100 \times f)$).
+   - Require it to write out the concrete calculated values (e.g., `   - Simulation: tran 50n 100u\\n    - Output: {line_wrdata_path_num}/tran_startup.csv v(VOUT1)`) instead of using variables.
 # Output Format
 Your response must be a clean, unquoted text block containing the finalized markdown system prompt, which will be used by next agent to generate netlists to do simulations."""
     try:
         struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_create_prompt)
-        print("==struc_netlist_builder", struc)
+        print("##struc create prompt= ", struc)
         return struc
     except Exception as e:
         # Re-raise so upstream code can decide how to handle persistent failures.
