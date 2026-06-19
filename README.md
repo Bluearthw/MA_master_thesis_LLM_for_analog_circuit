@@ -1,6 +1,5 @@
 git add .
-git commit -m "spec table saved to json
-"
+git commit -m "1 table is updated, now lets see other tables
 git push
 
 

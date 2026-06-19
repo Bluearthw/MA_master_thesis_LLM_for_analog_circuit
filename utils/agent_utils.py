@@ -149,3 +149,39 @@ def check_current_simulation(spec_sims):
             return True
     return False
 
+def update_spec_json(spec_dict, new_spec_list, spec_table_path: str | None = None):
+    """Add new specification names to the spec-id mapping.
+
+    - `spec_dict` may have integer or string keys representing spec ids.
+    - `new_spec_list` is an iterable of spec name strings to add.
+    - If `spec_table_path` is provided, the updated table is saved to that path
+      with stringified keys (JSON-compatible).
+
+    Returns the updated spec_dict (with integer keys).
+    """
+    # Normalize keys to ints and find current max id
+    try:
+        existing_ids = [int(k) for k in spec_dict.keys()]
+    except Exception:
+        # Fallback: if keys are already ints or something odd, coerce conservatively
+        existing_ids = [k for k in spec_dict.keys() if isinstance(k, int)]
+
+    max_id = max(existing_ids) if existing_ids else -1
+
+    # Build a set of existing spec names to avoid duplicates
+    existing_names = set(spec_dict.values())
+
+    # Add each new spec if not already present
+    for spec_name in (new_spec_list or []):
+        if spec_name in existing_names:
+            continue
+        max_id += 1
+        spec_dict[max_id] = spec_name
+        existing_names.add(spec_name)
+
+    # Optionally persist to disk (use string keys for JSON)
+    if spec_table_path:
+        jsonable = {str(k): v for k, v in spec_dict.items()}# though json.dumps transform also
+        file_utils.save_dict_to_json(jsonable, spec_table_path)
+
+    return spec_dict

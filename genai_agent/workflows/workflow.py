@@ -1,3 +1,4 @@
+import shutil
 from genai_agent.data import local_config
 from utils import gen_utils 
 from utils import file_utils 
@@ -152,7 +153,22 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
 
 def prepare_new_type(cat_prompt_path, category_json):
     print("generating prompt...")
-    struct = create_prompt_agent.create_prompt_flow(category_json)
+    spec_table_path = ".\genai_agent\data\spec_tables\spec_tables_combined.json"
+    backup_spec_table_path = ".\genai_agent\data\spec_tables\backup\spec_tables_combined.json"
+    shutil.copy(spec_table_path, backup_spec_table_path)
+    spec_id_table = file_utils.get_dict_from_json_with_int_keys(spec_table_path)
+    # enter agent
+    struct = create_prompt_agent.create_prompt_spec_table_flow(category_json, spec_id_table)
+    #prompt
     file_utils.save_str_to_file(struct.prompt, cat_prompt_path)
     if not os.path.isfile(cat_prompt_path):
         print("still not see it")
+    
+    # spec id table
+    missing_specs = struct.missing_specifications_to_add
+    impossible_specs = struct.impossible_specifications
+    print(impossible_specs)
+    updated_spec_id_table = agent_utils.update_spec_json(spec_id_table, missing_specs)
+    
+
+    return updated_spec_id_table

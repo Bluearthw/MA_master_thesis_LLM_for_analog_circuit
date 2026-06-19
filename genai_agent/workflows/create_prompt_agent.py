@@ -1,3 +1,4 @@
+import json
 from google import genai
 import sys
 
@@ -8,20 +9,31 @@ from utils import agent_utils
 from genai_agent.data import local_config
 from genai_agent.data import response_schema
 
-def create_prompt_flow(category_json, spec_id_table):
-    contents = f"Given the simple category description: {category_json}\n" + """# Role & Purpose
-You are an AI Prompt Engineer and Senior Analog IC Verification Architect. Your job is to take a raw analog circuit category description, compile a precise, production-grade System Prompt for a downstream NGSpice Netlist Generation Agent """ + f"and update a specification ID table {spec_id_table} if required specs are not there."+ """
+def create_prompt_spec_table_flow(category_json, spec_id_table):
+    category_json = json.dumps(category_json, indent=4)
+    spec_id_table = json.dumps(spec_id_table, indent=4)
+    contents = f"""You are an AI Prompt Engineer and Senior Analog IC Verification Architect. Your job is to analyze a raw analog circuit category description, identify missing specifications, and compile a precise System Prompt for a downstream NGSpice Netlist Generation Agent.
+
+# Input Data
+- Target Category Requirements:
+{category_json}
+
+- Current System Specification Reference Table:
+{spec_id_table}
+
 # Task Instructions
-1. **Analyze Input**: Read the provided category information.
-2. **Synthesize Simulation Block**: For every item in `required_specs`, use your expert knowledge of electrical engineering to draft an explicit NGSpice test execution case. You must specify:
-   - The type of simulation analysis needed (`.ac`, `.dc`, `.tran`, `.op`).
-   - The concrete `.control` block formatting syntax using `{line_wrdata_path_num}` for the output file naming convention. `{f_end}` is also used for AC. Example: `5. **Power Supply Rejection Ratio (PSRR)**: AC analysis on supply ......\\n   - Superimpose small AC signal on VDD: Vdd VDD 0 dc=1.2 ac=0.01\\n   - Simulation: ac dec 10 1 {f_end}\\n   - Output: {line_wrdata_path_num}/ac_psrr.csv v(VOUT1)`
-3. **Formulate Topology Rules**: Translate the `raw_category_prose` into structural design guidelines (e.g., how ports should be handled, whether it typically uses Differential Outputs or Common-Mode Feedback (CMFB)).
-4. **Enforce Variables**: Ensure the final prompt text contains only the placeholders needed by the runtime runner. Placeholders given: `{netlist}`, `{cir_num}`, `{trimmed_spec_table}`, `{category_str}`, `{line_wrdata_path_num}`, `{f_end}`, `{general_rules}` and maybe `{is_diff}`. Example:`You are an expert Analog IC Designer and NGSpice Specialist. You are given an incomplete netlist : {netlist}, a circuit number {cir_num}, a table of specifications and their IDs to look up : {trimmed_spec_table}, and a brief requirement about this type of circuit : {category_str}. \\n\\nAlso, previous about differential output check is given: {is_diff}. If it is True: 1, the netlist is very likely to be differential output. 2, do not use DC gain but DM gain for measurement!\\n\\nYour goal is to ......`
-5. **Last Line**: The last line should be {general_rules}. Example:`### General Netlist Rules:\\n 0. **Circuit requirements**: ...... 1. **Differential check**: ...... 2. **CMFB stability**: ...... {general_rules} `
-6. **Enforce Raw Data Exporting (No SPICE .meas)**: Instruct the downstream netlist agent that it must ONLY generate simulation commands (`.ac`, `.dc`, `.tran`) and use `wrdata` statements to export the raw node voltages or currents to CSV files. Explicitly forbid it from using SPICE measurement commands (e.g., `.meas`, `.measure`). Explain that all mathematical processing, calculations, and specification evaluations are strictly handled downstream by your Python post-processing infrastructure.
-# Output Format
-Your response must be a clean, unquoted text block containing the finalized markdown system prompt, which will be used by next agent to generate netlists to do simulations. and a correct specification ID table containing all required specifications."""
+1. **Analyze Input**: Read the target category requirements and cross-reference them with the system specification table.
+2. **Identify Missing Specs**: If the requirements demand an electrical measurement not found in the reference table, flag it. If the spec is physically impossible to capture in a SPICE netlist environment (e.g., IC cost, physical layout area), flag it as impossible.
+3. **Synthesize Simulation Blocks**: For every valid required specification, draft an explicit NGSpice test execution instruction block. Every case must specify:
+   - The exact simulation analysis type (.ac, .dc, .tran, .op).
+   - A strict constraint to ONLY export raw data vectors using 'wrdata' to the destination folder format: '{{line_wrdata_path_num}}/<filename>.csv'.
+   - Absolutely forbid the downstream agent from using SPICE '.meas' or '.measure' commands.
+4. **Enforce Global Variables**: The generated prompt must strictly treat the following tokens as template literals. Do not replace them with values: '{{netlist}}', '{{cir_num}}', '{{trimmed_spec_table}}', '{{category_str}}', '{{line_wrdata_path_num}}', '{{f_end}}', '{{is_diff}}', and '{{general_rules}}'.
+5. **Prompt Termination**: The final line of the generated netlist agent prompt must end explicitly with the token '{{general_rules}}'.
+
+# Output Requirement
+Return your analysis completely mapped to the designated structural schema, ensuring the 'prompt' field contains the full markdown text block."""    
+    
     try:
         struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_prepare_new_type)
         print("##struc create prompt= ", struc)

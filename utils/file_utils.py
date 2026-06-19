@@ -58,9 +58,9 @@ def save_file_overwrite(path, content):# the file type is defined in path
 def save_str_to_file(str, path = local_config.path_output + "final_netlist.cir"):
     with open(path, "w") as f:
         f.write(str)
-def save_dict_to_json(dict, path):
+def save_dict_to_json(dict_to_save, path):
     with open(path, "w") as f:
-        json.dump(dict, f, indent=4)
+        json.dump(dict_to_save, f, indent=4)
 
 # endregion for saving ############################
 

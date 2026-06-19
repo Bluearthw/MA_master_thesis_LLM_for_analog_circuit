@@ -25,7 +25,10 @@ class Struct_debug(BaseModel):
 
 class Struct_prepare_new_type(BaseModel):
     prompt: str = Field(description="The prompt for the netlist generation agent.")
-    new_spec_id_table: Dict[int, str] = Field(description="The updated ID of the specification.")
+    missing_specifications_to_add: List[str] = Field(
+        description="List of raw specification names found in the requirement but missing from the spec_id_table."
+    )
+    impossible_specifications: List[str] = Field(description="List of specifications that cannot be simulated in NGspice.")
 
 class GenerationGuidelinesUpdates(BaseModel):
         action: Literal["APPEND", "MODIFY", "NONE"] = Field(description="Action to take on the generation guidelines.")
