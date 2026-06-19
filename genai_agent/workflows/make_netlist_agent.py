@@ -10,8 +10,8 @@ from genai_agent.data import response_schema
 from utils import gen_utils as gen_utils
 from utils import agent_utils
 from utils import file_utils
-
-def netlist_builder(netlist, category_json, category_num, cir_num=4, trimmed_spec_table=None, is_diff=False, general_rules=None, category_gen_rules=None):
+#netlist builder
+def make_netlist_agent_flow(netlist, category_json, category_num, cir_num=4, trimmed_spec_table=None, is_diff=False, general_rules=None, category_gen_rules=None):
     line_wrdata_path_num = "wrdata " + local_config.path_output + str(cir_num)
     
     f_end= "1T"

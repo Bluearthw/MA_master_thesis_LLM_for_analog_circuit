@@ -185,3 +185,6 @@ def update_spec_json(spec_dict, new_spec_list, spec_table_path: str | None = Non
         file_utils.save_dict_to_json(jsonable, spec_table_path)
 
     return spec_dict
+
+def update_rest_table(struc):
+    return ""

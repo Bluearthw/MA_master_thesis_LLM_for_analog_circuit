@@ -22,7 +22,24 @@ class Struct_debug(BaseModel):
     spec_sims: List[Struct_specs_sim] = Field(description="The list of simulations needed and why"    )
     fix_info: str = Field(description="A concise summary of the final changes made. This will be archived into the permanent knowledge base."    )
 
+class NewSpecificationItem(BaseModel):
+    target_id_name: str = Field(
+        description="The standardized string ID name for the spec (snake_case, e.g., 'slew_rate')."
+    )
+    aliases: List[str] = Field(
+        description="A list of lowercase text aliases that engineers might use to refer to this spec."
+    )
+    default_value: float = Field(
+        description="A mathematically reasonable default float value for this specification type in calculations."
+    )
+    should_minimize: bool = Field(
+        description="Set to True if this metric should be minimized (like noise, settling time). Set to False if it should be maximized (like gain, bandwidth)."
+    )
 
+class Struct_Update_Tables(BaseModel):
+    new_specifications: List[NewSpecificationItem] = Field(
+        description="A structured list containing all newly discovered specifications to append to the system databases."
+    )
 class Struct_prepare_new_type(BaseModel):
     prompt: str = Field(description="The prompt for the netlist generation agent.")
     missing_specifications_to_add: List[str] = Field(

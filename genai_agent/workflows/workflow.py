@@ -10,6 +10,7 @@ from genai_agent.workflows.debug_agent import debug_agent_flow
 from genai_agent.workflows import make_netlist_agent
 from genai_agent.workflows import compress_err_info_agent
 from genai_agent.workflows import create_prompt_agent
+from genai_agent.workflows import update_spec_table_agent
 import os
 
 
@@ -106,7 +107,7 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
     print("generating netlist...")
     # If a category number is provided, use the central netlist builder
     if category_num is not None:
-        struc = make_netlist_agent.netlist_builder(netlist=netlist, category_json=cat_json, category_num=category_num, cir_num=cir_num, trimmed_spec_table=trimmed_spec_table, is_diff=is_diff, general_rules=general_rules, category_gen_rules=category_gen_rules)
+        struc = make_netlist_agent.make_netlist_agent_flow(netlist=netlist, category_json=cat_json, category_num=category_num, cir_num=cir_num, trimmed_spec_table=trimmed_spec_table, is_diff=is_diff, general_rules=general_rules, category_gen_rules=category_gen_rules)
     else:
         raise ValueError("Category number is required.")
 
@@ -158,7 +159,7 @@ def prepare_new_type(cat_prompt_path, category_json):
     shutil.copy(spec_table_path, backup_spec_table_path)
     spec_id_table = file_utils.get_dict_from_json_with_int_keys(spec_table_path)
     # enter agent
-    struct = create_prompt_agent.create_prompt_spec_table_flow(category_json, spec_id_table)
+    struct = create_prompt_agent.create_prompt_spec_table_agent_flow(category_json, spec_id_table)
     #prompt
     file_utils.save_str_to_file(struct.prompt, cat_prompt_path)
     if not os.path.isfile(cat_prompt_path):
@@ -169,6 +170,9 @@ def prepare_new_type(cat_prompt_path, category_json):
     impossible_specs = struct.impossible_specifications
     print(impossible_specs)
     updated_spec_id_table = agent_utils.update_spec_json(spec_id_table, missing_specs)
+    struc_update_table = update_spec_table_agent.update_table_agent_flow(missing_specs)
+    agent_utils.update_rest_table(struc_update_table)
     
-
     return updated_spec_id_table
+
+
