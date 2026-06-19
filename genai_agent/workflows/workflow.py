@@ -150,7 +150,7 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
 
 
 
-def generate_prompt(cat_prompt_path, category_json):
+def prepare_new_type(cat_prompt_path, category_json):
     print("generating prompt...")
     struct = create_prompt_agent.create_prompt_flow(category_json)
     file_utils.save_str_to_file(struct.prompt, cat_prompt_path)

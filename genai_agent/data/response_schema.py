@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Dict
 class Struct_specs_sim(BaseModel):
     spec: str = Field(description="The name of the specification e.g., 'gain', 'bandwidth'. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation. Some specs may require multiple simulation files. e.g. current matching requires both source_current and sink_current")
     # sim_name: str = Field(description="corresponding simulation name. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation.")
@@ -23,8 +23,9 @@ class Struct_debug(BaseModel):
     fix_info: str = Field(description="A concise summary of the final changes made. This will be archived into the permanent knowledge base."    )
 
 
-class Struct_create_prompt(BaseModel):
+class Struct_prepare_new_type(BaseModel):
     prompt: str = Field(description="The prompt for the netlist generation agent.")
+    new_spec_id_table: Dict[int, str] = Field(description="The updated ID of the specification.")
 
 class GenerationGuidelinesUpdates(BaseModel):
         action: Literal["APPEND", "MODIFY", "NONE"] = Field(description="Action to take on the generation guidelines.")

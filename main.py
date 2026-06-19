@@ -84,7 +84,7 @@ else:
         print("is_cat_propmt_exist =", is_cat_propmt_exist)
         
         if not is_cat_propmt_exist:
-             workflow.generate_prompt(cat_prompt_path, cat_json)
+             workflow.prepare_new_type(cat_prompt_path, cat_json)
         print("general_rules =", general_rules)
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
         # print("###trimmed_spec_table",trimmed_spec_table)

@@ -8,10 +8,9 @@ from utils import agent_utils
 from genai_agent.data import local_config
 from genai_agent.data import response_schema
 
-def create_prompt_flow(category_json):
+def create_prompt_flow(category_json, spec_id_table):
     contents = f"Given the simple category description: {category_json}\n" + """# Role & Purpose
-You are an AI Prompt Engineer and Senior Analog IC Verification Architect. Your job is to take a raw analog circuit category description and compile a precise, production-grade System Prompt for a downstream NGSpice Netlist Generation Agent.
-
+You are an AI Prompt Engineer and Senior Analog IC Verification Architect. Your job is to take a raw analog circuit category description, compile a precise, production-grade System Prompt for a downstream NGSpice Netlist Generation Agent """ + f"and update a specification ID table {spec_id_table} if required specs are not there."+ """
 # Task Instructions
 1. **Analyze Input**: Read the provided category information.
 2. **Synthesize Simulation Block**: For every item in `required_specs`, use your expert knowledge of electrical engineering to draft an explicit NGSpice test execution case. You must specify:
@@ -22,9 +21,9 @@ You are an AI Prompt Engineer and Senior Analog IC Verification Architect. Your 
 5. **Last Line**: The last line should be {general_rules}. Example:`### General Netlist Rules:\\n 0. **Circuit requirements**: ...... 1. **Differential check**: ...... 2. **CMFB stability**: ...... {general_rules} `
 6. **Enforce Raw Data Exporting (No SPICE .meas)**: Instruct the downstream netlist agent that it must ONLY generate simulation commands (`.ac`, `.dc`, `.tran`) and use `wrdata` statements to export the raw node voltages or currents to CSV files. Explicitly forbid it from using SPICE measurement commands (e.g., `.meas`, `.measure`). Explain that all mathematical processing, calculations, and specification evaluations are strictly handled downstream by your Python post-processing infrastructure.
 # Output Format
-Your response must be a clean, unquoted text block containing the finalized markdown system prompt, which will be used by next agent to generate netlists to do simulations."""
+Your response must be a clean, unquoted text block containing the finalized markdown system prompt, which will be used by next agent to generate netlists to do simulations. and a correct specification ID table containing all required specifications."""
     try:
-        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_create_prompt)
+        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_prepare_new_type)
         print("##struc create prompt= ", struc)
         return struc
     except Exception as e:

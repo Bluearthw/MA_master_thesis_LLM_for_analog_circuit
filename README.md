@@ -1,5 +1,5 @@
 git add .
-git commit -m "{t_stop} shows up. modify the prompt
+git commit -m "spec table saved to json
 "
 git push
 
