@@ -53,7 +53,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             
             return measurement_results, struct_path_id, counter, debug_history
         else:
-            print(f"==================bug found!!!!======={counter}===============")
+            print(f"==================bug found!!!!======={counter}=========debugging :")
 
             formatted_history_input = ""
             for h in debug_history:
@@ -102,6 +102,7 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
 
     Returns: (combined_results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml)
     """
+    print("generating netlist...")
     # If a category number is provided, use the central netlist builder
     if category_num is not None:
         struc = make_netlist_agent.netlist_builder(netlist=netlist, category_json=cat_json, category_num=category_num, cir_num=cir_num, trimmed_spec_table=trimmed_spec_table, is_diff=is_diff, general_rules=general_rules, category_gen_rules=category_gen_rules)
@@ -150,6 +151,7 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
 
 
 def generate_prompt(cat_prompt_path, category_json):
+    print("generating prompt...")
     struct = create_prompt_agent.create_prompt_flow(category_json)
     file_utils.save_str_to_file(struct.prompt, cat_prompt_path)
     if not os.path.isfile(cat_prompt_path):

@@ -786,6 +786,7 @@ def pre_process_circuit(cir_num):
     circuit_string = add_DC_source(circuit_string)
     cat_json = file_utils.get_dict_from_json(local_config.path_category_jsons + f"{category_num}.json")
     netlist = add_control(circuit_string)
+    file_utils.delete_all_files_except_dir(path_output_num)
     print("==cir_str\n", netlist)
 
     return path_output_num, category_num, category_str, netlist, has_input, is_diff, cat_json

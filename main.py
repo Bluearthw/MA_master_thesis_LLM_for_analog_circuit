@@ -79,9 +79,6 @@ else:
         output_dir.mkdir(parents=True, exist_ok=True)
         path_output_num, category_num, category_str, netlist, has_input, is_diff, cat_json = gen_utils.pre_process_circuit(i)
         print("####is_diff =", is_diff)
-        file_utils.delete_all_files_except_dir(path_output_num)
-        trimmed_spec_table = gen_utils.trim_spec_table(category_str)
-        # print("###trimmed_spec_table",trimmed_spec_table)
 
         general_rules, category_gen_rules, category_debug_rules, is_cat_propmt_exist, cat_prompt_path = agent_utils.prepare_workflow_prompts_json(category_num)
         print("is_cat_propmt_exist =", is_cat_propmt_exist)
@@ -89,6 +86,10 @@ else:
         if not is_cat_propmt_exist:
              workflow.generate_prompt(cat_prompt_path, cat_json)
         print("general_rules =", general_rules)
+        trimmed_spec_table = gen_utils.trim_spec_table(category_str)
+        # print("###trimmed_spec_table",trimmed_spec_table)
+        
+
         results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = workflow.generate_netlist(
         cir_num=i, 
         path_output_num=path_output_num, 
