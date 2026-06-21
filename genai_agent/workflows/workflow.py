@@ -154,29 +154,33 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
 
 def prepare_new_type(cat_prompt_path, category_json):
     print("generating prompt...")
-    spec_table_path = ".\genai_agent\data\spec_tables\spec_tables_combined.json"
-    spec_id_json = file_utils.get_dict_from_json_with_int_keys(spec_table_path)
-    backup_spec_table_path = ".\genai_agent\data\spec_tables\\backup\spec_tables_combined.json"
-    shutil.copy(spec_table_path, backup_spec_table_path)
+    # load existing combined spec tables if available
+    spec_tables_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables", "spec_tables_combined.json")
+    backup_spec_table_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables", "backup", "spec_tables_combined.json")
+
+    spec_id_json = file_utils.get_dict_from_json_with_int_keys(spec_tables_path)
+    shutil.copy(spec_tables_path, backup_spec_table_path)
     spec_id_table = spec_id_json["table_specs_id"]
     # enter agent
-    struct = create_prompt_agent.create_prompt_spec_table_agent_flow(category_json, spec_id_json)
+    struct = create_prompt_agent.create_prompt_spec_table_agent_flow(category_json, spec_id_table)
     #prompt
     file_utils.save_str_to_file(struct.prompt, cat_prompt_path)
     if not os.path.isfile(cat_prompt_path):
         print("still not see it")
-    update_spec_table(spec_id_json, struct)
+    update_spec_table(spec_id_json, struct, spec_tables_path)
 
-def update_spec_table(spec_id_table, struct_create_prompt):
+def update_spec_table(spec_id_json, struct_create_prompt, spec_tables_path):
     # spec id table
     missing_specs = struct_create_prompt.missing_specifications_to_add
     print("####missing_specs = ", missing_specs)
     impossible_specs = struct_create_prompt.impossible_specifications
     print("####impossible_specs = ", impossible_specs)
-    updated_spec_id_table = agent_utils.update_spec_json(spec_id_table, missing_specs)
+
+    spec_id_table = spec_id_json["table_specs_id"]
+    updated_spec_id_table = agent_utils.update_spec_id_table(spec_id_table, missing_specs)
     struc_update_table = update_spec_table_agent.update_table_agent_flow(missing_specs)
     # print("####Updated_spec_table = ", struc_update_table)
-    agent_utils.update_rest_table(struc_update_table)
+    agent_utils.update_rest_table(struc_update_table, spec_id_json)
     
     return updated_spec_id_table
 

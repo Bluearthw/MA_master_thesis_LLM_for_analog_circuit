@@ -1,0 +1,356 @@
+{
+  "specifications": {
+    "0": {
+      "target_id": "dc_gain",
+      "human_name": "DC Gain",
+      "default_value": 10.0,
+      "should_minimize": false,
+      "aliases": [
+        "dc gain",
+        "voltage gain",
+        "a_v",
+        "gain"
+      ]
+    },
+    "1": {
+      "target_id": "bandwidth",
+      "human_name": "Bandwidth",
+      "default_value": 100.0,
+      "should_minimize": false,
+      "aliases": [
+        "bandwidth",
+        "corner frequency",
+        "-3db",
+        "f3db",
+        "f_3db"
+      ]
+    },
+    "2": {
+      "target_id": "psrr",
+      "human_name": "Power Supply Rejection Ratio (PSRR)",
+      "default_value": 10.0,
+      "should_minimize": false,
+      "aliases": [
+        "psrr",
+        "power supply rejection ratio",
+        "power supply rejection",
+        "rejection ratio"
+      ]
+    },
+    "3": {
+      "target_id": "input_total_noise",
+      "human_name": "Input equivalent integrated total noise",
+      "default_value": 1e-06,
+      "should_minimize": true,
+      "aliases": [
+        "input equivalent integrated total noise",
+        "input referred noise",
+        "input-referred noise",
+        "integrated total noise",
+        "noise density",
+        "input noise"
+      ]
+    },
+    "4": {
+      "target_id": "slew_rate",
+      "human_name": "Slew rate",
+      "default_value": 15.0,
+      "should_minimize": false,
+      "aliases": [
+        "slew rate",
+        "slew-rate",
+        "slew"
+      ]
+    },
+    "5": {
+      "target_id": "gain_margin",
+      "human_name": "Gain margin",
+      "default_value": 45.0,
+      "should_minimize": false,
+      "aliases": [
+        "gain margin",
+        "gm",
+        "gain margin"
+      ]
+    },
+    "6": {
+      "target_id": "phase_margin",
+      "human_name": "Phase margin",
+      "default_value": 60.0,
+      "should_minimize": false,
+      "aliases": [
+        "phase margin",
+        "pm",
+        "phase margin"
+      ]
+    },
+    "7": {
+      "target_id": "output_total_noise",
+      "human_name": "Output total noise",
+      "default_value": 3e-06,
+      "should_minimize": true,
+      "aliases": [
+        "output noise",
+        "integrated output noise",
+        "noise at output",
+        "output_total_noise"
+      ]
+    },
+    "8": {
+      "target_id": "input_impedance",
+      "human_name": "Input impedance",
+      "default_value": 1000000000.0,
+      "should_minimize": false,
+      "aliases": [
+        "input impedance",
+        "input resistance",
+        "input rin"
+      ]
+    },
+    "9": {
+      "target_id": "output_impedance",
+      "human_name": "Output impedance",
+      "default_value": 1000.0,
+      "should_minimize": false,
+      "aliases": [
+        "output impedance",
+        "output resistance",
+        "output rout"
+      ]
+    },
+    "10": {
+      "target_id": "input_swing",
+      "human_name": "Input swing",
+      "default_value": 0.1,
+      "should_minimize": false,
+      "aliases": [
+        "input swing",
+        "input voltage swing",
+        "input signal swing"
+      ]
+    },
+    "11": {
+      "target_id": "output_swing",
+      "human_name": "Output swing",
+      "default_value": 0.1,
+      "should_minimize": false,
+      "aliases": [
+        "output swing",
+        "output voltage swing",
+        "output signal swing"
+      ]
+    },
+    "12": {
+      "target_id": "settle_time",
+      "human_name": "Settle time",
+      "default_value": 10.0,
+      "should_minimize": true,
+      "aliases": [
+        "settle time",
+        "settling time",
+        "settle_time"
+      ]
+    },
+    "13": {
+      "target_id": "icmr",
+      "human_name": "Input Common-Mode Range (ICMR)",
+      "default_value": 0.5,
+      "should_minimize": false,
+      "aliases": [
+        "input common-mode range",
+        "icmr",
+        "common mode range"
+      ]
+    },
+    "14": {
+      "target_id": "cmrr",
+      "human_name": "Common-Mode Rejection Ratio (CMRR)",
+      "default_value": 10.0,
+      "should_minimize": false,
+      "aliases": [
+        "common-mode rejection ratio",
+        "cmrr",
+        "common mode rejection"
+      ]
+    },
+    "16": {
+      "target_id": "phase_response",
+      "human_name": "Phase response",
+      "default_value": 60.0,
+      "should_minimize": false,
+      "aliases": [
+        "phase response",
+        "phase shift",
+        "phase response"
+      ]
+    },
+    "17": {
+      "target_id": "cm_gain",
+      "human_name": "Common-Mode Gain",
+      "default_value": -40.0,
+      "should_minimize": false,
+      "aliases": [
+        "common-mode gain",
+        "cm gain",
+        "common mode gain"
+      ]
+    },
+    "18": {
+      "target_id": "dm_gain",
+      "human_name": "Differential-Mode Gain (differential output)",
+      "default_value": 10.0,
+      "should_minimize": false,
+      "aliases": [
+        "differential-mode gain",
+        "dm gain",
+        "differential mode gain",
+        "differential gain"
+      ]
+    },
+    "19": {
+      "target_id": "output_balance",
+      "human_name": "Output Balance",
+      "default_value": 1.0,
+      "should_minimize": false,
+      "aliases": [
+        "output balance",
+        "output balancing",
+        "balance"
+      ]
+    },
+    "20": {
+      "target_id": "cmfb_stability",
+      "human_name": "CMFB Loop Stability",
+      "default_value": 60.0,
+      "should_minimize": false,
+      "aliases": [
+        "cmfb loop stability",
+        "cmfb stability",
+        "common mode feedback stability"
+      ]
+    },
+    "21": {
+      "target_id": "ugbw",
+      "human_name": "UGBW, unity gain bandwidth",
+      "default_value": 1000000.0,
+      "should_minimize": false,
+      "aliases": [
+        "ugbw",
+        "unity gain bandwidth",
+        "unity gain frequency"
+      ]
+    },
+    "22": {
+      "target_id": "current",
+      "human_name": "Current",
+      "default_value": 0.2,
+      "should_minimize": true,
+      "aliases": [
+        "current",
+        "supply current",
+        "bias current",
+        "operating current",
+        "i(vdd)",
+        "i(vdd)",
+        "i_vdd"
+      ]
+    },
+    "23": {
+      "target_id": "dc_output_voltage",
+      "human_name": "DC Output Voltage",
+      "default_value": 0.2,
+      "should_minimize": true,
+      "aliases": [
+        "dc output voltage",
+        "dc output",
+        "output voltage",
+        "vout"
+      ]
+    },
+    "24": {
+      "target_id": "line_regulation",
+      "human_name": "Line Regulation",
+      "default_value": 100,
+      "should_minimize": true,
+      "aliases": [
+        "line regulation",
+        "supply regulation",
+        "line reg",
+        "line regulation (v/v)",
+        "line regulation percent"
+      ]
+    },
+    "25": {
+      "target_id": "load_regulation",
+      "human_name": "Load Regulation",
+      "default_value": 5,
+      "should_minimize": true,
+      "aliases": [
+        "load regulation",
+        "load reg",
+        "load regulation (v/v)",
+        "load regulation percent"
+      ]
+    },
+    "26": {
+      "target_id": "temperature_coefficient",
+      "human_name": "Temperature Coefficient (TC)",
+      "default_value": 800.0,
+      "should_minimize": true,
+      "aliases": [
+        "temperature coefficient",
+        "tc",
+        "temperature drift",
+        "temp coefficient"
+      ]
+    },
+    "27": {
+      "target_id": "startup_behavior",
+      "human_name": "Startup Behavior",
+      "default_value": 2,
+      "should_minimize": true,
+      "aliases": [
+        "startup behavior",
+        "startup",
+        "startup time",
+        "initialization behavior"
+      ]
+    },
+    "28": {
+      "target_id": "current_matching",
+      "human_name": "Current Matching",
+      "default_value": 5,
+      "should_minimize": true,
+      "aliases": [
+        "current matching",
+        "current mismatch",
+        "matching current",
+        "source sink matching"
+      ]
+    },
+    "29": {
+      "target_id": "output_ripple",
+      "human_name": "Output Ripple",
+      "default_value": 0.01,
+      "should_minimize": true,
+      "aliases": [
+        "output ripple",
+        "ripple",
+        "output voltage ripple",
+        "ripple voltage"
+      ]
+    },
+    "30": {
+      "target_id": "voltage_compliance",
+      "human_name": "Voltage Compliance Range",
+      "default_value": 0.3,
+      "should_minimize": false,
+      "aliases": [
+        "voltage compliance range",
+        "compliance range",
+        "voltage compliance",
+        "compliance voltage"
+      ]
+    }
+  }
+}

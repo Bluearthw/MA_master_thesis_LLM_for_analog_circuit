@@ -149,7 +149,7 @@ def check_current_simulation(spec_sims):
             return True
     return False
 
-def update_spec_json(spec_dict, new_spec_list, spec_table_path: str | None = None):
+def update_spec_id_table(spec_dict, new_spec_list, spec_table_path: str | None = None):
     """Add new specification names to the spec-id mapping.
 
     - `spec_dict` may have integer or string keys representing spec ids.
@@ -186,7 +186,7 @@ def update_spec_json(spec_dict, new_spec_list, spec_table_path: str | None = Non
 
     return spec_dict
 
-def update_rest_table(struc):
+def update_rest_table(struc,spec_id_json):
     """Update the auxiliary spec tables (targets, defaults, aliases, minimization list).
 
     Accepts either a Struct_Update_Tables-like object with attribute `new_specifications`
@@ -210,29 +210,21 @@ def update_rest_table(struc):
     else:
         items = list(struc or [])
 
-    # load existing combined spec tables if available
-    spec_tables_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables", "spec_tables_combined.json")
-
-    combined = file_utils.get_dict_from_json(spec_tables_path)
-    if not combined:
+    
+    
+    if not spec_id_json:
         # bootstrap from local_config
-        combined = {
-            "table_specs_id": {str(k): v for k, v in local_config.table_specs_id.items()},
-            "table_target_id": {str(k): v for k, v in local_config.table_target_id.items()},
-            "table_targets_default_values": {str(k): v for k, v in local_config.table_targets_default_values.items()},
-            "table_specs_aliases": {str(k): v for k, v in local_config.table_specs_aliases.items()},
-            "list_targets_to_min": list(local_config.list_targets_to_min),
-        }
+        raise ValueError("No specification ID JSON provided and local_config is not available.")
 
     # convert keys to int for processing
     def int_key_dict(d):
         return {int(k): v for k, v in (d or {}).items()}
 
-    specs_id = int_key_dict(combined.get("table_specs_id", {}))
-    target_id = int_key_dict(combined.get("table_target_id", {}))
-    defaults = int_key_dict(combined.get("table_targets_default_values", {}))
-    aliases = int_key_dict(combined.get("table_specs_aliases", {}))
-    list_min = list(combined.get("list_targets_to_min", []))
+    specs_id = int_key_dict(spec_id_json.get("table_specs_id", {}))
+    target_id = int_key_dict(spec_id_json.get("table_target_id", {}))
+    defaults = int_key_dict(spec_id_json.get("table_targets_default_values", {}))
+    aliases = int_key_dict(spec_id_json.get("table_specs_aliases", {}))
+    list_min = list(spec_id_json.get("list_targets_to_min", []))
 
     # build reverse lookup maps
     name_to_spec_id = {v.lower(): k for k, v in specs_id.items()}
@@ -253,9 +245,10 @@ def update_rest_table(struc):
             should_minimize = bool(getattr(it, "should_minimize", False))
         except Exception:
             # Skip malformed entries
+            print("agent_utils: error occurred while processing specification item")
             continue
 
-        # 1) try to find existing id by alias
+        # 1) try to find existing id by alias. ##No use.
         found_id = None
         for a in item_aliases:
             if a in alias_to_id:
@@ -303,9 +296,16 @@ def update_rest_table(struc):
         "list_targets_to_min": list_min,
     }
 
+    print("###new new new")
+    print("###specs_id = ", specs_id)
+    print("###target_id = ", target_id)
+    print("###defaults = ", defaults)
+    print("###aliases = ", aliases)
+    print("###list_min = ", list_min)
+    # print("## new json = ", saved)
     # Ensure directory exists
-    out_dir = os.path.dirname(spec_tables_path)
-    os.makedirs(out_dir, exist_ok=True)
-    file_utils.save_dict_to_json(saved, spec_tables_path)
+    # out_dir = os.path.dirname(spec_tables_path)
+    # os.makedirs(out_dir, exist_ok=True)
+    # file_utils.save_dict_to_json(saved, spec_tables_path)
 
     return saved

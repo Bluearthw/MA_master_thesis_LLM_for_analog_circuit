@@ -1,5 +1,5 @@
 git add .
-git commit -m "update other tables
+git commit -m "pass only spec_id instead of whole json to prompt gen.
 "
 git push
 
