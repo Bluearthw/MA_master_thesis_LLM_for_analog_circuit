@@ -2,6 +2,7 @@ import os
 import sys
 import json
 
+
 import time
 import traceback
 from google import genai
@@ -149,163 +150,120 @@ def check_current_simulation(spec_sims):
             return True
     return False
 
-def update_spec_id_table(spec_dict, new_spec_list, spec_table_path: str | None = None):
-    """Add new specification names to the spec-id mapping.
 
-    - `spec_dict` may have integer or string keys representing spec ids.
-    - `new_spec_list` is an iterable of spec name strings to add.
-    - If `spec_table_path` is provided, the updated table is saved to that path
-      with stringified keys (JSON-compatible).
+def update_tables(struc, specifications_table, spec_tables_path):
+    """Update the unified specifications table database.
 
-    Returns the updated spec_dict (with integer keys).
-    """
-    # Normalize keys to ints and find current max id
-    try:
-        existing_ids = [int(k) for k in spec_dict.keys()]
-    except Exception:
-        # Fallback: if keys are already ints or something odd, coerce conservatively
-        existing_ids = [k for k in spec_dict.keys() if isinstance(k, int)]
-
-    max_id = max(existing_ids) if existing_ids else -1
-
-    # Build a set of existing spec names to avoid duplicates
-    existing_names = set(spec_dict.values())
-
-    # Add each new spec if not already present
-    for spec_name in (new_spec_list or []):
-        if spec_name in existing_names:
-            continue
-        max_id += 1
-        spec_dict[max_id] = spec_name
-        existing_names.add(spec_name)
-
-    # Optionally persist to disk (use string keys for JSON)
-    if spec_table_path:
-        jsonable = {str(k): v for k, v in spec_dict.items()}# though json.dumps transform also
-        file_utils.save_dict_to_json(jsonable, spec_table_path)
-
-    return spec_dict
-
-def update_rest_table(struc,spec_id_json):
-    """Update the auxiliary spec tables (targets, defaults, aliases, minimization list).
-
-    Accepts either a Struct_Update_Tables-like object with attribute `new_specifications`
-    or a plain iterable of NewSpecificationItem-like objects (each with
-    `target_id_name`, `aliases`, `default_value`, `should_minimize`).
+    Accepts a Struct_Update_Tables object containing a list of `new_specifications`
+    (each with `target_id`, `human_name`, `default_value`, `should_minimize`, `aliases`).
 
     The function will:
-      - load existing combined spec-tables JSON if present (fallback to
-        values from `local_config`),
-      - for each new item, find an existing spec id by alias or target name,
-        or allocate a new numeric id (max+1),
-      - update `table_target_id`, `table_targets_default_values`,
-        `table_specs_aliases`, and `list_targets_to_min` accordingly,
-      - save the updated combined table back to disk.
+      - read from the unified schema dictionary format,
+      - perform reverse lookup deduplication via target names, human names, and aliases,
+      - update an existing specification or allocate a new numeric string ID,
+      - save the updated master dictionary cleanly back to disk.
 
-    Returns the updated combined dict.
+    Returns the updated master dict wrapper.
     """
-    # normalize input to a list of items
+    # 1. Normalize input to an iterable list of items from the Pydantic schema
     if hasattr(struc, "new_specifications"):
         items = struc.new_specifications
     else:
         items = list(struc or [])
 
-    
-    
-    if not spec_id_json:
-        # bootstrap from local_config
-        raise ValueError("No specification ID JSON provided and local_config is not available.")
+    if not specifications_table:
+        raise ValueError("No unified master specification JSON dictionary provided.")
 
-    # convert keys to int for processing
-    def int_key_dict(d):
-        return {int(k): v for k, v in (d or {}).items()}
 
-    specs_id = int_key_dict(spec_id_json.get("table_specs_id", {}))
-    target_id = int_key_dict(spec_id_json.get("table_target_id", {}))
-    defaults = int_key_dict(spec_id_json.get("table_targets_default_values", {}))
-    aliases = int_key_dict(spec_id_json.get("table_specs_aliases", {}))
-    list_min = list(spec_id_json.get("list_targets_to_min", []))
-
-    # build reverse lookup maps
-    name_to_spec_id = {v.lower(): k for k, v in specs_id.items()}
-    targetname_to_id = {v: k for k, v in target_id.items()}
+    # 3. Build fast reverse lookup maps for deduplication scanning
+    targetname_to_id = {}
+    humanname_to_id = {}
     alias_to_id = {}
-    for k, alist in aliases.items():
-        for a in alist:
-            alias_to_id[a.lower()] = k
 
-    max_id = max(list(specs_id.keys()) + list(target_id.keys()) or [-1])
+    for str_id, details in specifications_table.items():
+        # Map target_id (e.g., 'dc_gain' -> "0")
+        if "target_id" in details:
+            targetname_to_id[details["target_id"]] = str_id
+            
+        # Map human_name (e.g., 'dc gain' -> "0")
+        if "human_name" in details:
+            humanname_to_id[details["human_name"].lower()] = str_id
+            
+        # Map every unique registered alias (e.g., 'voltage gain' -> "0")
+        for a in details.get("aliases", []):
+            alias_to_id[a.lower()] = str_id
 
-    # Process each new specification item
+    old_max_id = float('inf')
+    found_id = 0
+    # 4. Process each incoming spec item proposed by the LLM Agent
     for it in items:
         try:
-            target_name = it.target_id_name
-            item_aliases = [a.lower() for a in (it.aliases or [])]
+            print("it =", it)
+            target_name = it.target_id
+            human_name = it.human_name
             default_value = it.default_value
             should_minimize = bool(getattr(it, "should_minimize", False))
+            item_aliases = [a.lower() for a in (it.aliases or [])]
         except Exception:
-            # Skip malformed entries
-            print("agent_utils: error occurred while processing specification item")
+            print("agent_utils: Error occurred while parsing specification object parameters. Skipping entry.")
             continue
 
-        # 1) try to find existing id by alias. ##No use.
         found_id = None
+
+        # Rule A: Try to find an match by an alternative lowercased alias
         for a in item_aliases:
             if a in alias_to_id:
                 found_id = alias_to_id[a]
                 break
 
-        # 2) try by target name
+        # Rule B: Try to find a match by the standardized target_id name
         if found_id is None and target_name in targetname_to_id:
             found_id = targetname_to_id[target_name]
 
-        # 3) try by human-readable spec name (derived)
+        # Rule C: Try to find a match by a lowercased human label
+        if found_id is None and human_name.lower() in humanname_to_id:
+            found_id = humanname_to_id[human_name.lower()]
+
+        # Rule D: Genuinely new metric. Calculate max ID and increment
         if found_id is None:
-            derived_human = target_name.replace("_", " ").title()
-            if derived_human.lower() in name_to_spec_id:
-                found_id = name_to_spec_id[derived_human.lower()]
+            max_id = max([int(k) for k in specifications_table.keys()] or [-1])
+            
+            found_id = str(max_id + 1)
+            if old_max_id > max_id + 1:
+                old_max_id = max_id + 1
+            # Initialize empty schema blueprint row for the brand-new index
+            specifications_table[found_id] = {
+                "target_id": target_name,
+                "human_name": human_name,
+                "default_value": default_value,
+                "should_minimize": should_minimize,
+                "aliases": []
+            }
 
-        # If still not found, allocate new id
-        if found_id is None:
-            max_id += 1
-            found_id = max_id
-            # add a human-friendly label
-            specs_id[found_id] = target_name.replace("_", " ").title()
+        # 5. Perform clean object updates/merges on the matched/created ID row
+        specifications_table[found_id]["default_value"] = default_value
+        specifications_table[found_id]["should_minimize"] = should_minimize
+        
+        # Merge old and new aliases cleanly without duplicates
+        existing_aliases = [a.lower() for a in specifications_table[found_id].get("aliases", [])]
+        merged_aliases = list(dict.fromkeys(existing_aliases + item_aliases))
+        specifications_table[found_id]["aliases"] = merged_aliases
 
-        # Ensure target_id mapping
-        target_id[found_id] = target_name
-
-        # Update default
-        defaults[found_id] = default_value
-
-        # Merge aliases
-        existing_aliases = [a.lower() for a in aliases.get(found_id, [])]
-        merged = list(dict.fromkeys(existing_aliases + item_aliases))
-        aliases[found_id] = merged
-
-        # Update minimization list
-        if should_minimize and target_name not in list_min:
-            list_min.append(target_name)
-
-    # Prepare to save back (string keys)
-    saved = {
-        "table_specs_id": {str(k): v for k, v in specs_id.items()},
-        "table_target_id": {str(k): v for k, v in target_id.items()},
-        "table_targets_default_values": {str(k): v for k, v in defaults.items()},
-        "table_specs_aliases": {str(k): v for k, v in aliases.items()},
-        "list_targets_to_min": list_min,
+    # 6. Repackage into master container envelope structure
+    saved_specifications = {
+        "specifications": specifications_table
     }
 
-    print("###new new new")
-    print("###specs_id = ", specs_id)
-    print("###target_id = ", target_id)
-    print("###defaults = ", defaults)
-    print("###aliases = ", aliases)
-    print("###list_min = ", list_min)
-    # print("## new json = ", saved)
-    # Ensure directory exists
-    # out_dir = os.path.dirname(spec_tables_path)
-    # os.makedirs(out_dir, exist_ok=True)
-    # file_utils.save_dict_to_json(saved, spec_tables_path)
+    # 7. Ensure target folder exists and write safely to disk
+    if spec_tables_path:
+        out_dir = os.path.dirname(spec_tables_path)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+        
+        with open(spec_tables_path, "w", encoding="utf-8") as f:
+            json.dump(saved_specifications, f, ensure_ascii=False, indent=2)
 
-    return saved
+    for i in range(int(old_max_id), int(found_id)):
+        print(specifications_table[f'{i}'])
+
+    return saved_specifications

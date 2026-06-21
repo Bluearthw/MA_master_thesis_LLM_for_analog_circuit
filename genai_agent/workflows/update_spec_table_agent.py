@@ -28,9 +28,10 @@ def update_table_agent_flow(missing_specs):
 For every missing specification provided, you must break it down into a structured object matching these system examples:
 
 1. **table_target_id Mapping**: Create a clean, snake_case string identifier (e.g., 'dc_gain', 'slew_rate').
-2. **table_specs_aliases Mapping**: Provide an array of common alternative names in lowercase text (e.g., ["voltage gain", "a_v", "gain"]).
-3. **table_targets_default_values Mapping**: Provide a reasonable engineering baseline float value (e.g., 10.0 for gain, 1e-6 for settling time).
-4. **list_targets_to_min Mapping**: Determine if the metric is something an optimizer tries to minimize. Mark as True for things like noise, distortion, and settling time. Mark as False for gain, bandwidth, and phase margin.
+2. **human_name**: Provide a clean, title-cased human-readable label. missing specs can be directly used. (e.g., 'DC Gain', 'Slew Rate').
+3. **table_specs_aliases Mapping**: Provide an array of common alternative names in lowercase text (e.g., ["voltage gain", "a_v", "gain"]).
+4. **table_targets_default_values Mapping**: Provide a reasonable engineering baseline float value (e.g., 10.0 for gain, 1e-6 for settling time).
+5. **list_targets_to_min Mapping**: Determine if the metric is something an optimizer tries to minimize. Mark as True for things like noise, distortion, and settling time. Mark as False for gain, bandwidth, and phase margin.
 
 # Output Format
 You must output your response using the designated JSON schema. Do not assign integer IDs; the Python backend handles numerical keys automatically.

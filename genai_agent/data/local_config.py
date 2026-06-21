@@ -169,6 +169,363 @@ table_specs_aliases = {
     30: ["voltage compliance range", "compliance range", "voltage compliance", "compliance voltage"]
     }
 
+spec_id_unified = {
+  "specifications": {
+    "0": {
+      "target_id": "dc_gain",
+      "human_name": "DC Gain",
+      "default_value": 10.0,
+      "should_minimize": False,
+      "aliases": [
+        "dc gain",
+        "voltage gain",
+        "a_v",
+        "gain"
+      ]
+    },
+    "1": {
+      "target_id": "bandwidth",
+      "human_name": "Bandwidth",
+      "default_value": 100.0,
+      "should_minimize": False,
+      "aliases": [
+        "bandwidth",
+        "corner frequency",
+        "-3db",
+        "f3db",
+        "f_3db"
+      ]
+    },
+    "2": {
+      "target_id": "psrr",
+      "human_name": "Power Supply Rejection Ratio (PSRR)",
+      "default_value": 10.0,
+      "should_minimize": False,
+      "aliases": [
+        "psrr",
+        "power supply rejection ratio",
+        "power supply rejection",
+        "rejection ratio"
+      ]
+    },
+    "3": {
+      "target_id": "input_total_noise",
+      "human_name": "Input equivalent integrated total noise",
+      "default_value": 1e-06,
+      "should_minimize": True,
+      "aliases": [
+        "input equivalent integrated total noise",
+        "input referred noise",
+        "input-referred noise",
+        "integrated total noise",
+        "noise density",
+        "input noise"
+      ]
+    },
+    "4": {
+      "target_id": "slew_rate",
+      "human_name": "Slew rate",
+      "default_value": 15.0,
+      "should_minimize": False,
+      "aliases": [
+        "slew rate",
+        "slew-rate",
+        "slew"
+      ]
+    },
+    "5": {
+      "target_id": "gain_margin",
+      "human_name": "Gain margin",
+      "default_value": 45.0,
+      "should_minimize": False,
+      "aliases": [
+        "gain margin",
+        "gm",
+        "gain margin"
+      ]
+    },
+    "6": {
+      "target_id": "phase_margin",
+      "human_name": "Phase margin",
+      "default_value": 60.0,
+      "should_minimize": False,
+      "aliases": [
+        "phase margin",
+        "pm",
+        "phase margin"
+      ]
+    },
+    "7": {
+      "target_id": "output_total_noise",
+      "human_name": "Output total noise",
+      "default_value": 3e-06,
+      "should_minimize": True,
+      "aliases": [
+        "output noise",
+        "integrated output noise",
+        "noise at output",
+        "output_total_noise"
+      ]
+    },
+    "8": {
+      "target_id": "input_impedance",
+      "human_name": "Input impedance",
+      "default_value": 1000000000.0,
+      "should_minimize": False,
+      "aliases": [
+        "input impedance",
+        "input resistance",
+        "input rin"
+      ]
+    },
+    "9": {
+      "target_id": "output_impedance",
+      "human_name": "Output impedance",
+      "default_value": 1000.0,
+      "should_minimize": False,
+      "aliases": [
+        "output impedance",
+        "output resistance",
+        "output rout"
+      ]
+    },
+    "10": {
+      "target_id": "input_swing",
+      "human_name": "Input swing",
+      "default_value": 0.1,
+      "should_minimize": False,
+      "aliases": [
+        "input swing",
+        "input voltage swing",
+        "input signal swing"
+      ]
+    },
+    "11": {
+      "target_id": "output_swing",
+      "human_name": "Output swing",
+      "default_value": 0.1,
+      "should_minimize": False,
+      "aliases": [
+        "output swing",
+        "output voltage swing",
+        "output signal swing"
+      ]
+    },
+    "12": {
+      "target_id": "settle_time",
+      "human_name": "Settle time",
+      "default_value": 10.0,
+      "should_minimize": True,
+      "aliases": [
+        "settle time",
+        "settling time",
+        "settle_time"
+      ]
+    },
+    "13": {
+      "target_id": "icmr",
+      "human_name": "Input Common-Mode Range (ICMR)",
+      "default_value": 0.5,
+      "should_minimize": False,
+      "aliases": [
+        "input common-mode range",
+        "icmr",
+        "common mode range"
+      ]
+    },
+    "14": {
+      "target_id": "cmrr",
+      "human_name": "Common-Mode Rejection Ratio (CMRR)",
+      "default_value": 10.0,
+      "should_minimize": False,
+      "aliases": [
+        "common-mode rejection ratio",
+        "cmrr",
+        "common mode rejection"
+      ]
+    },
+    "16": {
+      "target_id": "phase_response",
+      "human_name": "Phase response",
+      "default_value": 60.0,
+      "should_minimize": False,
+      "aliases": [
+        "phase response",
+        "phase shift",
+        "phase response"
+      ]
+    },
+    "17": {
+      "target_id": "cm_gain",
+      "human_name": "Common-Mode Gain",
+      "default_value": -40.0,
+      "should_minimize": False,
+      "aliases": [
+        "common-mode gain",
+        "cm gain",
+        "common mode gain"
+      ]
+    },
+    "18": {
+      "target_id": "dm_gain",
+      "human_name": "Differential-Mode Gain (differential output)",
+      "default_value": 10.0,
+      "should_minimize": False,
+      "aliases": [
+        "differential-mode gain",
+        "dm gain",
+        "differential mode gain",
+        "differential gain"
+      ]
+    },
+    "19": {
+      "target_id": "output_balance",
+      "human_name": "Output Balance",
+      "default_value": 1.0,
+      "should_minimize": False,
+      "aliases": [
+        "output balance",
+        "output balancing",
+        "balance"
+      ]
+    },
+    "20": {
+      "target_id": "cmfb_stability",
+      "human_name": "CMFB Loop Stability",
+      "default_value": 60.0,
+      "should_minimize": False,
+      "aliases": [
+        "cmfb loop stability",
+        "cmfb stability",
+        "common mode feedback stability"
+      ]
+    },
+    "21": {
+      "target_id": "ugbw",
+      "human_name": "UGBW, unity gain bandwidth",
+      "default_value": 1000000.0,
+      "should_minimize": False,
+      "aliases": [
+        "ugbw",
+        "unity gain bandwidth",
+        "unity gain frequency"
+      ]
+    },
+    "22": {
+      "target_id": "current",
+      "human_name": "Current",
+      "default_value": 0.2,
+      "should_minimize": True,
+      "aliases": [
+        "current",
+        "supply current",
+        "bias current",
+        "operating current",
+        "i(vdd)",
+        "i(vdd)",
+        "i_vdd"
+      ]
+    },
+    "23": {
+      "target_id": "dc_output_voltage",
+      "human_name": "DC Output Voltage",
+      "default_value": 0.2,
+      "should_minimize": True,
+      "aliases": [
+        "dc output voltage",
+        "dc output",
+        "output voltage",
+        "vout"
+      ]
+    },
+    "24": {
+      "target_id": "line_regulation",
+      "human_name": "Line Regulation",
+      "default_value": 100,
+      "should_minimize": True,
+      "aliases": [
+        "line regulation",
+        "supply regulation",
+        "line reg",
+        "line regulation (v/v)",
+        "line regulation percent"
+      ]
+    },
+    "25": {
+      "target_id": "load_regulation",
+      "human_name": "Load Regulation",
+      "default_value": 5,
+      "should_minimize": True,
+      "aliases": [
+        "load regulation",
+        "load reg",
+        "load regulation (v/v)",
+        "load regulation percent"
+      ]
+    },
+    "26": {
+      "target_id": "temperature_coefficient",
+      "human_name": "Temperature Coefficient (TC)",
+      "default_value": 800.0,
+      "should_minimize": True,
+      "aliases": [
+        "temperature coefficient",
+        "tc",
+        "temperature drift",
+        "temp coefficient"
+      ]
+    },
+    "27": {
+      "target_id": "startup_behavior",
+      "human_name": "Startup Behavior",
+      "default_value": 2,
+      "should_minimize": True,
+      "aliases": [
+        "startup behavior",
+        "startup",
+        "startup time",
+        "initialization behavior"
+      ]
+    },
+    "28": {
+      "target_id": "current_matching",
+      "human_name": "Current Matching",
+      "default_value": 5,
+      "should_minimize": True,
+      "aliases": [
+        "current matching",
+        "current mismatch",
+        "matching current",
+        "source sink matching"
+      ]
+    },
+    "29": {
+      "target_id": "output_ripple",
+      "human_name": "Output Ripple",
+      "default_value": 0.01,
+      "should_minimize": True,
+      "aliases": [
+        "output ripple",
+        "ripple",
+        "output voltage ripple",
+        "ripple voltage"
+      ]
+    },
+    "30": {
+      "target_id": "voltage_compliance",
+      "human_name": "Voltage Compliance Range",
+      "default_value": 0.3,
+      "should_minimize": False,
+      "aliases": [
+        "voltage compliance range",
+        "compliance range",
+        "voltage compliance",
+        "compliance voltage"
+      ]
+    }
+  }
+}
+
 
 #  894 # all
 num_all = [4, 6, 9, 14, 17, 20, 22, 24, 27, 29, 31, 35, 37, 38, 41, 43, 46, 48, 50, 52, 54, 57, 59, 61, 63, 65, 67, 69, 71, 75, 77, 80, 82, 84, 86, 88, 90, 92, 94, 96, 97, 100, 102, 104, 106, 108, 110, 112, 114, 116, 120, 123, 125, 127, 129, 132, 134, 136, 138, 140, 142, 144, 146, 148, 150, 152, 155, 157, 160, 161, 162, 163, 165, 166, 167, 168, 169, 170, 171, 172, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 217, 218, 219, 220, 221, 222, 223, 224, 226, 227, 229, 230, 231, 232, 235, 236, 237, 238, 239, 240, 242, 243, 245, 247, 248, 249, 251, 252, 254, 257, 259, 260, 261, 262, 263, 264, 265, 266, 269, 271, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 287, 289, 290, 293, 294, 295, 296, 297, 299, 300, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324, 325, 326, 327, 328, 329, 331, 332, 333, 334, 335, 336, 337, 338, 340, 341, 342, 343, 344, 345, 346, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357, 358, 359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389, 390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 412, 413, 417, 418, 419, 420, 421, 422, 424, 425, 426, 427, 428, 429, 430, 431, 432, 433, 434, 435, 436, 437, 438, 439, 440, 441, 442, 443, 444, 446, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 459, 460, 461, 462, 463, 464, 465, 466, 467, 468, 469, 470, 471, 472, 473, 474, 475, 476, 477, 478, 479, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489, 491, 492, 493, 494, 495, 496, 497, 498, 500, 501, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564, 565, 566, 567, 568, 569, 570, 571, 572, 573, 574, 575, 576, 577, 578, 579, 580, 581, 582, 583, 584, 585, 586, 587, 588, 589, 590, 591, 592, 593, 594, 595, 596, 597, 598, 599, 600, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612, 613, 614, 615, 616, 617, 618, 619, 620, 621, 622, 623, 624, 625, 626, 628, 629, 630, 632, 633, 634, 635, 636, 637, 638, 640, 641, 642, 643, 645, 646, 647, 648, 649, 650, 651, 652, 653, 654, 655, 656, 657, 658, 659, 660, 661, 662, 663, 664, 665, 666, 667, 668, 670, 671, 672, 674, 675, 676, 677, 678, 679, 680, 681, 682, 683, 684, 687, 688, 689, 690, 691, 692, 693, 694, 695, 696, 697, 698, 699, 700, 701, 702, 703, 704, 705, 706, 707, 708, 709, 710, 711, 712, 713, 714, 715, 716, 717, 718, 719, 720, 721, 722, 723, 724, 725, 726, 727, 728, 729, 730, 731, 732, 733, 734, 735, 736, 738, 739, 740, 741, 742, 743, 744, 745, 746, 747, 748, 749, 750, 751, 752, 753, 754, 755, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776, 777, 778, 779, 780, 781, 782, 783, 784, 785, 786, 787, 788, 789, 790, 791, 792, 794, 795, 796, 797, 799, 800, 801, 802, 803, 804, 805, 806, 807, 808, 809, 810, 811, 812, 813, 814, 815, 816, 817, 818, 819, 820, 821, 822, 823, 824, 825, 826, 827, 828, 829, 830, 831, 832, 833, 834, 835, 836, 837, 839, 840, 841, 842, 843, 844, 845, 846, 847, 848, 849, 850, 852, 853, 854, 855, 856, 857, 858, 859, 860, 861, 862, 863, 864, 865, 866, 867, 868, 869, 870, 871, 872, 873, 874, 875, 876, 877, 878, 879, 880, 881, 882, 883, 884, 885, 886, 887, 888, 889, 890, 891, 892, 893, 894, 895, 896, 897, 898, 899, 900, 901, 902, 903, 904, 905, 906, 907, 908, 909, 910, 911, 912, 913, 914, 915, 916, 917, 918, 919, 920, 921, 922, 923, 924, 925, 926, 927, 928, 929, 930, 931, 932, 933, 934, 935, 936, 937, 938, 939, 940, 941, 942, 943, 944, 945, 946, 947, 948, 949, 950, 951, 952, 953, 954, 955, 956, 957, 958, 959, 960, 961, 962, 963, 964, 965, 966, 967, 968, 969, 970, 971, 972, 973, 974, 975, 976, 977, 978, 979, 980, 981, 982, 983, 984, 985, 986, 987, 988, 989, 990, 991, 992, 993, 994, 995, 996, 997, 998, 999, 1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1019, 1020, 1021, 1022, 1023, 1024, 1025, 1026, 1027, 1028, 1029, 1030, 1031, 1032, 1033, 1034, 1035, 1036, 1037, 1038, 1039, 1040, 1041, 1042, 1043, 1044]

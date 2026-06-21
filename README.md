@@ -1,5 +1,5 @@
 git add .
-git commit -m "pass only spec_id instead of whole json to prompt gen. update spec_id table structure
+git commit -m "update spec_id table structure. need to change trim table 
 "
 git push
 

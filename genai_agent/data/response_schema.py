@@ -23,8 +23,11 @@ class Struct_debug(BaseModel):
     fix_info: str = Field(description="A concise summary of the final changes made. This will be archived into the permanent knowledge base."    )
 
 class NewSpecificationItem(BaseModel):
-    target_id_name: str = Field(
+    target_id: str = Field(
         description="The standardized string ID name for the spec (snake_case, e.g., 'slew_rate')."
+    )
+    human_name: str = Field(
+        description="A clean, title-cased, human-readable name for the specification (e.g., 'Slew Rate')."
     )
     aliases: List[str] = Field(
         description="A list of lowercase text aliases that engineers might use to refer to this spec."
@@ -43,7 +46,7 @@ class Struct_Update_Tables(BaseModel):
 class Struct_prepare_new_type(BaseModel):
     prompt: str = Field(description="The prompt for the netlist generation agent.")
     missing_specifications_to_add: List[str] = Field(
-        description="List of raw specification names found in the requirement but missing from the spec_id_table."
+        description="List of raw specification names found in the requirement but missing from the spec_id_table. They can be simulated in NGspice."
     )
     impossible_specifications: List[str] = Field(description="List of specifications that cannot be simulated in NGspice.")
 

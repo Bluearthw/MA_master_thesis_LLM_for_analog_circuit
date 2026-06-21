@@ -49,18 +49,18 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 # test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
 test = [354]
 
-test_prepare = True
-is_with_RL = 0 # only with netlist gen
-# is_with_RL = 1 # whole workflow
-# is_with_RL = 2 # only with RL sizer
-# is_with_RL = 3 # only with yaml creation
-user_interation_utils.print_status(is_with_RL, test)
+workflow_goal = 0 # only with netlist gen
+workflow_goal = 1 # whole workflow
+workflow_goal = 2 # only with RL sizer
+workflow_goal = 3 # only with yaml creation
+workflow_goal = 4 # only with spec table update and prompt creation
+user_interation_utils.print_status(workflow_goal, test)
 # sys.exit(0)
 
-if is_with_RL == 2:
+if workflow_goal == 2:
     i = test[0]
     td3_runner.td3_start(circuit_name=f'{i}')
-elif is_with_RL == 3:
+elif workflow_goal == 3:
     i = test[0]
 
     path_yaml = f'./genai_agent/output/{i}/temp.yaml'
@@ -83,9 +83,9 @@ else:
         general_rules, category_gen_rules, category_debug_rules, is_cat_propmt_exist, cat_prompt_path = agent_utils.prepare_workflow_prompts_json(category_num)
         print("is_cat_propmt_exist =", is_cat_propmt_exist)
         
-        if not is_cat_propmt_exist or test_prepare:
+        if not is_cat_propmt_exist or workflow_goal == 4:
              workflow.prepare_new_type(cat_prompt_path, cat_json)
-             if test_prepare:
+             if workflow_goal == 4:
                   sys.exit(0)
         print("general_rules =", general_rules)
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
@@ -121,7 +121,7 @@ else:
         path_yaml = yaml_creation.make_full_yaml(path_netlist, path_ids=struct_path_id, cir_name=i, data_for_dut_yaml=data_for_dut_yaml)
         print("yaml path = ", path_yaml)
         print("====yaml done=======",i)  
-        if is_with_RL == 1:
+        if workflow_goal == 1:
             td3_runner.td3_start(circuit_name=f'{i}')
         
         gen_utils.test_delay(30)
