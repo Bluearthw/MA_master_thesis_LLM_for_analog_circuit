@@ -83,7 +83,7 @@ def make_param_lines(param_names, tech = "45nm"):
         print(lines[-1])
     return "\n".join(lines)
 
-def get_targets(spec_ids):
+def get_targets(spec_ids, spec_id_dict=None, spec_default_values=None):
     """
     Get target metrics based on specification IDs.
     
@@ -105,9 +105,9 @@ def get_targets(spec_ids):
     targets = {}
     
     for spec_id in spec_ids:
-        if spec_id in local_config.table_target_id:
-            metric_name = local_config.table_target_id[spec_id]
-            metric_default_value = local_config.table_targets_default_values.get(spec_id, 0.0)
+        if spec_id in spec_id_dict:
+            metric_name = spec_id_dict[spec_id]
+            metric_default_value = spec_default_values.get(spec_id, 0.0) if spec_default_values else 0.0
             
             targets[metric_name] = metric_default_value
         else:
@@ -249,7 +249,7 @@ def make_dut_yaml_lines(data_for_dut_yaml):
     
     return "\n".join(lines)
 
-def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multiplier_value=2, tech='45nm', data_for_dut_yaml=None):
+def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multiplier_value=2, tech='45nm', data_for_dut_yaml=None, spec_id_dict=None, spec_default_values=None):
     """
     Build full YAML content and save to file from provided parameter list and target ids.
 
@@ -265,7 +265,7 @@ def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multipl
     """
     params = get_params(path)
     
-    targets_dict = get_targets(path_ids or [])
+    targets_dict = get_targets(path_ids or [], spec_id_dict, spec_default_values)
 
     if spec_weights is None:
         spec_weights = {k: 1.0 for k in targets_dict.keys()}

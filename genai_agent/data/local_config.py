@@ -13,6 +13,10 @@ debug_netlist_path = path_output + "debug_netlist.cir"
 path_project = os.getcwd()
 path_yaml_two_stage = os.path.join(path_project, 'ngspice_interface', 'files', 'yaml_files', 'TwoStage.yaml')
 
+spec_tables_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables", "spec_tables_unified.json")
+
+
+
 agent_model25 = "gemini-2.5-flash"
 agent_model3 = "gemini-3-flash-preview"
 agent_model = agent_model3

@@ -14,7 +14,7 @@ from genai_agent.workflows import update_spec_table_agent
 import os
 
 
-def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False, general_rules = None, category_debug_rules = None):
+def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False, general_rules = None, category_debug_rules = None, trimmed_spec_table = None):
     counter = 0
     debug_history = []
     
@@ -68,7 +68,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             gen_utils.test_delay(30*(counter + 1), "debug")  
             
             # 2. Feed the clean, non-compounding history to the debug agent
-            struct_debug = debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, general_rules, category_debug_rules)
+            struct_debug = debug_agent_flow(netlist, formatted_history_input, trimmed_spec_table, spec_sims, general_rules, category_debug_rules)
             file_utils.save_dict_to_json(struct_debug.model_dump(), local_config.path_output + f"debug_struct_{counter}.json")
             netlist = struct_debug.netlist
             spec_sims = struct_debug.spec_sims
@@ -139,7 +139,7 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
     
     obj_for_sim_debug = {"netlist": netlist, "spec_sims": spec_sims, "cir_num": cir_num, "path_output_num": path_output_num, "is_differential_output": is_differential_output, "target_dc_vout": target_dc_vout, "has_input": has_input, "is_CMFB": is_CMFB, "general_rules": general_rules}
     print("###obj_for_sim_debug = ", obj_for_sim_debug)
-    results_original, struct_path_id, counter, debug_history = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB, general_rules=general_rules, category_debug_rules=category_debug_rules)
+    results_original, struct_path_id, counter, debug_history = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB, general_rules=general_rules, category_debug_rules=category_debug_rules, trimmed_spec_table=trimmed_spec_table)
     # if debug, let's see compress
     if counter > 0:
         gen_utils.test_delay(30*counter , "compress")  
@@ -152,24 +152,22 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
 
 
 
-def prepare_new_type(cat_prompt_path, category_json):
+def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_unified):
     print("generating prompt...")
     # load existing combined spec tables if available
-    spec_tables_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables", "spec_tables_unified.json")
     backup_spec_table_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables", "backup", "spec_tables_unified.json")
 
-    spec_id_unified = file_utils.get_dict_from_json_with_int_keys(spec_tables_path)
     shutil.copy(spec_tables_path, backup_spec_table_path)
     specifications_table = spec_id_unified["specifications"]
     # Dynamically generate your minimization list on the fly from RAM
-    id_spec_table = {int(k): v["target_id"] for k, v in specifications_table.items()}
+    spec_id_table = {int(k): v["target_id"] for k, v in specifications_table.items()}
     # enter agent
-    struct_create_prompt = create_prompt_agent.create_prompt_spec_table_agent_flow(category_json, id_spec_table)
+    struct_create_prompt = create_prompt_agent.create_prompt_spec_table_agent_flow(category_json, spec_id_table)
     #prompt
     file_utils.save_str_to_file(struct_create_prompt.prompt, cat_prompt_path)
     if not os.path.isfile(cat_prompt_path):
         print("still not see it")
-    return update_spec_table(specifications_table, struct_create_prompt, spec_tables_path)
+    return update_spec_table(specifications_table, struct_create_prompt, spec_tables_path) # updated_spec_id_unified
 
 def update_spec_table(specifications_table, struct_create_prompt, spec_tables_path):
     # spec id table
@@ -182,7 +180,7 @@ def update_spec_table(specifications_table, struct_create_prompt, spec_tables_pa
     # updated_id_spec_table = agent_utils.update_spec_id_table(id_spec_table, missing_specs)
     struc_update_table = update_spec_table_agent.update_table_agent_flow(missing_specs_updated)
     # print("####Updated_spec_table = ", struc_update_table)
-    return agent_utils.update_tables(struc_update_table, specifications_table,spec_tables_path)
+    return agent_utils.update_tables(struc_update_table, specifications_table, spec_tables_path) # updated_spec_id_unified
     
 
 

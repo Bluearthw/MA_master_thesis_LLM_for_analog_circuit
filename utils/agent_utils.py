@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-
+import re
 
 import time
 import traceback
@@ -250,7 +250,7 @@ def update_tables(struc, specifications_table, spec_tables_path):
         specifications_table[found_id]["aliases"] = merged_aliases
 
     # 6. Repackage into master container envelope structure
-    saved_specifications = {
+    updated_spec_id_unified = {
         "specifications": specifications_table
     }
 
@@ -261,9 +261,52 @@ def update_tables(struc, specifications_table, spec_tables_path):
             os.makedirs(out_dir, exist_ok=True)
         
         with open(spec_tables_path, "w", encoding="utf-8") as f:
-            json.dump(saved_specifications, f, ensure_ascii=False, indent=2)
+            json.dump(updated_spec_id_unified, f, ensure_ascii=False, indent=2)
 
     for i in range(int(old_max_id), int(found_id)):
         print(specifications_table[f'{i}'])
 
-    return saved_specifications
+    return updated_spec_id_unified
+
+def make_dictionary_from_specifications(name, specifications_table):
+    return {int(k): v[name] for k, v in specifications_table.items()}
+
+def trim_spec_table(text, spec_id_unified, spec_name_id_dict, aliases):
+    trimmed_dict = {}
+    text_lower = text.lower()
+    
+    # Mapping common abbreviations found in text to their full dictionary equivalents
+    
+    # aliases = local_config.table_specs_aliases
+    # target_dict = local_config.table_specs_id
+
+    for idx, spec_full_name in spec_name_id_dict.items():
+        spec_lower = spec_full_name.lower()
+        
+        # 1. Base check: Does the full string name or part of it appear in the markdown text?
+        # Clean up parentheses for a softer string search
+        clean_name = re.sub(r'\(.*?\)', '', spec_lower).strip()
+        exact_match = clean_name in text_lower or spec_lower in text_lower
+        
+        # 2. Alias check: Does an abbreviation (like PM or PSRR) appear?
+        alias_match = False
+        if idx in aliases:
+            alias_match = any(alias in text_lower for alias in aliases[idx])
+            
+        # 3. Negation Check: Ensure phrases like "CMRR is not applicable" remove it
+        # This checks if the spec name or its aliases are followed by negative keywords
+        keywords_to_check = [clean_name, spec_lower] + aliases.get(idx, [])
+        is_negated = False
+        for kw in keywords_to_check:
+            if kw in text_lower:
+                # Looks for "keyword is not", "keyword not required", or "not applicable" near it
+                if re.search(rf"{re.escape(kw)}[\s\w]*is\s+not", text_lower) or \
+                   re.search(rf"{re.escape(kw)}[\s\w]*not\s+applicable", text_lower):
+                    is_negated = True
+                    break
+
+        # If it matches and isn't explicitly ruled out, add it to our active list
+        if (exact_match or alias_match) and not is_negated:
+            trimmed_dict[idx] = spec_full_name
+            
+    return trimmed_dict

@@ -2,7 +2,7 @@ from genai_agent.data import local_config
 from genai_agent.data import response_schema
 from utils import agent_utils
 from utils import file_utils
-def debug_agent_flow(netlist, formatted_history_input, cir_num, spec_sims, general_rules = None, category_debug_rules = None):
+def debug_agent_flow(netlist, formatted_history_input, trimmed_spec_table, spec_sims, general_rules = None, category_debug_rules = None):
     """Call the debug agent to fix a netlist and return the parsed response model.
 
     - `general_rules` is expected to be a list of rule lines (from workflow_prompts.json).
@@ -27,7 +27,7 @@ Your task is to analyze a failed SPICE simulation, review any past debugging att
 
 3. **Reference Specifications:**
 
-Specification ID Table: {local_config.table_specs_id}
+Specification ID Table: {trimmed_spec_table}
 
 Required Simulations (from previous agent): {spec_sims}
 

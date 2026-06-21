@@ -8,13 +8,13 @@ import shutil
 import utils.file_utils as file_utils
 from ngspice_interface import DUT as DUT_NGSpice
 from utils.plotting import plotLearning, plot_running_maximum, solutions2pareto
-from genai_agent.data.local_config import list_targets_to_min
+# from genai_agent.data.local_config import list_targets_to_min
 
 class CircuitEnv(gym.Env):
     PER_LOW, PER_HIGH = -np.inf, +np.inf
     
     def __init__(self, config=None, circuit_name='TwoStage', run_id='rllib_baseline',
-                 success_threshold=0.0, simulator='ngspice'):
+                 success_threshold=0.0, simulator='ngspice', list_min_targets=None):
         self.run_id = run_id
         self.max_steps_per_episode = 10
         self.env_steps = 0
@@ -25,13 +25,14 @@ class CircuitEnv(gym.Env):
         project_path = os.getcwd()
         yaml_directory = os.path.join(project_path, f"{simulator}_interface", 'files', 'yaml_files')
         circuit_yaml_path = os.path.join(yaml_directory, f'{circuit_name}.yaml')
-        
+        # list_target_min_path = os.path.join
+
         with open(circuit_yaml_path, 'r') as f:
             yaml_data = yaml.load(f, Loader=yaml.Loader)
             self.path_circuit_yaml = circuit_yaml_path
         
         # self.data_for_dut = yaml_data['dut_config']
-        
+        self.list_min_targets = list_min_targets
         self.dict_params = yaml_data['params']
         self.dict_targets = yaml_data['targets']
         self.hard_constraints = yaml_data['hard_constraints']
@@ -283,7 +284,7 @@ class CircuitEnv(gym.Env):
         for key in self.hard_constraints:
             val = norm_specs.get(key, 0.0)
             target = self.dict_targets.get(key, 0.0)
-            if key in list_targets_to_min : 
+            if key in self.list_min_targets : 
                 ry = -max(val, 0.0)
                 rH += ry
             else:

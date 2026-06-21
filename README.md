@@ -1,5 +1,5 @@
 git add .
-git commit -m "update spec_id table structure. need to change trim table 
+git commit -m "re pass all arguments about specs and ids
 "
 git push
 

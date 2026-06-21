@@ -102,7 +102,7 @@ def train_policy(args, env_pool, agent, total_steps):
     batch = (state, action, reward, next_state, done)
     agent.update_parameters(memory_batch=batch, update=total_steps)
 
-def td3_start(args=None, circuit_name=None):
+def td3_start(args=None, circuit_name=None, list_min_targets=None):
     import time  
     if args is None:
         args = readParser()
@@ -112,7 +112,7 @@ def td3_start(args=None, circuit_name=None):
     np.random.seed(args.seed)
     # Initial environment
     # env = CircuitEnv(run_id=args.run_id, circuit_name='TwoStage')
-    env = CircuitEnv(run_id=args.run_id, circuit_name = circuit_name)
+    env = CircuitEnv(run_id=args.run_id, circuit_name = circuit_name, list_min_targets=list_min_targets)
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
     # Intial agent
