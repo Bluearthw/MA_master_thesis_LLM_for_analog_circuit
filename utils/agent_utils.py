@@ -187,4 +187,125 @@ def update_spec_json(spec_dict, new_spec_list, spec_table_path: str | None = Non
     return spec_dict
 
 def update_rest_table(struc):
-    return ""
+    """Update the auxiliary spec tables (targets, defaults, aliases, minimization list).
+
+    Accepts either a Struct_Update_Tables-like object with attribute `new_specifications`
+    or a plain iterable of NewSpecificationItem-like objects (each with
+    `target_id_name`, `aliases`, `default_value`, `should_minimize`).
+
+    The function will:
+      - load existing combined spec-tables JSON if present (fallback to
+        values from `local_config`),
+      - for each new item, find an existing spec id by alias or target name,
+        or allocate a new numeric id (max+1),
+      - update `table_target_id`, `table_targets_default_values`,
+        `table_specs_aliases`, and `list_targets_to_min` accordingly,
+      - save the updated combined table back to disk.
+
+    Returns the updated combined dict.
+    """
+    # normalize input to a list of items
+    if hasattr(struc, "new_specifications"):
+        items = struc.new_specifications
+    else:
+        items = list(struc or [])
+
+    # load existing combined spec tables if available
+    spec_tables_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables", "spec_tables_combined.json")
+
+    combined = file_utils.get_dict_from_json(spec_tables_path)
+    if not combined:
+        # bootstrap from local_config
+        combined = {
+            "table_specs_id": {str(k): v for k, v in local_config.table_specs_id.items()},
+            "table_target_id": {str(k): v for k, v in local_config.table_target_id.items()},
+            "table_targets_default_values": {str(k): v for k, v in local_config.table_targets_default_values.items()},
+            "table_specs_aliases": {str(k): v for k, v in local_config.table_specs_aliases.items()},
+            "list_targets_to_min": list(local_config.list_targets_to_min),
+        }
+
+    # convert keys to int for processing
+    def int_key_dict(d):
+        return {int(k): v for k, v in (d or {}).items()}
+
+    specs_id = int_key_dict(combined.get("table_specs_id", {}))
+    target_id = int_key_dict(combined.get("table_target_id", {}))
+    defaults = int_key_dict(combined.get("table_targets_default_values", {}))
+    aliases = int_key_dict(combined.get("table_specs_aliases", {}))
+    list_min = list(combined.get("list_targets_to_min", []))
+
+    # build reverse lookup maps
+    name_to_spec_id = {v.lower(): k for k, v in specs_id.items()}
+    targetname_to_id = {v: k for k, v in target_id.items()}
+    alias_to_id = {}
+    for k, alist in aliases.items():
+        for a in alist:
+            alias_to_id[a.lower()] = k
+
+    max_id = max(list(specs_id.keys()) + list(target_id.keys()) or [-1])
+
+    # Process each new specification item
+    for it in items:
+        try:
+            target_name = it.target_id_name
+            item_aliases = [a.lower() for a in (it.aliases or [])]
+            default_value = it.default_value
+            should_minimize = bool(getattr(it, "should_minimize", False))
+        except Exception:
+            # Skip malformed entries
+            continue
+
+        # 1) try to find existing id by alias
+        found_id = None
+        for a in item_aliases:
+            if a in alias_to_id:
+                found_id = alias_to_id[a]
+                break
+
+        # 2) try by target name
+        if found_id is None and target_name in targetname_to_id:
+            found_id = targetname_to_id[target_name]
+
+        # 3) try by human-readable spec name (derived)
+        if found_id is None:
+            derived_human = target_name.replace("_", " ").title()
+            if derived_human.lower() in name_to_spec_id:
+                found_id = name_to_spec_id[derived_human.lower()]
+
+        # If still not found, allocate new id
+        if found_id is None:
+            max_id += 1
+            found_id = max_id
+            # add a human-friendly label
+            specs_id[found_id] = target_name.replace("_", " ").title()
+
+        # Ensure target_id mapping
+        target_id[found_id] = target_name
+
+        # Update default
+        defaults[found_id] = default_value
+
+        # Merge aliases
+        existing_aliases = [a.lower() for a in aliases.get(found_id, [])]
+        merged = list(dict.fromkeys(existing_aliases + item_aliases))
+        aliases[found_id] = merged
+
+        # Update minimization list
+        if should_minimize and target_name not in list_min:
+            list_min.append(target_name)
+
+    # Prepare to save back (string keys)
+    saved = {
+        "table_specs_id": {str(k): v for k, v in specs_id.items()},
+        "table_target_id": {str(k): v for k, v in target_id.items()},
+        "table_targets_default_values": {str(k): v for k, v in defaults.items()},
+        "table_specs_aliases": {str(k): v for k, v in aliases.items()},
+        "list_targets_to_min": list_min,
+    }
+
+    # Ensure directory exists
+    out_dir = os.path.dirname(spec_tables_path)
+    os.makedirs(out_dir, exist_ok=True)
+    file_utils.save_dict_to_json(saved, spec_tables_path)
+
+    return saved

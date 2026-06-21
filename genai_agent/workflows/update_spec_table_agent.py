@@ -35,10 +35,10 @@ For every missing specification provided, you must break it down into a structur
 # Output Format
 You must output your response using the designated JSON schema. Do not assign integer IDs; the Python backend handles numerical keys automatically.
 """
-    print("###contents netlist builder ", contents)
+    print("###contents create_tabler ", contents)
     try:
         struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_Update_Tables)
-        print("==struc_netlist_builder", struc)
+        print("###struc_update_table = ", struc)
 
         return struc
     

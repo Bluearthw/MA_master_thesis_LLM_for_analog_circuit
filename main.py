@@ -49,7 +49,7 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 # test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
 test = [354]
 
-
+test_prepare = True
 is_with_RL = 0 # only with netlist gen
 # is_with_RL = 1 # whole workflow
 # is_with_RL = 2 # only with RL sizer
@@ -83,8 +83,10 @@ else:
         general_rules, category_gen_rules, category_debug_rules, is_cat_propmt_exist, cat_prompt_path = agent_utils.prepare_workflow_prompts_json(category_num)
         print("is_cat_propmt_exist =", is_cat_propmt_exist)
         
-        if not is_cat_propmt_exist:
+        if not is_cat_propmt_exist or test_prepare:
              workflow.prepare_new_type(cat_prompt_path, cat_json)
+             if test_prepare:
+                  sys.exit(0)
         print("general_rules =", general_rules)
         trimmed_spec_table = gen_utils.trim_spec_table(category_str)
         # print("###trimmed_spec_table",trimmed_spec_table)
