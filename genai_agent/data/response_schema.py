@@ -43,11 +43,32 @@ class Struct_Update_Tables(BaseModel):
     new_specifications: List[NewSpecificationItem] = Field(
         description="A structured list containing all newly discovered specifications to append to the system databases."
     )
-class Struct_prepare_new_type(BaseModel):
-    prompt: str = Field(description="The prompt for the netlist generation agent.")
-    missing_specifications_to_add: List[str] = Field(
-        description="List of raw specification names found in the requirement but missing from the spec_id_table. They can be simulated in NGspice."
+
+class SpecMeasurementContract(BaseModel):
+    spec_name: str = Field(
+        description="The exact name of the specification (e.g., 'Phase Margin', 'PSRR')."
     )
+    spec_id: int = Field(description="The unique identifier for the specification. Normally +1 compared to the previous specification for each new specification.")
+    
+    sim_type: Literal["OP", "AC", "DC", "TRAN", "NOISE"] = Field(
+        description="The strict NGSpice analysis type required to evaluate this specification."
+    )
+    csv_filename: str = Field(
+        description="The strict filename the netlist agent must use in wrdata, it also tells the input port if it has (e.g., 'ac_gain_vin.csv'(gain),'ac_gain_vdd.csv'(PSRR))."
+    )
+    expected_columns: int = Field(
+        description="Number of columns in CSV. Example: 3 for Single-Ended AC (f,r,i), 6 for Differential AC (f,r1,i1,f,r2,i2), 2 for OP/TRAN single node."
+    )
+    python_function_name: str = Field(
+        description="The mathematical recipe for the python calculator (e.g., 'get_dc_gain', 'get_psrr', 'get_cmrr')."
+    )
+
+class Struct_prepare_new_type(BaseModel):
+    prompt: str = Field(description="The prompt for the netlist maker agent.")
+    missing_specifications_contract: List[SpecMeasurementContract] = Field(
+        description="The explicit data contracts for all valid, simulation-ready specifications found in the requirement but missing from the spec_id_table. They can be simulated in NGspice."
+    )
+
     impossible_specifications: List[str] = Field(description="List of specifications that cannot be simulated in NGspice.")
 
 class GenerationGuidelinesUpdates(BaseModel):

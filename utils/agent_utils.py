@@ -151,7 +151,7 @@ def check_current_simulation(spec_sims):
     return False
 
 
-def update_tables(struc, specifications_table, spec_tables_path):
+def update_tables(struc, specifications_table, spec_tables_path, valid_contracts):
     """Update the unified specifications table database.
 
     Accepts a Struct_Update_Tables object containing a list of `new_specifications`
@@ -237,7 +237,8 @@ def update_tables(struc, specifications_table, spec_tables_path):
                 "human_name": human_name,
                 "default_value": default_value,
                 "should_minimize": should_minimize,
-                "aliases": []
+                "aliases": [],
+                "contract": {}  # Placeholder for the data contract block
             }
 
         # 5. Perform clean object updates/merges on the matched/created ID row
@@ -248,6 +249,25 @@ def update_tables(struc, specifications_table, spec_tables_path):
         existing_aliases = [a.lower() for a in specifications_table[found_id].get("aliases", [])]
         merged_aliases = list(dict.fromkeys(existing_aliases + item_aliases))
         specifications_table[found_id]["aliases"] = merged_aliases
+        # --- THE CONTRACT INJECTION ADDITION ---
+        # Find if a simulation contract matches this spec item (checking spec_name or target_id)
+        matching_contract = None
+        for contract in (valid_contracts or []):
+            if contract.spec_name.lower() in ([human_name.lower(), target_name.lower()] + item_aliases):
+                matching_contract = contract
+                break
+        
+        # If found, serialise the Pydantic structural data into the row entry
+        if matching_contract:
+            specifications_table[found_id]["contract"] = {
+                "sim_type": matching_contract.sim_type,
+                "csv_filename": matching_contract.csv_filename,
+                "expected_columns": matching_contract.expected_columns,
+                "math_primitive_recipe": matching_contract.math_primitive_recipe
+            }
+        elif "contract" not in specifications_table[found_id]:
+            # Keep empty if no match and it wasn't pre-existing
+            specifications_table[found_id]["contract"] = {}
 
     # 6. Repackage into master container envelope structure
     updated_spec_id_unified = {
@@ -263,15 +283,17 @@ def update_tables(struc, specifications_table, spec_tables_path):
         with open(spec_tables_path, "w", encoding="utf-8") as f:
             json.dump(updated_spec_id_unified, f, ensure_ascii=False, indent=2)
 
-    for i in range(int(old_max_id), int(found_id)):
-        print(specifications_table[f'{i}'])
+    if old_max_id != float('inf') and found_id is not None:
+        for i in range(int(old_max_id), int(found_id) + 1):
+            if f'{i}' in specifications_table:
+                print(f"Updated/New ID Entry {i}:", specifications_table[f'{i}'])
 
     return updated_spec_id_unified
 
 def make_dictionary_from_specifications(name, specifications_table):
     return {int(k): v[name] for k, v in specifications_table.items()}
 
-def trim_spec_table(text, spec_id_unified, spec_name_id_dict, aliases):
+def trim_spec_table(text, spec_name_id_dict, aliases):
     trimmed_dict = {}
     text_lower = text.lower()
     

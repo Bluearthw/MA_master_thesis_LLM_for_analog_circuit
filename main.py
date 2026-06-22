@@ -73,7 +73,8 @@ elif workflow_goal == 3:
     data_for_dut_yaml = yaml_data['data_for_dut_yaml']
     specifications_table = spec_id_unified["specifications"]
     spec_id_dict = agent_utils.make_dictionary_from_specifications("target_id", specifications_table)
-    path_yaml = yaml_creation.make_full_yaml(path_netlist, path_ids=yaml_data['path_ids'], cir_name=i, data_for_dut_yaml=data_for_dut_yaml, spec_id_dict=spec_id_dict)
+    spec_default_values = None #!!!
+    path_yaml = yaml_creation.make_full_yaml(path_netlist, path_ids=yaml_data['path_ids'], cir_name=i, data_for_dut_yaml=data_for_dut_yaml, spec_id_dict=spec_id_dict, spec_default_values=spec_default_values)
     print("yaml path = ", path_yaml)
 else:
     for i in test:
@@ -88,17 +89,17 @@ else:
         print("is_cat_propmt_exist =", is_cat_propmt_exist)
         if not is_cat_propmt_exist or workflow_goal == 4:
             spec_id_unified = workflow.prepare_new_type(cat_prompt_path, cat_json, spec_tables_path, spec_id_unified)
-            if workflow_goal == 4:
-                  sys.exit(0)
+            
             specifications_table = spec_id_unified["specifications"]
             spec_name_id_dict = agent_utils.make_dictionary_from_specifications("human_name", specifications_table)
             aliases = agent_utils.make_dictionary_from_specifications("aliases", specifications_table)
-            trimmed_spec_table = agent_utils.trim_spec_table(category_str, spec_id_unified)
-        
+            trimmed_spec_table = agent_utils.trim_spec_table(category_str, spec_name_id_dict, aliases)
+            
         print("general_rules =", general_rules)
         # print("###trimmed_spec_table",trimmed_spec_table)
         
-
+        if workflow_goal == 4:
+            sys.exit(0)
         results, struct_path_id, path_netlist, spec_sims, data_for_dut_yaml = workflow.generate_netlist(
         cir_num=i, 
         path_output_num=path_output_num, 
@@ -128,7 +129,7 @@ else:
         spec_default_values = agent_utils.make_dictionary_from_specifications("default_value", specifications_table)
         spec_id_dict = agent_utils.make_dictionary_from_specifications("target_id", specifications_table)
         
-        path_yaml = yaml_creation.make_full_yaml(path_netlist, path_ids=struct_path_id, cir_name=i, data_for_dut_yaml=data_for_dut_yaml, spec_id_dict=spec_id_dict, spec_default_values=spec_default_values, spec_default_values=spec_default_values)
+        path_yaml = yaml_creation.make_full_yaml(path_netlist, path_ids=struct_path_id, cir_name=i, data_for_dut_yaml=data_for_dut_yaml, spec_id_dict=spec_id_dict, spec_default_values=spec_default_values)
         print("yaml path = ", path_yaml)
         print("====yaml done=======",i)  
         if workflow_goal == 1:

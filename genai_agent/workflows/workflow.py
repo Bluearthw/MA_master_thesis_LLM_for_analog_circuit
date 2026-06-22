@@ -9,7 +9,7 @@ from ngspice_interface import dut_testbench
 from genai_agent.workflows.debug_agent import debug_agent_flow
 from genai_agent.workflows import make_netlist_agent
 from genai_agent.workflows import compress_err_info_agent
-from genai_agent.workflows import create_prompt_agent
+from genai_agent.workflows import make_prompt_agent
 from genai_agent.workflows import update_spec_table_agent
 import os
 
@@ -154,33 +154,38 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
 
 def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_unified):
     print("generating prompt...")
-    # load existing combined spec tables if available
+    # back up
     backup_spec_table_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables", "backup", "spec_tables_unified.json")
 
     shutil.copy(spec_tables_path, backup_spec_table_path)
     specifications_table = spec_id_unified["specifications"]
-    # Dynamically generate your minimization list on the fly from RAM
     spec_id_table = {int(k): v["target_id"] for k, v in specifications_table.items()}
+
     # enter agent
-    struct_create_prompt = create_prompt_agent.create_prompt_spec_table_agent_flow(category_json, spec_id_table)
+    struct_create_prompt = make_prompt_agent.make_prompt_spec_table_agent_flow(category_json, spec_id_table)
     #prompt
     file_utils.save_str_to_file(struct_create_prompt.prompt, cat_prompt_path)
     if not os.path.isfile(cat_prompt_path):
         print("still not see it")
-    return update_spec_table(specifications_table, struct_create_prompt, spec_tables_path) # updated_spec_id_unified
 
-def update_spec_table(specifications_table, struct_create_prompt, spec_tables_path):
     # spec id table
-    missing_specs = struct_create_prompt.missing_specifications_to_add
+    list_spec_contracts = struct_create_prompt.missing_specifications_contract
+    missing_specs = [spec.spec_name for spec in list_spec_contracts]
     print("####missing_specs = ", missing_specs)
     impossible_specs = struct_create_prompt.impossible_specifications
     print("####impossible_specs = ", impossible_specs)
     missing_specs_updated = [spec for spec in missing_specs if spec not in impossible_specs]
+    valid_contracts = [spec for spec in list_spec_contracts if spec.spec_name not in impossible_specs]
+    print("####valid_contracts = ", valid_contracts)
 
     # updated_id_spec_table = agent_utils.update_spec_id_table(id_spec_table, missing_specs)
     struc_update_table = update_spec_table_agent.update_table_agent_flow(missing_specs_updated)
     # print("####Updated_spec_table = ", struc_update_table)
-    return agent_utils.update_tables(struc_update_table, specifications_table, spec_tables_path) # updated_spec_id_unified
+    
+
+    return agent_utils.update_tables(struc_update_table, specifications_table, spec_tables_path, valid_contracts) # updated_spec_id_unified
+
+    
     
 
 
