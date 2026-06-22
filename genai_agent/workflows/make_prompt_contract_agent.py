@@ -8,7 +8,7 @@ from utils import agent_utils
 from genai_agent.data import local_config
 from genai_agent.data import response_schema
 
-def make_prompt_spec_table_agent_flow(category_json, spec_id_table):
+def make_prompt_spec_table_contract_agent_flow(category_json, spec_id_table):
     category_json = json.dumps(category_json, indent=4)
     spec_id_table = json.dumps(spec_id_table, indent=4)
     contents = f"""You are an AI Prompt Engineer and Senior Analog IC Verification Architect. Your job is to analyze a raw analog circuit category description, identify missing specifications, and compile a precise System Prompt for a downstream NGSpice Netlist Generation Agent.

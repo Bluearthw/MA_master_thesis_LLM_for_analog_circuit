@@ -351,6 +351,36 @@
         "voltage compliance",
         "compliance voltage"
       ]
+    },
+    "31": {
+      "target_id": "oscillation_frequency",
+      "human_name": "Oscillation Frequency",
+      "default_value": 1000000000.0,
+      "should_minimize": false,
+      "aliases": [
+        "f_osc",
+        "oscillation freq",
+        "frequency of oscillation"
+      ],
+      "contract": {
+        "sim_type": "TRAN",
+        "csv_filename": "osc_freq.csv",
+        "expected_columns": 2,
+        "python_function_name": "get_oscillation_frequency"
+      }
+    },
+    "32": {
+      "target_id": "tuning_range_gain",
+      "human_name": "Tuning Range and Gain",
+      "default_value": 1000000.0,
+      "should_minimize": false,
+      "aliases": [
+        "kvco",
+        "tuning range",
+        "tuning gain",
+        "tuning sensitivity"
+      ],
+      "contract": {}
     }
   }
 }

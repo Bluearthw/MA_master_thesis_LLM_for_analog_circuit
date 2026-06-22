@@ -9,7 +9,7 @@ from ngspice_interface import dut_testbench
 from genai_agent.workflows.debug_agent import debug_agent_flow
 from genai_agent.workflows import make_netlist_agent
 from genai_agent.workflows import compress_err_info_agent
-from genai_agent.workflows import make_prompt_agent
+from genai_agent.workflows import make_prompt_contract_agent
 from genai_agent.workflows import update_spec_table_agent
 import os
 
@@ -153,6 +153,9 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
 
 
 def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_unified):
+    """
+    spec table and contract
+    """
     print("generating prompt...")
     # back up
     backup_spec_table_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables", "backup", "spec_tables_unified.json")
@@ -162,7 +165,7 @@ def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_u
     spec_id_table = {int(k): v["target_id"] for k, v in specifications_table.items()}
 
     # enter agent
-    struct_create_prompt = make_prompt_agent.make_prompt_spec_table_agent_flow(category_json, spec_id_table)
+    struct_create_prompt = make_prompt_contract_agent.make_prompt_spec_table_agent_flow(category_json, spec_id_table)
     #prompt
     file_utils.save_str_to_file(struct_create_prompt.prompt, cat_prompt_path)
     if not os.path.isfile(cat_prompt_path):
@@ -182,8 +185,10 @@ def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_u
     struc_update_table = update_spec_table_agent.update_table_agent_flow(missing_specs_updated)
     # print("####Updated_spec_table = ", struc_update_table)
     
-
-    return agent_utils.update_tables(struc_update_table, specifications_table, spec_tables_path, valid_contracts) # updated_spec_id_unified
+    updated_spec_id_unified = agent_utils.update_tables(struc_update_table, specifications_table, spec_tables_path, valid_contracts) # updated_spec_id_unified
+    
+    # pygen agent
+    return updated_spec_id_unified
 
     
     

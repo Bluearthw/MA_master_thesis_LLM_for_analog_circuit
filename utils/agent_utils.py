@@ -263,7 +263,7 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
                 "sim_type": matching_contract.sim_type,
                 "csv_filename": matching_contract.csv_filename,
                 "expected_columns": matching_contract.expected_columns,
-                "math_primitive_recipe": matching_contract.math_primitive_recipe
+                "python_function_name": matching_contract.python_function_name
             }
         elif "contract" not in specifications_table[found_id]:
             # Keep empty if no match and it wasn't pre-existing

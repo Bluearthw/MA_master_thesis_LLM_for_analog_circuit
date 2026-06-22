@@ -95,6 +95,7 @@ else:
             aliases = agent_utils.make_dictionary_from_specifications("aliases", specifications_table)
             trimmed_spec_table = agent_utils.trim_spec_table(category_str, spec_name_id_dict, aliases)
             
+            
         print("general_rules =", general_rules)
         # print("###trimmed_spec_table",trimmed_spec_table)
         

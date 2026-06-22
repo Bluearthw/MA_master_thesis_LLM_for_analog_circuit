@@ -1,5 +1,5 @@
 git add .
-git commit -m "re pass all arguments about specs and ids
+git commit -m "contracts for netlist gen and pycal gen
 "
 git push
 
