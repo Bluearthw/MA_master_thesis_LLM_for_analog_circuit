@@ -155,7 +155,7 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
     """Update the unified specifications table database.
 
     Accepts a Struct_Update_Tables object containing a list of `new_specifications`
-    (each with `target_id`, `human_name`, `default_value`, `should_minimize`, `aliases`).
+    (each with `target_id`, `spec_name`, `default_value`, `should_minimize`, `aliases`).
 
     The function will:
       - read from the unified schema dictionary format,
@@ -185,9 +185,9 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
         if "target_id" in details:
             targetname_to_id[details["target_id"]] = str_id
             
-        # Map human_name (e.g., 'dc gain' -> "0")
-        if "human_name" in details:
-            humanname_to_id[details["human_name"].lower()] = str_id
+        # Map spec_name (e.g., 'dc gain' -> "0")
+        if "spec_name" in details:
+            humanname_to_id[details["spec_name"].lower()] = str_id
             
         # Map every unique registered alias (e.g., 'voltage gain' -> "0")
         for a in details.get("aliases", []):
@@ -195,12 +195,13 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
 
     old_max_id = float('inf')
     found_id = 0
+    affected_ids = []
     # 4. Process each incoming spec item proposed by the LLM Agent
     for it in items:
         try:
             print("it =", it)
             target_name = it.target_id
-            human_name = it.human_name
+            spec_name = it.spec_name
             default_value = it.default_value
             should_minimize = bool(getattr(it, "should_minimize", False))
             item_aliases = [a.lower() for a in (it.aliases or [])]
@@ -208,7 +209,7 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
             print("agent_utils: Error occurred while parsing specification object parameters. Skipping entry.")
             continue
 
-        found_id = None
+        found_id = None # it is str
 
         # Rule A: Try to find an match by an alternative lowercased alias
         for a in item_aliases:
@@ -221,8 +222,8 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
             found_id = targetname_to_id[target_name]
 
         # Rule C: Try to find a match by a lowercased human label
-        if found_id is None and human_name.lower() in humanname_to_id:
-            found_id = humanname_to_id[human_name.lower()]
+        if found_id is None and spec_name.lower() in humanname_to_id:
+            found_id = humanname_to_id[spec_name.lower()]
 
         # Rule D: Genuinely new metric. Calculate max ID and increment
         if found_id is None:
@@ -234,7 +235,7 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
             # Initialize empty schema blueprint row for the brand-new index
             specifications_table[found_id] = {
                 "target_id": target_name,
-                "human_name": human_name,
+                "spec_name": spec_name,
                 "default_value": default_value,
                 "should_minimize": should_minimize,
                 "aliases": [],
@@ -253,7 +254,7 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
         # Find if a simulation contract matches this spec item (checking spec_name or target_id)
         matching_contract = None
         for contract in (valid_contracts or []):
-            if contract.spec_name.lower() in ([human_name.lower(), target_name.lower()] + item_aliases):
+            if contract.spec_name.lower() in ([spec_name.lower(), target_name.lower()] + item_aliases):
                 matching_contract = contract
                 break
         
@@ -268,6 +269,8 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
         elif "contract" not in specifications_table[found_id]:
             # Keep empty if no match and it wasn't pre-existing
             specifications_table[found_id]["contract"] = {}
+        if found_id not in affected_ids:
+            affected_ids.append(found_id)
 
     # 6. Repackage into master container envelope structure
     updated_spec_id_unified = {
@@ -288,7 +291,7 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
             if f'{i}' in specifications_table:
                 print(f"Updated/New ID Entry {i}:", specifications_table[f'{i}'])
 
-    return updated_spec_id_unified
+    return updated_spec_id_unified, affected_ids
 
 def make_dictionary_from_specifications(name, specifications_table):
     return {int(k): v[name] for k, v in specifications_table.items()}

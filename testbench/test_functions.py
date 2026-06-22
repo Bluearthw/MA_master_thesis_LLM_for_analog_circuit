@@ -7,11 +7,11 @@ import time
 import numpy as np
 import pandas as pd
 ## local imports
-import genai_agent.data.saved_netlist as saved_netlist
+# import genai_agent.data.saved_netlist as saved_netlist
 sys.path.append('.')
 from utils import gen_utils
 from genai_agent.data import local_config
-from genai_agent.workflows import make_prompt_agent
+from genai_agent.workflows import make_prompt_contract_agent
 def test_clean():
     for i in range(2, 20):
         cir_path = f"../material/dataset/tb_dataset/{i}/{i}.cir"
@@ -340,9 +340,27 @@ def test_clean_before_CMFB(nl):
     print(nl2)
 
 def test_cmfb_agent(nl):
-    response = make_prompt_agent.make_prompt_spec_table_agent_flow(nl,182)
+    response = make_prompt_contract_agent.make_prompt_spec_table_agent_flow(nl,182)
     print(response)
 # region test
+def test_vertexai():
+    from google import genai
+    from google.genai.types import HttpOptions
+
+    client = genai.Client(http_options=HttpOptions(api_version="v1"))
+    response = client.models.generate_content(
+#         Hello! How can I help you today?
+# Execution time: 161.229466 seconds###gemini 3 flash preview
+# (venv) PS D:\1kulStudy\8MA_Thesis\workplace> & d:\1kulStudy\8MA_Thesis\workplace\venv\Scripts\python.exe d:/1kulStudy/8MA_Thesis/workplace/testbench/test_functions.py
+# Hello, World! It's great to connect with you. How can I help you today?
+# Execution time: 9.829296 seconds### 3.5 flash
+        model='gemini-3.5-flash', # Or your specific active Vertex model ID
+        # model='gemini-3-flash-preview', # Or your specific active Vertex model ID
+        # model='gemini-2.5-flash', # Or your specific active Vertex model ID
+        contents='Hello, world!',
+    )
+    print(response.text)
+
 start_time = time.perf_counter()
 # test_clean()
 # test_add_params()
@@ -358,7 +376,7 @@ start_time = time.perf_counter()
 # test_find_RF_from_cir_pattern()
 # test_find_all()
 # test_find_cir_without_mos()
-
+test_vertexai()
 # test_modify_duplicate_component()
 # test_find_cir_without_vdd()# test_check_output_files()
 # test_measurement_spice_result("./1genai/output/ac_gain.csv")
@@ -383,7 +401,7 @@ end_time = time.perf_counter()
 # test_find_num_from_class(4)
 # test_find_num_from_class(7)
 # test_find_num_from_class(40)
-test_find_num_from_class()  # Find all classes 1-40
+# test_find_num_from_class()  # Find all classes 1-40
 # test_find_category_str(4)
 
 # gen_utils.difference_of_nums(local_config.num_class_4, [43])

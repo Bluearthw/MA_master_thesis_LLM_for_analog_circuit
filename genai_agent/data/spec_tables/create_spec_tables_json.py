@@ -14,7 +14,7 @@ unified_specifications = {}
 # 2. Iterate through your primary keys (using table_target_id as the baseline)
 for k, target_id in local_config.table_target_id.items():
     # Safely extract matching values from the other parallel tables
-    human_name = local_config.table_specs_id.get(k, target_id.replace("_", " ").title())
+    spec_name = local_config.table_specs_id.get(k, target_id.replace("_", " ").title())
     default_val = local_config.table_targets_default_values.get(k, 0.0)
     aliases_list = local_config.table_specs_aliases.get(k, [])
     
@@ -24,7 +24,7 @@ for k, target_id in local_config.table_target_id.items():
     # 3. Package it into a single clean object under a stringified ID key
     unified_specifications[str(k)] = {
         "target_id": target_id,
-        "human_name": human_name,
+        "spec_name": spec_name,
         "default_value": default_val,
         "should_minimize": should_minimize,
         "aliases": aliases_list

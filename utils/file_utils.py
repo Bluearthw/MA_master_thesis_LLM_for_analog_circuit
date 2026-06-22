@@ -51,13 +51,9 @@ def save_error_info(path_output_num, cir_num, retry_count, debug_history, status
     with open(metadata_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2)
 
-def save_file_overwrite(path, content):# the file type is defined in path
-    with open(f"{path}", "w") as file:
-        file.write(f"{content}")
-
-def save_str_to_file(str, path = local_config.path_output + "final_netlist.cir"):
+def save_str_to_file(content, path = local_config.path_output + "final_netlist.cir"):
     with open(path, "w") as f:
-        f.write(str)
+        f.write(content)
 def save_dict_to_json(dict_to_save, path):
     with open(path, "w") as f:
         json.dump(dict_to_save, f, indent=4)

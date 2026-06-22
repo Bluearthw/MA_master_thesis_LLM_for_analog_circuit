@@ -91,10 +91,11 @@ else:
             spec_id_unified = workflow.prepare_new_type(cat_prompt_path, cat_json, spec_tables_path, spec_id_unified)
             
             specifications_table = spec_id_unified["specifications"]
-            spec_name_id_dict = agent_utils.make_dictionary_from_specifications("human_name", specifications_table)
+            spec_name_id_dict = agent_utils.make_dictionary_from_specifications("spec_name", specifications_table)
             aliases = agent_utils.make_dictionary_from_specifications("aliases", specifications_table)
-            trimmed_spec_table = agent_utils.trim_spec_table(category_str, spec_name_id_dict, aliases)
-            
+        
+        trimmed_spec_table = agent_utils.trim_spec_table(category_str, spec_name_id_dict, aliases)
+        
             
         print("general_rules =", general_rules)
         # print("###trimmed_spec_table",trimmed_spec_table)

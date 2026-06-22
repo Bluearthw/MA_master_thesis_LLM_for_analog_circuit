@@ -21,11 +21,11 @@ if is_create:
 
     print("###struc_update_table = ",struc_update_table)
 
-struc_update_table =  new_specifications=[NewSpecificationItem(target_id='oscillation_frequency',human_name='Oscillation Frequency', aliases=['oscillation frequency', 'f_osc', 'center frequency', 'frequency'], default_value=1000000000.0, should_minimize=False), 
-                                          NewSpecificationItem(target_id='vco_tuning_range', human_name='Tuning Range & Gain (for VCOs)', aliases=['tuning range', 'tuning range & gain', 'vco gain', 'vco range'], default_value=100000000.0, should_minimize=False), 
-                                          NewSpecificationItem(target_id='phase_noise', human_name='Phase Noise', aliases=['phase noise', 'pn', 'spectral purity'], default_value=-100.0, should_minimize=True), 
-                                          NewSpecificationItem(target_id='output_swing', human_name='Output Swing / Amplitude', aliases=['output swing', 'amplitude', 'v_out_peak', 'output voltage swing'], default_value=1.0, should_minimize=False), 
-                                          NewSpecificationItem(target_id='power_consumption', human_name='Power Consumption', aliases=['power consumption', 'power', 'pdiss', 'dissipated power'], default_value=0.001, should_minimize=True)]
+struc_update_table =  new_specifications=[NewSpecificationItem(target_id='oscillation_frequency',spec_name='Oscillation Frequency', aliases=['oscillation frequency', 'f_osc', 'center frequency', 'frequency'], default_value=1000000000.0, should_minimize=False), 
+                                          NewSpecificationItem(target_id='vco_tuning_range', spec_name='Tuning Range & Gain (for VCOs)', aliases=['tuning range', 'tuning range & gain', 'vco gain', 'vco range'], default_value=100000000.0, should_minimize=False), 
+                                          NewSpecificationItem(target_id='phase_noise', spec_name='Phase Noise', aliases=['phase noise', 'pn', 'spectral purity'], default_value=-100.0, should_minimize=True), 
+                                          NewSpecificationItem(target_id='output_swing', spec_name='Output Swing / Amplitude', aliases=['output swing', 'amplitude', 'v_out_peak', 'output voltage swing'], default_value=1.0, should_minimize=False), 
+                                          NewSpecificationItem(target_id='power_consumption', spec_name='Power Consumption', aliases=['power consumption', 'power', 'pdiss', 'dissipated power'], default_value=0.001, should_minimize=True)]
 # agent_utils.update_rest_table(struc_update_table)
 def see_tables():
     print(missing_specs)

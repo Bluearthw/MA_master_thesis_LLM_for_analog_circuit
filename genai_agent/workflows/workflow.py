@@ -11,6 +11,7 @@ from genai_agent.workflows import make_netlist_agent
 from genai_agent.workflows import compress_err_info_agent
 from genai_agent.workflows import make_prompt_contract_agent
 from genai_agent.workflows import update_spec_table_agent
+from genai_agent.workflows import make_pycalculation_agent
 import os
 
 
@@ -165,7 +166,7 @@ def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_u
     spec_id_table = {int(k): v["target_id"] for k, v in specifications_table.items()}
 
     # enter agent
-    struct_create_prompt = make_prompt_contract_agent.make_prompt_spec_table_agent_flow(category_json, spec_id_table)
+    struct_create_prompt = make_prompt_contract_agent.make_prompt_spec_table_contract_agent_flow(category_json, spec_id_table)
     #prompt
     file_utils.save_str_to_file(struct_create_prompt.prompt, cat_prompt_path)
     if not os.path.isfile(cat_prompt_path):
@@ -185,12 +186,44 @@ def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_u
     struc_update_table = update_spec_table_agent.update_table_agent_flow(missing_specs_updated)
     # print("####Updated_spec_table = ", struc_update_table)
     
-    updated_spec_id_unified = agent_utils.update_tables(struc_update_table, specifications_table, spec_tables_path, valid_contracts) # updated_spec_id_unified
+    updated_spec_id_unified, affected_ids = agent_utils.update_tables(struc_update_table, specifications_table, spec_tables_path, valid_contracts) # updated_spec_id_unified
+    make_pycal(affected_ids, updated_spec_id_unified, category_json)
     
     # pygen agent
     return updated_spec_id_unified
 
-    
-    
+def make_pycal(affected_ids, updated_spec_id_unified, category_json):
+    specifications_table = updated_spec_id_unified["specifications"]
+    # Normalize affected ids to strings for key matching
+    if affected_ids is None:
+        affected_set = set()
+    elif isinstance(affected_ids, (list, tuple, set)):
+        affected_set = set(str(x) for x in affected_ids)
+    else:
+        affected_set = {str(affected_ids)}
 
+    # Filter the specifications table to only include affected entries.
+    # Keys in `specifications_table` are strings; values are dicts that at
+    # least contain a `target_id` field (based on earlier code paths).
+    filtered_contracts = {}## num_id : contracts
+    for k, v in specifications_table.items():
+        if k in affected_set:
+            filtered_contracts[k] = v["contract"]
+            continue
+        # also allow matching by `target_id` value
+        try:
+            if str(v.get("target_id")) in affected_set:
+                filtered_contracts[k] = v["contract"]
+        except Exception:
+            continue
 
+    # Persist the filtered contracts so downstream steps can read them
+    # out_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables", f"pycal_affected_specs.json")
+    # os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    # file_utils.save_dict_to_json(filtered, out_path)
+    
+    contracts = agent_utils.make_dictionary_from_specifications("contract", specifications_table)
+    print("####contracts = ", contracts)
+    make_pycalculation_agent.make_calculation_rule_agent_flow(contracts, category_json)
+    # Return the filtered subset for immediate use
+    return filtered_contracts

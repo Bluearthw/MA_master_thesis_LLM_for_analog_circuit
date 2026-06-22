@@ -6,7 +6,7 @@ import os
 import scipy.interpolate as interp
 import scipy.optimize as sciopt
 from scipy.optimize import differential_evolution
-
+import importlib.util
 from .area_estimation import BPTM45nmAreaEstimator
 from .ngspice_wrapper import NgspiceWrapper
 # from area_estimation import BPTM45nmAreaEstimator
@@ -16,6 +16,7 @@ from scipy.integrate import trapezoid
 sys.path.append(".")
 
 from genai_agent.data.local_config import table_target_id 
+from genai_agent.data.local_config import path_cal_util 
 from utils import file_utils
 class DUT(NgspiceWrapper):
     def __init__(self, path_yaml = "", is_differential = False, has_input = True, dc_vout_target = None, netlist_path = None):
@@ -58,6 +59,7 @@ class DUT(NgspiceWrapper):
         self.compliance_range_min_max = None
 
         self.vdd = None
+        self.cal_util_path = path_cal_util
         
 
     def measure_metrics(self, struct_path_id, is_init = True):
@@ -71,98 +73,126 @@ class DUT(NgspiceWrapper):
             spec_dict['area'] = area_estimator.find_area()
 
 
-        for spec_id, path in struct_path_id.items():
+        for spec_id, data_path in struct_path_id.items():
             print(spec_id)
             if spec_id == 0:  # DC gain 
-                a = self.get_dc_gain(path)
+                a = self.get_dc_gain(data_path)
                 print(f"DC gain: {a}")
                 name = table_target_id[0]# you should not use '0' but 0 since the key is int
                 spec_dict[name] = float(a) # this is the magnitude you do not the whether it is inverted.
             elif spec_id == 1:  # Bandwidth (if separate from gain) or other AC sim
-                spec_dict[table_target_id[1]] = float(self.get_bandwidth(path))
+                spec_dict[table_target_id[1]] = float(self.get_bandwidth(data_path))
             
             elif spec_id == 2:  # PSRR
-                spec_dict[table_target_id[2]] = self.get_psrr(path, self.has_input, 0)[0] #[1] is freq
+                spec_dict[table_target_id[2]] = self.get_psrr(data_path, self.has_input, 0)[0] #[1] is freq
             
             elif spec_id == 3:  # input noise
-                spec_dict[table_target_id[3]] = float(self.get_in_equivalent_total_noise(path))
+                spec_dict[table_target_id[3]] = float(self.get_in_equivalent_total_noise(data_path))
             #Trans
             elif spec_id == 4:  # slew rate
                 continue
-                spec_dict[table_target_id[4]] = float(self.get_slew_rate(path))
+                spec_dict[table_target_id[4]] = float(self.get_slew_rate(data_path))
             
             elif spec_id == 5:  # gain margin
-                spec_dict[table_target_id[5]] = float(self.get_gain_margin(path)) 
+                spec_dict[table_target_id[5]] = float(self.get_gain_margin(data_path)) 
             elif spec_id == 6:  # phase margin
-                spec_dict[table_target_id[6]] = float(self.get_phase_margin(path))
+                spec_dict[table_target_id[6]] = float(self.get_phase_margin(data_path))
             elif spec_id == 7:  # input equivalent total noise from spectrum
-                spec_dict[table_target_id[7]] = self.get_in_equivalent_total_noise(path)
+                spec_dict[table_target_id[7]] = self.get_in_equivalent_total_noise(data_path)
             
             elif spec_id == 10:
                 spec_dict[table_target_id[10]] = 0# to be done
             
             elif spec_id == 11:  # outputswing, it is a tuple(vrange, v_min, v_max)
-                spec_dict[table_target_id[11]] = self.get_output_swing(path)[0]
+                spec_dict[table_target_id[11]] = self.get_output_swing(data_path)[0]
             
             elif spec_id == 12:  # settle time
-                spec_dict[table_target_id[12]] = float(self.get_settle_time(path))
+                spec_dict[table_target_id[12]] = float(self.get_settle_time(data_path))
             
             elif spec_id == 13:  # icmr, it is a tuple(vrange, vcm, v_min, v_max)
-                spec_dict[table_target_id[13]] = self.get_icmr(path)[0]
+                spec_dict[table_target_id[13]] = self.get_icmr(data_path)[0]
 
             elif spec_id == 14:  # cmrr, it is a list
-                spec_dict[table_target_id[14]] = self.get_cmrr(path, 0)[0]
+                spec_dict[table_target_id[14]] = self.get_cmrr(data_path, 0)[0]
 
             elif spec_id == 15:
-                spec_dict[table_target_id[15]] = self.get_ac_gain(path)
+                spec_dict[table_target_id[15]] = self.get_ac_gain(data_path)
 
             elif spec_id == 16:  # gain margin
-                spec_dict[table_target_id[16]] = self.get_phase_response(path)# it is an list
+                spec_dict[table_target_id[16]] = self.get_phase_response(data_path)# it is an list
             
             elif spec_id == 17:
-                spec_dict[table_target_id[17]] = self.get_common_mode_gain(path)
+                spec_dict[table_target_id[17]] = self.get_common_mode_gain(data_path)
             elif spec_id == 18:
-                spec_dict[table_target_id[18]] = self.get_differential_mode_gain(path)
+                spec_dict[table_target_id[18]] = self.get_differential_mode_gain(data_path)
             elif spec_id == 19:
-                spec_dict[table_target_id[19]] = self.get_output_balance(path)
+                spec_dict[table_target_id[19]] = self.get_output_balance(data_path)
             elif spec_id == 20:
-                spec_dict[table_target_id[20]] = self.get_cmfb_stb(path)
+                spec_dict[table_target_id[20]] = self.get_cmfb_stb(data_path)
             elif spec_id == 21:
-                spec_dict[table_target_id[21]] = self.get_ugbw_unity_gain_bandwidth(path)
+                spec_dict[table_target_id[21]] = self.get_ugbw_unity_gain_bandwidth(data_path)
             elif spec_id == 22:
-                spec_dict[table_target_id[22]] = self.get_current(path) 
+                spec_dict[table_target_id[22]] = self.get_current(data_path) 
             elif spec_id == 23:
                 if self.dc_vout_target is None:
                     raise ValueError("Target DC output voltage is not specified")
-                spec_dict[table_target_id[23]] = self.get_dc_vout_relative_err(path, dc_vout_target= self.dc_vout_target) 
+                spec_dict[table_target_id[23]] = self.get_dc_vout_relative_err(data_path, dc_vout_target= self.dc_vout_target) 
                 # print("dut:", spec_dict[table_target_id[23]])
                 # spec_dict[table_target_id[23]+"_target_vout"] = self.get_dc_vout(path) 
             elif spec_id == 24:
-                spec_dict[table_target_id[24]] = self.get_line_regulation(path) 
+                spec_dict[table_target_id[24]] = self.get_line_regulation(data_path) 
             elif spec_id == 25:
-                spec_dict[table_target_id[25]] = self.get_load_regulation(path) 
+                spec_dict[table_target_id[25]] = self.get_load_regulation(data_path) 
             elif spec_id == 26:
-                spec_dict[table_target_id[26]] = self.get_temperature_coefficient(path) 
+                spec_dict[table_target_id[26]] = self.get_temperature_coefficient(data_path) 
             elif spec_id == 27:
-                spec_dict[table_target_id[27]] = self.get_startup_behavior(path) 
+                spec_dict[table_target_id[27]] = self.get_startup_behavior(data_path) 
             elif spec_id == 28:
-                spec_dict[table_target_id[28]] = self.get_current_matching(path) 
+                spec_dict[table_target_id[28]] = self.get_current_matching(data_path) 
             elif spec_id == 29:
-                vout_ripple = self.get_output_ripple(path) 
+                vout_ripple = self.get_output_ripple(data_path) 
                 
                 spec_dict[table_target_id[29]] = vout_ripple
             elif spec_id == 30:
-                spec_dict[table_target_id[30]] = self.get_voltage_compliance_range(path)
+                spec_dict[table_target_id[30]] = self.get_voltage_compliance_range(data_path)
             elif spec_id == 31:
-                spec_dict[table_target_id[31]] = self.get_requirement_31(path)
+                spec_dict[table_target_id[31]] = self.get_requirement_31(data_path)
             # [INSERT_NEW_BRANCH_HERE]
             
             else:
-                print(f"Unhandled spec_id: {spec_id}")
+                # print(f"Unhandled spec_id: {spec_id}")
+                util_path = self.cal_util_path.format(spec_id=spec_id)
+                print("##util_path = ",util_path)
+                print("##path = ",data_path)
+                self.measure_new_specs(util_path, spec_id, data_path, spec_dict)
                 continue
         print(spec_dict)
         return spec_dict
     
+    def measure_new_specs(self, cal_util_path, spec_id, data_path, spec_dict):
+        if os.path.exists(cal_util_path):
+            try:
+                # 2. Dynamically load the python file from disk into memory
+                spec = importlib.util.spec_from_file_location(f"calc_{spec_id}", cal_util_path)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                
+                # 3. Read the raw data array
+                raw_data = np.genfromtxt(data_path, skip_header=1)
+                
+                # 4. Find the target function inside the module and execute it!
+                func_to_run = getattr(module, f"calc_{spec_id}")
+                spec_dict[table_target_id[spec_id]] = float(func_to_run(raw_data))
+                print(f"Successfully evaluated ID {spec_id} via dynamic plugin.")
+                return spec_dict
+            except Exception as e:
+                print(f"CRITICAL: Failed running plugin for ID {spec_id}: {e}")
+                spec_dict[table_target_id[spec_id]] = 0.0  # Safe fallback for RL sizer
+                return spec_dict
+        else:
+            print(f"No calculator available for spec_id {spec_id}. Triggering healing agent...")
+            # Trigger your agent workflow here to generate the plugin file!
+
     def _get_best_crossing(cls, xvec, yvec, val):
         interp_fun = interp.InterpolatedUnivariateSpline(xvec, yvec)
 

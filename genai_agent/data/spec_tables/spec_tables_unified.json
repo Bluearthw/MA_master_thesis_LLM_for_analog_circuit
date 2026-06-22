@@ -2,7 +2,7 @@
   "specifications": {
     "0": {
       "target_id": "dc_gain",
-      "human_name": "DC Gain",
+      "spec_name": "DC Gain",
       "default_value": 10.0,
       "should_minimize": false,
       "aliases": [
@@ -14,7 +14,7 @@
     },
     "1": {
       "target_id": "bandwidth",
-      "human_name": "Bandwidth",
+      "spec_name": "Bandwidth",
       "default_value": 100.0,
       "should_minimize": false,
       "aliases": [
@@ -27,7 +27,7 @@
     },
     "2": {
       "target_id": "psrr",
-      "human_name": "Power Supply Rejection Ratio (PSRR)",
+      "spec_name": "Power Supply Rejection Ratio (PSRR)",
       "default_value": 10.0,
       "should_minimize": false,
       "aliases": [
@@ -39,7 +39,7 @@
     },
     "3": {
       "target_id": "input_total_noise",
-      "human_name": "Input equivalent integrated total noise",
+      "spec_name": "Input equivalent integrated total noise",
       "default_value": 1e-06,
       "should_minimize": true,
       "aliases": [
@@ -53,7 +53,7 @@
     },
     "4": {
       "target_id": "slew_rate",
-      "human_name": "Slew rate",
+      "spec_name": "Slew rate",
       "default_value": 15.0,
       "should_minimize": false,
       "aliases": [
@@ -64,7 +64,7 @@
     },
     "5": {
       "target_id": "gain_margin",
-      "human_name": "Gain margin",
+      "spec_name": "Gain margin",
       "default_value": 45.0,
       "should_minimize": false,
       "aliases": [
@@ -75,7 +75,7 @@
     },
     "6": {
       "target_id": "phase_margin",
-      "human_name": "Phase margin",
+      "spec_name": "Phase margin",
       "default_value": 60.0,
       "should_minimize": false,
       "aliases": [
@@ -86,7 +86,7 @@
     },
     "7": {
       "target_id": "output_total_noise",
-      "human_name": "Output total noise",
+      "spec_name": "Output total noise",
       "default_value": 3e-06,
       "should_minimize": true,
       "aliases": [
@@ -98,7 +98,7 @@
     },
     "8": {
       "target_id": "input_impedance",
-      "human_name": "Input impedance",
+      "spec_name": "Input impedance",
       "default_value": 1000000000.0,
       "should_minimize": false,
       "aliases": [
@@ -109,7 +109,7 @@
     },
     "9": {
       "target_id": "output_impedance",
-      "human_name": "Output impedance",
+      "spec_name": "Output impedance",
       "default_value": 1000.0,
       "should_minimize": false,
       "aliases": [
@@ -120,7 +120,7 @@
     },
     "10": {
       "target_id": "input_swing",
-      "human_name": "Input swing",
+      "spec_name": "Input swing",
       "default_value": 0.1,
       "should_minimize": false,
       "aliases": [
@@ -131,7 +131,7 @@
     },
     "11": {
       "target_id": "output_swing",
-      "human_name": "Output swing",
+      "spec_name": "Output swing",
       "default_value": 0.1,
       "should_minimize": false,
       "aliases": [
@@ -142,7 +142,7 @@
     },
     "12": {
       "target_id": "settle_time",
-      "human_name": "Settle time",
+      "spec_name": "Settle time",
       "default_value": 10.0,
       "should_minimize": true,
       "aliases": [
@@ -153,7 +153,7 @@
     },
     "13": {
       "target_id": "icmr",
-      "human_name": "Input Common-Mode Range (ICMR)",
+      "spec_name": "Input Common-Mode Range (ICMR)",
       "default_value": 0.5,
       "should_minimize": false,
       "aliases": [
@@ -164,7 +164,7 @@
     },
     "14": {
       "target_id": "cmrr",
-      "human_name": "Common-Mode Rejection Ratio (CMRR)",
+      "spec_name": "Common-Mode Rejection Ratio (CMRR)",
       "default_value": 10.0,
       "should_minimize": false,
       "aliases": [
@@ -175,7 +175,7 @@
     },
     "16": {
       "target_id": "phase_response",
-      "human_name": "Phase response",
+      "spec_name": "Phase response",
       "default_value": 60.0,
       "should_minimize": false,
       "aliases": [
@@ -186,7 +186,7 @@
     },
     "17": {
       "target_id": "cm_gain",
-      "human_name": "Common-Mode Gain",
+      "spec_name": "Common-Mode Gain",
       "default_value": -40.0,
       "should_minimize": false,
       "aliases": [
@@ -197,7 +197,7 @@
     },
     "18": {
       "target_id": "dm_gain",
-      "human_name": "Differential-Mode Gain (differential output)",
+      "spec_name": "Differential-Mode Gain (differential output)",
       "default_value": 10.0,
       "should_minimize": false,
       "aliases": [
@@ -209,7 +209,7 @@
     },
     "19": {
       "target_id": "output_balance",
-      "human_name": "Output Balance",
+      "spec_name": "Output Balance",
       "default_value": 1.0,
       "should_minimize": false,
       "aliases": [
@@ -220,7 +220,7 @@
     },
     "20": {
       "target_id": "cmfb_stability",
-      "human_name": "CMFB Loop Stability",
+      "spec_name": "CMFB Loop Stability",
       "default_value": 60.0,
       "should_minimize": false,
       "aliases": [
@@ -231,7 +231,7 @@
     },
     "21": {
       "target_id": "ugbw",
-      "human_name": "UGBW, unity gain bandwidth",
+      "spec_name": "UGBW, unity gain bandwidth",
       "default_value": 1000000.0,
       "should_minimize": false,
       "aliases": [
@@ -242,7 +242,7 @@
     },
     "22": {
       "target_id": "current",
-      "human_name": "Current",
+      "spec_name": "Current",
       "default_value": 0.2,
       "should_minimize": true,
       "aliases": [
@@ -257,7 +257,7 @@
     },
     "23": {
       "target_id": "dc_output_voltage",
-      "human_name": "DC Output Voltage",
+      "spec_name": "DC Output Voltage",
       "default_value": 0.2,
       "should_minimize": true,
       "aliases": [
@@ -269,7 +269,7 @@
     },
     "24": {
       "target_id": "line_regulation",
-      "human_name": "Line Regulation",
+      "spec_name": "Line Regulation",
       "default_value": 100,
       "should_minimize": true,
       "aliases": [
@@ -282,7 +282,7 @@
     },
     "25": {
       "target_id": "load_regulation",
-      "human_name": "Load Regulation",
+      "spec_name": "Load Regulation",
       "default_value": 5,
       "should_minimize": true,
       "aliases": [
@@ -294,7 +294,7 @@
     },
     "26": {
       "target_id": "temperature_coefficient",
-      "human_name": "Temperature Coefficient (TC)",
+      "spec_name": "Temperature Coefficient (TC)",
       "default_value": 800.0,
       "should_minimize": true,
       "aliases": [
@@ -306,7 +306,7 @@
     },
     "27": {
       "target_id": "startup_behavior",
-      "human_name": "Startup Behavior",
+      "spec_name": "Startup Behavior",
       "default_value": 2,
       "should_minimize": true,
       "aliases": [
@@ -318,7 +318,7 @@
     },
     "28": {
       "target_id": "current_matching",
-      "human_name": "Current Matching",
+      "spec_name": "Current Matching",
       "default_value": 5,
       "should_minimize": true,
       "aliases": [
@@ -330,7 +330,7 @@
     },
     "29": {
       "target_id": "output_ripple",
-      "human_name": "Output Ripple",
+      "spec_name": "Output Ripple",
       "default_value": 0.01,
       "should_minimize": true,
       "aliases": [
@@ -342,7 +342,7 @@
     },
     "30": {
       "target_id": "voltage_compliance",
-      "human_name": "Voltage Compliance Range",
+      "spec_name": "Voltage Compliance Range",
       "default_value": 0.3,
       "should_minimize": false,
       "aliases": [
@@ -351,36 +351,6 @@
         "voltage compliance",
         "compliance voltage"
       ]
-    },
-    "31": {
-      "target_id": "oscillation_frequency",
-      "human_name": "Oscillation Frequency",
-      "default_value": 1000000000.0,
-      "should_minimize": false,
-      "aliases": [
-        "f_osc",
-        "oscillation freq",
-        "frequency of oscillation"
-      ],
-      "contract": {
-        "sim_type": "TRAN",
-        "csv_filename": "osc_freq.csv",
-        "expected_columns": 2,
-        "python_function_name": "get_oscillation_frequency"
-      }
-    },
-    "32": {
-      "target_id": "tuning_range_gain",
-      "human_name": "Tuning Range and Gain",
-      "default_value": 1000000.0,
-      "should_minimize": false,
-      "aliases": [
-        "kvco",
-        "tuning range",
-        "tuning gain",
-        "tuning sensitivity"
-      ],
-      "contract": {}
     }
   }
 }

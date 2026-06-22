@@ -26,7 +26,7 @@ class NewSpecificationItem(BaseModel):
     target_id: str = Field(
         description="The standardized string ID name for the spec (snake_case, e.g., 'slew_rate')."
     )
-    human_name: str = Field(
+    spec_name: str = Field(
         description="A clean, title-cased, human-readable name for the specification (e.g., 'Slew Rate')."
     )
     aliases: List[str] = Field(
@@ -93,4 +93,9 @@ class Struct_compress(BaseModel):
     
     generation_guidelines_updates: GenerationGuidelinesUpdates = Field(description="Updates for generation guidelines: action and optional rule text.")
     debug_kb_updates: DebugKbUpdates = Field(description="Updates for the debug knowledge base: action, keywords, and action rule.")
+
+
+class Struct_make_pycal_func(BaseModel):
+    function_name: str = Field(description="The unique name of the function, e.g., 'calc_spec_31'")
+    python_code: str = Field(description="The complete, self-contained Python function body utilizing numpy.")
 

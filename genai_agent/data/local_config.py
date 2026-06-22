@@ -9,6 +9,8 @@ path_category_jsons = "./genai_agent/data/categories/jsons/category"
 path_output = "./genai_agent/output/"
 path_yaml = "./ngspice_interface/files/yaml_files/" 
 path_prompts = "./genai_agent/data/prompts/"
+path_cal_util = "./utils/pycal_utils/calc_{spec_id}.py"
+
 debug_netlist_path = path_output + "debug_netlist.cir"
 path_project = os.getcwd()
 path_yaml_two_stage = os.path.join(path_project, 'ngspice_interface', 'files', 'yaml_files', 'TwoStage.yaml')
@@ -19,7 +21,8 @@ spec_tables_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables
 
 agent_model25 = "gemini-2.5-flash"
 agent_model3 = "gemini-3-flash-preview"
-agent_model = agent_model3
+agent_model35='gemini-3.5-flash'
+agent_model = agent_model35
 # netlist 9
 str_nl_include = '\n.include "genai_agent/data/p045_TT.sp"\n'
 
@@ -177,7 +180,7 @@ spec_id_unified = {
   "specifications": {
     "0": {
       "target_id": "dc_gain",
-      "human_name": "DC Gain",
+      "spec_name": "DC Gain",
       "default_value": 10.0,
       "should_minimize": False,
       "aliases": [
@@ -189,7 +192,7 @@ spec_id_unified = {
     },
     "1": {
       "target_id": "bandwidth",
-      "human_name": "Bandwidth",
+      "spec_name": "Bandwidth",
       "default_value": 100.0,
       "should_minimize": False,
       "aliases": [
@@ -202,7 +205,7 @@ spec_id_unified = {
     },
     "2": {
       "target_id": "psrr",
-      "human_name": "Power Supply Rejection Ratio (PSRR)",
+      "spec_name": "Power Supply Rejection Ratio (PSRR)",
       "default_value": 10.0,
       "should_minimize": False,
       "aliases": [
@@ -214,7 +217,7 @@ spec_id_unified = {
     },
     "3": {
       "target_id": "input_total_noise",
-      "human_name": "Input equivalent integrated total noise",
+      "spec_name": "Input equivalent integrated total noise",
       "default_value": 1e-06,
       "should_minimize": True,
       "aliases": [
@@ -228,7 +231,7 @@ spec_id_unified = {
     },
     "4": {
       "target_id": "slew_rate",
-      "human_name": "Slew rate",
+      "spec_name": "Slew rate",
       "default_value": 15.0,
       "should_minimize": False,
       "aliases": [
@@ -239,7 +242,7 @@ spec_id_unified = {
     },
     "5": {
       "target_id": "gain_margin",
-      "human_name": "Gain margin",
+      "spec_name": "Gain margin",
       "default_value": 45.0,
       "should_minimize": False,
       "aliases": [
@@ -250,7 +253,7 @@ spec_id_unified = {
     },
     "6": {
       "target_id": "phase_margin",
-      "human_name": "Phase margin",
+      "spec_name": "Phase margin",
       "default_value": 60.0,
       "should_minimize": False,
       "aliases": [
@@ -261,7 +264,7 @@ spec_id_unified = {
     },
     "7": {
       "target_id": "output_total_noise",
-      "human_name": "Output total noise",
+      "spec_name": "Output total noise",
       "default_value": 3e-06,
       "should_minimize": True,
       "aliases": [
@@ -273,7 +276,7 @@ spec_id_unified = {
     },
     "8": {
       "target_id": "input_impedance",
-      "human_name": "Input impedance",
+      "spec_name": "Input impedance",
       "default_value": 1000000000.0,
       "should_minimize": False,
       "aliases": [
@@ -284,7 +287,7 @@ spec_id_unified = {
     },
     "9": {
       "target_id": "output_impedance",
-      "human_name": "Output impedance",
+      "spec_name": "Output impedance",
       "default_value": 1000.0,
       "should_minimize": False,
       "aliases": [
@@ -295,7 +298,7 @@ spec_id_unified = {
     },
     "10": {
       "target_id": "input_swing",
-      "human_name": "Input swing",
+      "spec_name": "Input swing",
       "default_value": 0.1,
       "should_minimize": False,
       "aliases": [
@@ -306,7 +309,7 @@ spec_id_unified = {
     },
     "11": {
       "target_id": "output_swing",
-      "human_name": "Output swing",
+      "spec_name": "Output swing",
       "default_value": 0.1,
       "should_minimize": False,
       "aliases": [
@@ -317,7 +320,7 @@ spec_id_unified = {
     },
     "12": {
       "target_id": "settle_time",
-      "human_name": "Settle time",
+      "spec_name": "Settle time",
       "default_value": 10.0,
       "should_minimize": True,
       "aliases": [
@@ -328,7 +331,7 @@ spec_id_unified = {
     },
     "13": {
       "target_id": "icmr",
-      "human_name": "Input Common-Mode Range (ICMR)",
+      "spec_name": "Input Common-Mode Range (ICMR)",
       "default_value": 0.5,
       "should_minimize": False,
       "aliases": [
@@ -339,7 +342,7 @@ spec_id_unified = {
     },
     "14": {
       "target_id": "cmrr",
-      "human_name": "Common-Mode Rejection Ratio (CMRR)",
+      "spec_name": "Common-Mode Rejection Ratio (CMRR)",
       "default_value": 10.0,
       "should_minimize": False,
       "aliases": [
@@ -350,7 +353,7 @@ spec_id_unified = {
     },
     "16": {
       "target_id": "phase_response",
-      "human_name": "Phase response",
+      "spec_name": "Phase response",
       "default_value": 60.0,
       "should_minimize": False,
       "aliases": [
@@ -361,7 +364,7 @@ spec_id_unified = {
     },
     "17": {
       "target_id": "cm_gain",
-      "human_name": "Common-Mode Gain",
+      "spec_name": "Common-Mode Gain",
       "default_value": -40.0,
       "should_minimize": False,
       "aliases": [
@@ -372,7 +375,7 @@ spec_id_unified = {
     },
     "18": {
       "target_id": "dm_gain",
-      "human_name": "Differential-Mode Gain (differential output)",
+      "spec_name": "Differential-Mode Gain (differential output)",
       "default_value": 10.0,
       "should_minimize": False,
       "aliases": [
@@ -384,7 +387,7 @@ spec_id_unified = {
     },
     "19": {
       "target_id": "output_balance",
-      "human_name": "Output Balance",
+      "spec_name": "Output Balance",
       "default_value": 1.0,
       "should_minimize": False,
       "aliases": [
@@ -395,7 +398,7 @@ spec_id_unified = {
     },
     "20": {
       "target_id": "cmfb_stability",
-      "human_name": "CMFB Loop Stability",
+      "spec_name": "CMFB Loop Stability",
       "default_value": 60.0,
       "should_minimize": False,
       "aliases": [
@@ -406,7 +409,7 @@ spec_id_unified = {
     },
     "21": {
       "target_id": "ugbw",
-      "human_name": "UGBW, unity gain bandwidth",
+      "spec_name": "UGBW, unity gain bandwidth",
       "default_value": 1000000.0,
       "should_minimize": False,
       "aliases": [
@@ -417,7 +420,7 @@ spec_id_unified = {
     },
     "22": {
       "target_id": "current",
-      "human_name": "Current",
+      "spec_name": "Current",
       "default_value": 0.2,
       "should_minimize": True,
       "aliases": [
@@ -432,7 +435,7 @@ spec_id_unified = {
     },
     "23": {
       "target_id": "dc_output_voltage",
-      "human_name": "DC Output Voltage",
+      "spec_name": "DC Output Voltage",
       "default_value": 0.2,
       "should_minimize": True,
       "aliases": [
@@ -444,7 +447,7 @@ spec_id_unified = {
     },
     "24": {
       "target_id": "line_regulation",
-      "human_name": "Line Regulation",
+      "spec_name": "Line Regulation",
       "default_value": 100,
       "should_minimize": True,
       "aliases": [
@@ -457,7 +460,7 @@ spec_id_unified = {
     },
     "25": {
       "target_id": "load_regulation",
-      "human_name": "Load Regulation",
+      "spec_name": "Load Regulation",
       "default_value": 5,
       "should_minimize": True,
       "aliases": [
@@ -469,7 +472,7 @@ spec_id_unified = {
     },
     "26": {
       "target_id": "temperature_coefficient",
-      "human_name": "Temperature Coefficient (TC)",
+      "spec_name": "Temperature Coefficient (TC)",
       "default_value": 800.0,
       "should_minimize": True,
       "aliases": [
@@ -481,7 +484,7 @@ spec_id_unified = {
     },
     "27": {
       "target_id": "startup_behavior",
-      "human_name": "Startup Behavior",
+      "spec_name": "Startup Behavior",
       "default_value": 2,
       "should_minimize": True,
       "aliases": [
@@ -493,7 +496,7 @@ spec_id_unified = {
     },
     "28": {
       "target_id": "current_matching",
-      "human_name": "Current Matching",
+      "spec_name": "Current Matching",
       "default_value": 5,
       "should_minimize": True,
       "aliases": [
@@ -505,7 +508,7 @@ spec_id_unified = {
     },
     "29": {
       "target_id": "output_ripple",
-      "human_name": "Output Ripple",
+      "spec_name": "Output Ripple",
       "default_value": 0.01,
       "should_minimize": True,
       "aliases": [
@@ -517,7 +520,7 @@ spec_id_unified = {
     },
     "30": {
       "target_id": "voltage_compliance",
-      "human_name": "Voltage Compliance Range",
+      "spec_name": "Voltage Compliance Range",
       "default_value": 0.3,
       "should_minimize": False,
       "aliases": [
