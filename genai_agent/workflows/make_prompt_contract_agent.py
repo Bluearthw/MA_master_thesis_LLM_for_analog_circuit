@@ -9,6 +9,7 @@ from genai_agent.data import local_config
 from genai_agent.data import response_schema
 
 def make_prompt_spec_table_contract_agent_flow(category_json, spec_id_table):
+    print("generating prompt...")
     category_json = json.dumps(category_json, indent=4)
     spec_id_table = json.dumps(spec_id_table, indent=4)
     contents = f"""You are an AI Prompt Engineer and Senior Analog IC Verification Architect. Your job is to analyze a raw analog circuit category description, identify missing specifications, and compile a precise System Prompt for a downstream NGSpice Netlist Generation Agent.
@@ -35,7 +36,7 @@ def make_prompt_spec_table_contract_agent_flow(category_json, spec_id_table):
 Return your analysis completely mapped to the designated structural schema, ensuring the 'prompt' field contains the full markdown text block."""    
     
     try:
-        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_prepare_new_type)
+        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_make_prompt_spec_contract)
         print("##struc create prompt= ", struc)
         return struc
     except Exception as e:

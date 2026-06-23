@@ -12,6 +12,8 @@ from utils import agent_utils
 from utils import file_utils
 
 def update_table_agent_flow(missing_specs):
+    print("updating table...")
+
     """
     Args:
         missing_specs: List of string names found by the previous agent.

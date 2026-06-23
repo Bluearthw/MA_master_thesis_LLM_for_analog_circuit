@@ -178,7 +178,7 @@ class DUT(NgspiceWrapper):
                 spec.loader.exec_module(module)
                 
                 # 3. Read the raw data array
-                raw_data = np.genfromtxt(data_path, skip_header=1)
+                raw_data = np.genfromtxt(data_path, autostrip=True, skip_header=1)
                 
                 # 4. Find the target function inside the module and execute it!
                 func_to_run = getattr(module, f"calc_{spec_id}")

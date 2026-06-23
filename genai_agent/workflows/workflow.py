@@ -1,4 +1,5 @@
 import shutil
+import sys
 from genai_agent.data import local_config
 from utils import gen_utils 
 from utils import file_utils 
@@ -157,7 +158,6 @@ def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_u
     """
     spec table and contract
     """
-    print("generating prompt...")
     # back up
     backup_spec_table_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables", "backup", "spec_tables_unified.json")
 
@@ -180,13 +180,15 @@ def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_u
     print("####impossible_specs = ", impossible_specs)
     missing_specs_updated = [spec for spec in missing_specs if spec not in impossible_specs]
     valid_contracts = [spec for spec in list_spec_contracts if spec.spec_name not in impossible_specs]
-    print("####valid_contracts = ", valid_contracts)
+    print("####valid_contracts = ", valid_contracts) # without num id
 
     # updated_id_spec_table = agent_utils.update_spec_id_table(id_spec_table, missing_specs)
+    gen_utils.test_delay(30,"update table")
     struc_update_table = update_spec_table_agent.update_table_agent_flow(missing_specs_updated)
     # print("####Updated_spec_table = ", struc_update_table)
     
     updated_spec_id_unified, affected_ids = agent_utils.update_tables(struc_update_table, specifications_table, spec_tables_path, valid_contracts) # updated_spec_id_unified
+    print("####affected_ids = ", affected_ids)
     make_pycal(affected_ids, updated_spec_id_unified, category_json)
     
     # pygen agent
@@ -216,14 +218,26 @@ def make_pycal(affected_ids, updated_spec_id_unified, category_json):
                 filtered_contracts[k] = v["contract"]
         except Exception:
             continue
-
+    print("####filtered_contracts = ", filtered_contracts)
     # Persist the filtered contracts so downstream steps can read them
     # out_path = os.path.join(os.getcwd(), "genai_agent", "data", "spec_tables", f"pycal_affected_specs.json")
     # os.makedirs(os.path.dirname(out_path), exist_ok=True)
     # file_utils.save_dict_to_json(filtered, out_path)
+    print("####specifications_table = ", specifications_table)
+    # contracts = agent_utils.make_dictionary_from_specifications("contract", specifications_table)
+    # print("####contracts = ", filtered_contracts)
     
-    contracts = agent_utils.make_dictionary_from_specifications("contract", specifications_table)
-    print("####contracts = ", contracts)
-    make_pycalculation_agent.make_calculation_rule_agent_flow(contracts, category_json)
+    print("####category_json = ", category_json)
+    gen_utils.test_delay(30,"make pycal")
+
+    struc = make_pycalculation_agent.make_pycalculation_agent_flow(filtered_contracts, category_json)
+    print("##make_calculation_rule_struct= ", struc)
+    for plugin in struc.plugins:
+        
+        function_file_path = f"./utils/pycal_utils/{plugin.function_name}.py"
+        # PERFECT USE CASE FOR YOUR UTILITY METHOD:
+        file_utils.save_str_to_file(content=plugin.python_code, path=function_file_path)
+        print(f"[Healed Plugin saved successfully]: {function_file_path}")
     # Return the filtered subset for immediate use
+    
     return filtered_contracts

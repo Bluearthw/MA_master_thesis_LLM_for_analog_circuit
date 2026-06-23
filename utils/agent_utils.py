@@ -278,7 +278,8 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
     }
 
     # 7. Ensure target folder exists and write safely to disk
-    if spec_tables_path:
+    is_test = False
+    if spec_tables_path and not is_test:
         out_dir = os.path.dirname(spec_tables_path)
         if out_dir:
             os.makedirs(out_dir, exist_ok=True)

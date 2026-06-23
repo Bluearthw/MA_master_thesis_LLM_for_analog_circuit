@@ -63,7 +63,7 @@ class SpecMeasurementContract(BaseModel):
         description="The mathematical recipe for the python calculator (e.g., 'get_dc_gain', 'get_psrr', 'get_cmrr')."
     )
 
-class Struct_prepare_new_type(BaseModel):
+class Struct_make_prompt_spec_contract(BaseModel):
     prompt: str = Field(description="The prompt for the netlist maker agent.")
     missing_specifications_contract: List[SpecMeasurementContract] = Field(
         description="The explicit data contracts for all valid, simulation-ready specifications found in the requirement but missing from the spec_id_table. They can be simulated in NGspice."
@@ -95,7 +95,15 @@ class Struct_compress(BaseModel):
     debug_kb_updates: DebugKbUpdates = Field(description="Updates for the debug knowledge base: action, keywords, and action rule.")
 
 
-class Struct_make_pycal_func(BaseModel):
-    function_name: str = Field(description="The unique name of the function, e.g., 'calc_spec_31'")
-    python_code: str = Field(description="The complete, self-contained Python function body utilizing numpy.")
+class SinglePluginFunction(BaseModel):
+    function_name: str = Field(
+        description="The unique name of the function matching the format: 'calc_spec_{id}' where {id} is the specification integer ID string (e.g., 'calc_spec_31')."
+    )
+    python_code: str = Field(
+        description="The complete, self-contained Python function definition body utilizing numpy. It must accept 'raw_data' as its first parameter."
+    )
 
+class Struct_make_pycal_func_list(BaseModel):
+    plugins: List[SinglePluginFunction] = Field(
+        description="List of self-contained mathematical python calculation functions for each requested missing specification contract."
+    )

@@ -9,7 +9,7 @@ path_category_jsons = "./genai_agent/data/categories/jsons/category"
 path_output = "./genai_agent/output/"
 path_yaml = "./ngspice_interface/files/yaml_files/" 
 path_prompts = "./genai_agent/data/prompts/"
-path_cal_util = "./utils/pycal_utils/calc_{spec_id}.py"
+path_cal_util = "./utils/pycal_utils/calc_spec_{spec_id}.py"
 
 debug_netlist_path = path_output + "debug_netlist.cir"
 path_project = os.getcwd()
