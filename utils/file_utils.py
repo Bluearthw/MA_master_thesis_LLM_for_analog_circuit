@@ -172,6 +172,8 @@ def get_dict_from_json_with_int_keys(path):
         except Exception as e:
             print(f"Failed to read existing prompts JSON: {e}")
             dict = {}
+    else:
+        raise ValueError("File not found")
     return dict
 # endregion for get ############################
 

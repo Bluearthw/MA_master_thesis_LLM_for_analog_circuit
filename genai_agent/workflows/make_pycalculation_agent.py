@@ -24,7 +24,7 @@ And explicit contracts detailing the simulation data file paths, expected column
 1. Every generated function MUST accept exactly one primary positional argument: 'raw_data' (a 2D numpy array representing the simulation output).
 2. Every function MUST process the arrays using numpy operations and return exactly ONE scalar comparable float/int value (for the RL sizer reward function evaluation loop).
 3. Do not cross-contaminate functions. Generate a distinct, isolated function definition object for EVERY contract item provided.
-4. If rawdata is None, return negative specification integer ID e.g. -31.0 for calc_spec_31
+4. If rawdata is None, return negative specification integer ID e.g. -31.0 for calc_spec_31. For other error return, use different decimal like -31.1 and -31.2 to differentiate.
 Example naming layout style:
 def calc_spec_31(raw_data):
     import numpy as np

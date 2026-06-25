@@ -15,7 +15,7 @@ import sys
 from scipy.integrate import trapezoid
 sys.path.append(".")
 
-from genai_agent.data.local_config import table_target_id 
+from genai_agent.data.local_config import path_output 
 from genai_agent.data.local_config import path_cal_util 
 from utils import file_utils
 class DUT(NgspiceWrapper):
@@ -60,10 +60,15 @@ class DUT(NgspiceWrapper):
 
         self.vdd = None
         self.cal_util_path = path_cal_util
-        
+        self.path_target_id_dict = None
+        self.target_id_dict = None
 
     def measure_metrics(self, struct_path_id, is_init = True):
         self.output_files_folder = "./no_backup/output_files"
+        if self.path_target_id_dict is None:
+            self.path_target_id_dict = path_output+f"{self.circuit_name}/target_id_dict.json"
+            self.target_id_dict = file_utils.get_dict_from_json_with_int_keys(self.path_target_id_dict)
+        table_target_id = self.target_id_dict
         if is_init:
             self.random_name = self.circuit_name # this is for intermediate cir file for RL sizing
         spec_dict = {}
@@ -155,8 +160,7 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[29]] = vout_ripple
             elif spec_id == 30:
                 spec_dict[table_target_id[30]] = self.get_voltage_compliance_range(data_path)
-            elif spec_id == 31:
-                spec_dict[table_target_id[31]] = self.get_requirement_31(data_path)
+            
             # [INSERT_NEW_BRANCH_HERE]
             
             else:
@@ -164,24 +168,24 @@ class DUT(NgspiceWrapper):
                 util_path = self.cal_util_path.format(spec_id=spec_id)
                 print("##util_path = ",util_path)
                 print("##path = ",data_path)
-                self.measure_new_specs(util_path, spec_id, data_path, spec_dict)
+                self.measure_new_specs(util_path, spec_id, data_path, spec_dict,table_target_id)
                 continue
         print(spec_dict)
         return spec_dict
     
-    def measure_new_specs(self, cal_util_path, spec_id, data_path, spec_dict):
+    def measure_new_specs(self, cal_util_path, spec_id, data_path, spec_dict, table_target_id):
         if os.path.exists(cal_util_path):
+            # print(table_target_id)
             try:
                 # 2. Dynamically load the python file from disk into memory
-                spec = importlib.util.spec_from_file_location(f"calc_{spec_id}", cal_util_path)
+                spec = importlib.util.spec_from_file_location(f"calc_spec_{spec_id}", cal_util_path)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-                
                 # 3. Read the raw data array
                 raw_data = np.genfromtxt(data_path, autostrip=True, skip_header=1)
                 
                 # 4. Find the target function inside the module and execute it!
-                func_to_run = getattr(module, f"calc_{spec_id}")
+                func_to_run = getattr(module, f"calc_spec_{spec_id}")
                 spec_dict[table_target_id[spec_id]] = float(func_to_run(raw_data))
                 print(f"Successfully evaluated ID {spec_id} via dynamic plugin.")
                 return spec_dict

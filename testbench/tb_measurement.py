@@ -34,7 +34,7 @@ path_id_320 =  {0: './genai_agent/output/320/ac_gain.csv', 2: './genai_agent/out
 path_id_333 =  {0: './genai_agent/output/333/ac_gain.csv', 2: './genai_agent/output/333/ac_psrr.csv', 4: './genai_agent/output/333/tran_sr.csv', 6: './genai_agent/output/333/ac_gain.csv', 11: './genai_agent/output/333/dc_swing.csv', 13: './genai_agent/output/333/dc_icmr.csv', 14: ['./genai_agent/output/333/ac_gain.csv', './genai_agent/output/333/ac_cm_gain.csv'], 16: './genai_agent/output/333/ac_gain.csv', 17: './genai_agent/output/333/ac_cm_gain.csv', 22: './genai_agent/output/333/current.csv', 23: './genai_agent/output/333/dc_vout.csv'}
 path_id_619 =  {0: './genai_agent/output/619/ac_gain.csv', 2: './genai_agent/output/619/psrr.csv', 4: './genai_agent/output/619/tran_sr.csv', 6: './genai_agent/output/619/ac_gain.csv', 11: './genai_agent/output/619/output_swing.csv', 13: './genai_agent/output/619/icmr.csv', 14: './genai_agent/output/619/cm_gain.csv', 16: './genai_agent/output/619/ac_gain.csv', 22: './genai_agent/output/619/current.csv', 23: './genai_agent/output/619/dc_vout.csv'}
 path_id_439 =  {22: './genai_agent/output/439/current.csv', 23: './genai_agent/output/439/op_vout_ref.csv', 28: ['./genai_agent/output/439/source_current.csv', './genai_agent/output/439/sink_current.csv'], 29: './genai_agent/output/439/output_ripple.csv', 30: ['./genai_agent/output/439/source_current.csv', './genai_agent/output/439/sink_current.csv']}
-
+path_id_354 = {31: './genai_agent/output/354/tran_osc_freq.csv', 32: './genai_agent/output/354/tran_tuning.csv', 11: './genai_agent/output/354/tran_output_swing.csv', 22: './genai_agent/output/354/tran_current.csv'}
 def test_phase_calculation():
     print("--- SPICE Phase Processing Test Bench ---")
     
@@ -55,10 +55,7 @@ def test_phase_calculation():
     print(unwrapped_phase_deg_180)
     print(unwrapped_phase_deg_default_period)
     
-def test_measurement_spice_result_new(path_id):
-    result = utils.measure(path_id)
-    print(result)
-    # print(result["icmr"][0])
+
 
 def test_DUT(cir_num, is_differential_output=False, has_input = False, target_dc_vout=0.6, pid=None):
     path_output_num = local_config.path_output + f"{cir_num}/"
@@ -256,7 +253,7 @@ def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
 # test_DUT(1005, has_input=True, is_differential_output=True)
-test_DUT(549)
+test_DUT(354)
 # test_v_compliance_range(sim = True)
 # test_v_compliance_range(sim = False)
 

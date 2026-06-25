@@ -24,6 +24,8 @@ def calc_spec_32(raw_data):
         if len(freqs) >= 2 and (max(ctrl_vals) - min(ctrl_vals)) > 0:
             kvco = (max(freqs) - min(freqs)) / (max(ctrl_vals) - min(ctrl_vals))
             return float(kvco)
+        print("Insufficient data for spec_id: 32")
         return 0.0
     except Exception:
+        print("Error occurred while calculating spec_id: 32")
         return 0.0

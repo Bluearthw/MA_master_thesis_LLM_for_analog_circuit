@@ -1,9 +1,9 @@
 git add .
-git commit -m "delete 1 save function. try to extend measure functions
+git commit -m "354 is not oscillator, book also tells
 "
 git push
 
-
+## d g s b
 ## entrance: main.py!!
 
 venv\Scripts\Activate.ps1

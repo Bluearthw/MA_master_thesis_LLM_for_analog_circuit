@@ -16,7 +16,7 @@ from genai_agent.workflows import make_pycalculation_agent
 import os
 
 
-def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input = True, is_CMFB = False, general_rules = None, category_debug_rules = None, trimmed_spec_table = None):
+def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, dc_vout_target, has_input = True, is_CMFB = False, general_rules = None, category_debug_rules = None, trimmed_spec_table = None):
     counter = 0
     debug_history = []
     
@@ -51,7 +51,16 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
                 f.write(netlist)
             file_utils.save_error_info(path_output_num, cir_num, counter, debug_history, "success", is_CMFB, is_differential_output, has_input)
             # maybe another loop here due to possible error in DUT
-            measurement_results = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout, netlist_path=netlist_path).measure_metrics(struct_path_id, is_init = False) # how to convert is_differential_output
+            temp = {"is_differential_output": is_differential_output,
+                    "has_input": has_input,
+                    "target_dc_vout": dc_vout_target,
+                    "netlist_path": netlist_path,
+                    "struct_path_id": struct_path_id
+                    }
+            print("before DUT Temp:", temp)
+            dut = dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=dc_vout_target, netlist_path=netlist_path) # how to convert is_differential_output
+            dut.circuit_name = cir_num
+            measurement_results = dut.measure_metrics(struct_path_id, is_init = False)
             for mr in measurement_results:
                 print("Measurement results:", mr)
             
