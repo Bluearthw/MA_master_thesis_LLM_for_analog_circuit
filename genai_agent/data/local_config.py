@@ -1,7 +1,8 @@
 import os
 
 
-path_dataset = "../material/dataset/tb_dataset"# out of workplace
+path_dataset = "../material/dataset/tb_dataset/"# out of workplace
+path_cir = path_dataset + "{cir_num}/{cir_num}.cir"
 path_classified_dataset = "../material/classified_dataset_from_mohsen/Dataset"
 path_category_md = "./genai_agent/data/categories/category"
 path_categories = "./genai_agent/data/categories/"

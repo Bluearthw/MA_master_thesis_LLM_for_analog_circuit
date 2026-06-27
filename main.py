@@ -47,10 +47,10 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 # tested = category_numbers.num_class_40_samples_tested
 # tested_set = set(tested)
 # test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
-test = [354]
+test = [405]
 
-# workflow_goal = 0 # only with netlist gen
-workflow_goal = 1 # whole workflow
+workflow_goal = 0 # only with netlist gen
+# workflow_goal = 1 # whole workflow
 # workflow_goal = 2 # only with RL sizer
 # workflow_goal = 3 # only with yaml creation
 # workflow_goal = 4 # only with spec table update and prompt creation

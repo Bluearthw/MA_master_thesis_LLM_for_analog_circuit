@@ -8,6 +8,7 @@ from ngspice_interface import dut_testbench
 from genai_agent.data import local_config
 from utils import gen_utils
 from utils import file_utils
+import tb_netlist_simulation
 path_id_69 =  {18: './genai_agent/output/69/ac_gain.csv', 1: './genai_agent/output/69/ac_gain.csv', 6: './genai_agent/output/69/ac_gain.csv', 3: './genai_agent/output/69/noise.csv', 4: './genai_agent/output/69/tran_SR.csv', 22: './genai_agent/output/69/dc_current.csv', 23: './genai_agent/output/69/dc_current.csv'}
 path_id_96 = {18: './genai_agent/output/96/ac_dm.csv', 17: './genai_agent/output/96/ac_cm.csv', 0: './genai_agent/output/96/ac_gain.csv', 1: './genai_agent/output/96/ac_gain.csv', 16: './genai_agent/output/96/ac_gain.csv', 6: './genai_agent/output/96/ac_gain.csv', 3: './genai_agent/output/96/noise.csv', 4: './genai_agent/output/96/tran_sr.csv', 10: './genai_agent/output/96/dc_sweep.csv', 11: './genai_agent/output/96/dc_sweep.csv'}
 path_id_182 = {20: './genai_agent/output/182/cmfb_stb.csv'}
@@ -69,6 +70,8 @@ def test_DUT(cir_num, is_differential_output=False, has_input = False, target_dc
     dut =dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout)
     dut.circuit_name = str(cir_num)
     path = path_output_num + "final_netlist.cir"#???
+    tb_netlist_simulation.test_run_ngspice_direct_from_final_netlist(path_nl=path)
+    print("Netlist path:", path)
     dut.netlist_path = path
     result = dut.measure_metrics(p_id)
     print(result)
@@ -253,7 +256,7 @@ def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
 # test_DUT(1005, has_input=True, is_differential_output=True)
-test_DUT(354)
+test_DUT(405)
 # test_v_compliance_range(sim = True)
 # test_v_compliance_range(sim = False)
 

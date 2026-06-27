@@ -2,8 +2,9 @@ import sys
 sys.path.append('.')
 from genai_agent.data import local_config
 from genai_agent.data import saved_netlist
-from utils import gen_utils
+from utils import file_utils, gen_utils
 from utils import sim_utils
+
 def test_run_ngspice_direct(nl = ""):
     # Write the netlist to a temporary file
     sim_utils.pyspice_op_sim_simple(nl)
@@ -12,12 +13,13 @@ def test_run_ngspice_direct(nl = ""):
     print("===success::", success["success"])
     print("===success::", success["message"])
 
-def test_run_ngspice_direct_from_final_netlist(num = 4):
-    path_nl = local_config.path_output +  f"{num}/final_netlist.cir"
-    netlist = gen_utils.get_file_to_str(path_nl)
+def test_run_ngspice_direct_from_final_netlist(num = 4, path_nl = ""):
+    if path_nl == "":
+        path_nl = local_config.path_output +  f"{num}/final_netlist.cir"
+    netlist = file_utils.get_file_to_str(path_nl)
     # utils.delete_all_files_skip_dir(local_config.path_output) # delete all previous output to avoid confusion
     
-    success = gen_utils.run_ngspice_direct(netlist, False, path_nl) # will not overwrite temp_netlist
+    success = sim_utils.run_ngspice_direct(netlist, False, path_nl) # will not overwrite temp_netlist
     print("==netlist",netlist)
     if success["success"]:
         print("Simulation successful!")

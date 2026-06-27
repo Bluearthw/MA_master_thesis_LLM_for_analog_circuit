@@ -1,5 +1,5 @@
 git add .
-git commit -m "354 is not oscillator, book also tells
+git commit -m "405 has fosc
 "
 git push
 

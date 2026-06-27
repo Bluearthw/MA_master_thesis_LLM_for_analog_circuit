@@ -186,11 +186,7 @@ def test_find_SISOs_from_OPAMPs():
     print("# ",len(SISO_nums))
 
     
-def test_find_ports_from_nums(nums):
-    dataset_path = "../material/dataset/tb_dataset"
-    
-    ports2 = gen_utils.find_ports_from_all(dataset_path,nums)  
-    print("ports2\n",ports2)
+
 
 
 def test_find_RF_from_cir_pattern():

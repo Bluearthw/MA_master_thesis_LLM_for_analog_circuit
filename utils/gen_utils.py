@@ -153,8 +153,10 @@ def find_RF_from_cir_str(path_exaplain, cir_string):
 
     return False
 
-def find_ports_from_all(dataset_path,nums = list(range(4,1045))):
-    
+def find_ports_from_cir_nums(dataset_path,nums = list(range(4,1045))):
+    '''
+    Default is all cir nums
+    '''
     exist_ports = []
     for i in nums:
         path = dataset_path + f"/{i}/Port{i}.txt"
@@ -776,7 +778,7 @@ def pre_process_circuit(cir_num):
 
     path_output_num = local_config.path_output + f"{cir_num}/"
     # circuit_string = get_full_circuit_string(cir_num)
-    cir_path = local_config.path_dataset+f"/{cir_num}/{cir_num}.cir"
+    cir_path = local_config.path_dataset+f"{cir_num}/{cir_num}.cir"
     circuit_string = file_utils.get_file_to_str(cir_path)
     has_input = has_port_from_nl(circuit_string) #if opamp does not have, there is problem
     is_diff = has_port_from_nl(circuit_string, target_ports=["VOUT2"])
@@ -843,15 +845,10 @@ def are_ports_all_exist(path, target_ports=["VIN1"]):
         return True
 # if 1 of theses exists, return True
 def is_port_exist(path, target_ports=["VIN1"]):
-    with open(path, 'r') as f:
-        content = f.read()
-    print("content\n",content)
-    for target_port in target_ports:
-        pattern = rf"\b{target_port}\b"# \b ensures match of the whole word only
-        
-        if re.search(pattern, content):
-            return True
-    return False
+    
+    content = file_utils.get_file_to_str(path)
+    # print("content\n",content)
+    return has_port_from_nl(content, target_ports)
     
 def is_cir_debugged(cir_num):
     path = local_config.path_output + f"{cir_num}/debug_metadata.json"
