@@ -4,11 +4,11 @@ class Struct_specs_sim(BaseModel):
     spec: str = Field(description="The name of the specification e.g., 'gain', 'bandwidth'. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation. Some specs may require multiple simulation files. e.g. current matching requires both source_current and sink_current")
     # sim_name: str = Field(description="corresponding simulation name. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation.")
     sim_file_name : str =Field(description="corresponding name of simulations output files. Here are .csv files in the wrdata lines from the generated SPICE netlist. Example: ac_gain.csv")
-    spec_id: int = Field(description="Specification ID. There is a table about it. Example: 0=DC Gain. ")
+    spec_num_id: int = Field(description="Specification ID. There is a table about it. Example: 0=DC Gain. ")
 
 class Struct_flow(BaseModel):
-    netlist: str = Field(description="The SPICE netlist. Use standard newlines (\\n) between every line.")
     spec_sims : list[Struct_specs_sim] = Field(description="specifications required and simulations needed. Some specs may require multiple simulation files.")
+    netlist: str = Field(description="The correct netlist for NGSpice. Use standard newlines (\\n) between every line.")
     is_diff: bool = Field(description="If the circuit is differential output, this field is True.")
     is_CMFB: bool = Field(description="If the circuit has CMFB, this field is True.")
     target_dc_vout: float = Field(description="Define a target DC output voltage based on the circuit.")

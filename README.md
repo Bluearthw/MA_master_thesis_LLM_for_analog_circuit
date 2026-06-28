@@ -1,5 +1,5 @@
 git add .
-git commit -m "405 has fosc
+git commit -m "405 has fosc. But 405 path_id seems strange. get_Current also works for tran current. contract pass to netlist gen. Now it gets defaut things every time it starts. Only get new one if prepare new type works
 "
 git push
 

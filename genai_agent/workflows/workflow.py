@@ -104,7 +104,7 @@ def sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_diff
             raise RuntimeError("Too many iterations in debug-sim loop. Something might be wrong.")
 
 
-def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_table,  is_diff=None, category_num=None, general_rules=None, cat_json=None, category_gen_rules=None, category_debug_rules=None):
+def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_name_table,  is_diff=None, category_num=None, general_rules=None, cat_json=None, category_gen_rules=None, category_debug_rules=None, contracts=None):
     """Generic test-maker that invokes a workflow-local `add_sim_agent` to prepare the netlist,
     then runs the sim-debug-measure loop.
 
@@ -118,7 +118,15 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
     print("generating netlist...")
     # If a category number is provided, use the central netlist builder
     if category_num is not None:
-        struc = make_netlist_agent.make_netlist_agent_flow(netlist=netlist, category_json=cat_json, category_num=category_num, cir_num=cir_num, trimmed_spec_table=trimmed_spec_table, is_diff=is_diff, general_rules=general_rules, category_gen_rules=category_gen_rules)
+        struc = make_netlist_agent.make_netlist_agent_flow(netlist=netlist, 
+                                                           category_json=cat_json,
+                                                           category_num=category_num, 
+                                                           cir_num=cir_num, 
+                                                           trimmed_spec_name_table=trimmed_spec_name_table, 
+                                                           is_diff=is_diff, 
+                                                           general_rules=general_rules, 
+                                                           category_gen_rules=category_gen_rules,
+                                                           contracts=contracts)
     else:
         raise ValueError("Category number is required.")
 
@@ -150,7 +158,7 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
     
     obj_for_sim_debug = {"netlist": netlist, "spec_sims": spec_sims, "cir_num": cir_num, "path_output_num": path_output_num, "is_differential_output": is_differential_output, "target_dc_vout": target_dc_vout, "has_input": has_input, "is_CMFB": is_CMFB, "general_rules": general_rules}
     print("###obj_for_sim_debug = ", obj_for_sim_debug)
-    results_original, struct_path_id, counter, debug_history = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB, general_rules=general_rules, category_debug_rules=category_debug_rules, trimmed_spec_table=trimmed_spec_table)
+    results_original, struct_path_id, counter, debug_history = sim_debug_measure_loop(netlist, spec_sims, cir_num, path_output_num, is_differential_output, target_dc_vout, has_input, is_CMFB, general_rules=general_rules, category_debug_rules=category_debug_rules, trimmed_spec_table=trimmed_spec_name_table)
     # if debug, let's see compress
     if counter > 0:
         gen_utils.test_delay(30*counter , "compress")  
@@ -197,11 +205,11 @@ def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_u
     # print("####Updated_spec_table = ", struc_update_table)
     
     updated_spec_id_unified, affected_ids = agent_utils.update_tables(struc_update_table, specifications_table, spec_tables_path, valid_contracts) # updated_spec_id_unified
-    print("####affected_ids = ", affected_ids)
+    print("##new ids##\naffected_ids = ", affected_ids)
     make_pycal(affected_ids, updated_spec_id_unified, category_json)
     
     # pygen agent
-    return updated_spec_id_unified
+    return updated_spec_id_unified, valid_contracts
 
 def make_pycal(affected_ids, updated_spec_id_unified, category_json):
     specifications_table = updated_spec_id_unified["specifications"]

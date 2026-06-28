@@ -20,13 +20,13 @@ for k, target_id in local_config.table_target_id.items():
     
     # Check if this target string is present in the minimization list
     should_minimize = target_id in local_config.list_targets_to_min
-
+    should_minimize_str = str(should_minimize)
     # 3. Package it into a single clean object under a stringified ID key
     unified_specifications[str(k)] = {
         "target_id": target_id,
         "spec_name": spec_name,
         "default_value": default_val,
-        "should_minimize": should_minimize,
+        "should_minimize": should_minimize_str,
         "aliases": aliases_list
     }
 

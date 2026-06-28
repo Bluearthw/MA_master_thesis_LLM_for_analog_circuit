@@ -11,7 +11,7 @@ from utils import gen_utils as gen_utils
 from utils import agent_utils
 from utils import file_utils
 #netlist builder
-def make_netlist_agent_flow(netlist, category_json, category_num, cir_num=4, trimmed_spec_table=None, is_diff=False, general_rules=None, category_gen_rules=None):
+def make_netlist_agent_flow(netlist, category_json, category_num, cir_num=4, trimmed_spec_name_table=None, is_diff=False, general_rules=None, category_gen_rules=None, contracts=None):
     line_wrdata_path_num = "wrdata " + local_config.path_output + str(cir_num)
     
     f_end= "1T"
@@ -30,15 +30,22 @@ def make_netlist_agent_flow(netlist, category_json, category_num, cir_num=4, tri
         print(f"Warning: prompt for category {category_num} not found, using minimal inline prompt.")
         contents = f"You are given a netlist: {netlist}\nPlease produce a ready-to-run netlist and a list of spec simulations."
     category_json = json.dumps(category_json, indent=4)
+    
     contents = file_utils.get_file_to_str(prompt_path).format(general_rules=general_rules,
                                                             f_end=f_end, 
                                                             line_wrdata_path_num=line_wrdata_path_num, 
                                                             netlist=netlist,
                                                             is_diff = is_diff,
-                                                            trimmed_spec_table = trimmed_spec_table,
+                                                            trimmed_spec_table = trimmed_spec_name_table,
                                                             category_str = category_json,
                                                             cir_num = cir_num
                                                             )
+    if contracts:
+        contracts_str = json.dumps(contracts, indent=4)
+        contracts_str = "### [KNOWN WORKING SIMULATION CONTRACTS]\n" 
+        contracts_str += "The following specs already have validated setup parameters. You MUST reuse these identical filenames in your SPICE control block:" + contracts_str + "\n"
+        contents = contracts_str + contents
+        
     if category_gen_rules != "":
         contents = contents + "\n**More advice about this category**: " + category_gen_rules
     print("###contents netlist builder ", contents)

@@ -146,7 +146,7 @@ def prepare_workflow_prompts_json(category_num):
 
 def check_current_simulation(spec_sims):
     for spec_sim in spec_sims:
-        if spec_sim.spec_id == 22:#current is there:
+        if spec_sim.spec_num_id == 22:#current is there:
             return True
     return False
 
@@ -297,7 +297,7 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
 def make_dictionary_from_specifications(name, specifications_table):
     return {int(k): v[name] for k, v in specifications_table.items()}
 
-def trim_spec_table(text, spec_name_id_dict, aliases):
+def trim_spec_table(text, num_id_spec_name_dict, aliases):
     trimmed_dict = {}
     text_lower = text.lower()
     
@@ -306,7 +306,7 @@ def trim_spec_table(text, spec_name_id_dict, aliases):
     # aliases = local_config.table_specs_aliases
     # target_dict = local_config.table_specs_id
 
-    for idx, spec_full_name in spec_name_id_dict.items():
+    for num_id, spec_full_name in num_id_spec_name_dict.items():
         spec_lower = spec_full_name.lower()
         
         # 1. Base check: Does the full string name or part of it appear in the markdown text?
@@ -316,12 +316,12 @@ def trim_spec_table(text, spec_name_id_dict, aliases):
         
         # 2. Alias check: Does an abbreviation (like PM or PSRR) appear?
         alias_match = False
-        if idx in aliases:
-            alias_match = any(alias in text_lower for alias in aliases[idx])
+        if num_id in aliases:
+            alias_match = any(alias in text_lower for alias in aliases[num_id])
             
         # 3. Negation Check: Ensure phrases like "CMRR is not applicable" remove it
         # This checks if the spec name or its aliases are followed by negative keywords
-        keywords_to_check = [clean_name, spec_lower] + aliases.get(idx, [])
+        keywords_to_check = [clean_name, spec_lower] + aliases.get(num_id, [])
         is_negated = False
         for kw in keywords_to_check:
             if kw in text_lower:
@@ -333,6 +333,35 @@ def trim_spec_table(text, spec_name_id_dict, aliases):
 
         # If it matches and isn't explicitly ruled out, add it to our active list
         if (exact_match or alias_match) and not is_negated:
-            trimmed_dict[idx] = spec_full_name
+            trimmed_dict[num_id] = spec_full_name
             
     return trimmed_dict
+
+def get_required_spec_contracts(trimmed_spec_table, specifications_table):
+    required_num_id_specs_with_contracts = {}
+    required_builtin_num_id_specs = {}
+
+    for num_id, spec_name in trimmed_spec_table.items():
+        category = specifications_table[str(num_id)]
+        contract = category.get("contract", {})
+
+        item = {
+            "target_id": category["target_id"],
+            "spec_name": category["spec_name"],
+        }
+
+        if contract:
+            item["contract"] = contract
+            required_num_id_specs_with_contracts[int(num_id)] = item
+        else:
+            required_builtin_num_id_specs[int(num_id)] = item
+
+    return required_builtin_num_id_specs, required_num_id_specs_with_contracts
+
+def get_list_min_targets(specifications_table):  
+    list_min_targets = []
+    for num_id, spec in specifications_table.items():
+        # print(f"Checking spec {num_id}: {spec.get('should_minimize')} for minimization requirement.")
+        if spec.get("should_minimize"):
+            list_min_targets.append(spec["target_id"])
+    return list_min_targets

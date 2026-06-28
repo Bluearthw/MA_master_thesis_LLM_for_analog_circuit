@@ -803,14 +803,15 @@ def make_path_id(spec_sims, path_output_num):
         path_file = path_output_num + spec_sim.sim_file_name
         if os.path.exists(path_file):
             print(f"File {path_file} exists.")
-            target = struct_path_id.get(spec_sim.spec_id)
+            spec_num_id = spec_sim.spec_num_id
+            target = struct_path_id.get(spec_num_id)
             if target is None:
-                struct_path_id[spec_sim.spec_id] = path_file
+                struct_path_id[spec_num_id] = path_file
             else:
                 if not isinstance(target, list):
-                    struct_path_id[spec_sim.spec_id] = [target, path_file]
+                    struct_path_id[spec_num_id] = [target, path_file]
                 else:
-                    struct_path_id[spec_sim.spec_id].append(path_file)
+                    struct_path_id[spec_num_id].append(path_file)
                 # has_list_flag = True
         else:
             print(f"File {path_file} does not exist.")
