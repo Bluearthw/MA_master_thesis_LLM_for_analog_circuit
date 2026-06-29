@@ -79,7 +79,7 @@ class DUT(NgspiceWrapper):
 
 
         for spec_id, data_path in struct_path_id.items():
-            print(spec_id)
+            # print(spec_id)
             if spec_id == 0:  # DC gain 
                 a = self.get_dc_gain(data_path)
                 print(f"DC gain: {a}")
@@ -166,8 +166,8 @@ class DUT(NgspiceWrapper):
             else:
                 # print(f"Unhandled spec_id: {spec_id}")
                 util_path = self.cal_util_path.format(spec_id=spec_id)
-                print("##util_path = ",util_path)
-                print("##path = ",data_path)
+                # print("##util_path = ",util_path)
+                # print("##path = ",data_path)
                 self.measure_new_specs(util_path, spec_id, data_path, spec_dict,table_target_id)
                 continue
         print(spec_dict)
@@ -187,7 +187,7 @@ class DUT(NgspiceWrapper):
                 # 4. Find the target function inside the module and execute it!
                 func_to_run = getattr(module, f"calc_spec_{spec_id}")
                 spec_dict[table_target_id[spec_id]] = float(func_to_run(raw_data))
-                print(f"Successfully evaluated ID {spec_id} via dynamic plugin.")
+                # print(f"Successfully evaluated ID {spec_id} via dynamic plugin.")
                 return spec_dict
             except Exception as e:
                 print(f"CRITICAL: Failed running plugin for ID {spec_id}: {e}")
@@ -219,9 +219,9 @@ class DUT(NgspiceWrapper):
             return self.current
         elif path_i != "":
             # Load the data safely
-            print(path_i)
+            # print(path_i)
             data = np.genfromtxt(path_i, autostrip=True, skip_header=1)
-            print(data)
+            # print(data)
             # Check if the data is a 2D array (Transient wave data)
             if data.ndim == 2:
                 # Column 0 is time, Column 1 is vdd#branch current

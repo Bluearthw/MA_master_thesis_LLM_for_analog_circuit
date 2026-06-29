@@ -126,7 +126,8 @@ def generate_netlist(cir_num, path_output_num, netlist, has_input, trimmed_spec_
                                                            is_diff=is_diff, 
                                                            general_rules=general_rules, 
                                                            category_gen_rules=category_gen_rules,
-                                                           contracts=contracts)
+                                                           contracts=contracts,
+                                                           has_input = has_input)
     else:
         raise ValueError("Category number is required.")
 

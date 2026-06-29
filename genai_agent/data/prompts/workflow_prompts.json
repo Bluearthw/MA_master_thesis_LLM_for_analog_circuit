@@ -39,7 +39,11 @@
         }
     },
     "category_2": {
-        "generation_guidelines": [],
-        "debug_knowledge_base": {}
+        "generation_guidelines": [
+            "When referencing independent voltage source branch currents in NGSpice (e.g., in wrdata or meas), do not use the 'v.' prefix. Use 'vdd#branch' instead of 'v.vdd#branch'."
+        ],
+        "debug_knowledge_base": {
+            "no such vector|v.|#branch": "Remove the 'v.' prefix from the branch current vector name of any independent voltage source (e.g., change 'v.vdd#branch' to 'vdd#branch')."
+        }
     }
 }

@@ -26,31 +26,32 @@ test = [9, 155, 69, 182, 439, 381] # try to have siso diso dido dido_cmfb，char
 test = category_numbers.num_class_23
 test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 
-#bandgap
+# ###############bandgap
 # test = [6] 
 # test = category_numbers.num_class_6_without_IIN1
 
-# #SISO
+# ###############SISO
 # test = category_numbers.num_class_1_with_VDD_tested
 
-# #DIDO
+# ################DIDO
 # test = [182] #dido cmfb
 # test = [69] #dido 
 # test = [1005]
 # test = category_numbers.num_class_40_samples
 
-# #DISO
+# ################DISO
 # test = category_numbers.num_class_7_samples
 # test = [9]
 # Convert tested to a set first for blazing fast lookups
-
+############### oscillator
+test = category_numbers.num_class_2
 # tested = category_numbers.num_class_40_samples_tested
 # tested_set = set(tested)
 # test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
-test = [405]
+test = test[1:5]
 
 workflow_goal = 0 # only with netlist gen
-workflow_goal = 1 # whole workflow
+# workflow_goal = 1 # whole workflow
 # workflow_goal = 2 # only with RL sizer
 # workflow_goal = 3 # only with yaml creation
 # workflow_goal = 4 # only with spec table update and prompt creation
@@ -62,7 +63,7 @@ specifications_table = spec_id_unified["specifications"]
 list_min_targets = agent_utils.get_list_min_targets(specifications_table)
 if workflow_goal == 2:
     i = test[0]
-    td3_runner.td3_start(circuit_name=f'{i}')
+    td3_runner.td3_start(circuit_name=f'{i}', list_min_targets=list_min_targets)
 elif workflow_goal == 3:
     i = test[0]
 
@@ -115,8 +116,8 @@ else:
         netlist=netlist, 
         has_input=has_input, 
         trimmed_spec_name_table=trimmed_spec_name_table,
-        is_diff=is_diff,
-        category_num=category_num,
+        is_diff= is_diff,
+        category_num= category_num,
         general_rules = general_rules,
         cat_json = cat_json,
         category_gen_rules = category_gen_rules,
