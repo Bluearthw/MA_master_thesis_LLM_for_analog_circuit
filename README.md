@@ -1,8 +1,9 @@
 git add .
-git commit -m "pass has_input there to see. It is not you must use the contract. prompt is updated. test many sets to see whether 32 is there or not
+git commit -m "pass has_input there to see. It is not you must use the contract. prompt is updated. test many sets to see whether 32 is there or not. The 32 calculations has problem
 "
 git push
 
+So, my structure is if there is new type, I will create prompt contract and python calculation functions for it and update the specification table. Then I will ask netlist generator for new netlist. Now, the calculation function and netlist are not very correct. Should I
 ## d g s b
 ## entrance: main.py!!
 

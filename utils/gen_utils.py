@@ -802,7 +802,7 @@ def make_path_id(spec_sims, path_output_num):
     for spec_sim in spec_sims:
         path_file = path_output_num + spec_sim.sim_file_name
         if os.path.exists(path_file):
-            print(f"File {path_file} exists.")
+            # print(f"File {path_file} exists.")
             spec_num_id = spec_sim.spec_num_id
             target = struct_path_id.get(spec_num_id)
             if target is None:

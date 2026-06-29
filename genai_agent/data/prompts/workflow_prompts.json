@@ -40,10 +40,14 @@
     },
     "category_2": {
         "generation_guidelines": [
-            "When referencing independent voltage source branch currents in NGSpice (e.g., in wrdata or meas), do not use the 'v.' prefix. Use 'vdd#branch' instead of 'v.vdd#branch'."
+            "When referencing independent voltage source branch currents in NGSpice (e.g., in wrdata or meas), do not use the 'v.' prefix. Use 'vdd#branch' instead of 'v.vdd#branch'.",
+            "When measuring or writing voltage source currents in .control blocks (such as for VDD power tracking), use the i(vdd) syntax instead of vdd#branch to ensure compatibility with NGSpice vector parsing.",
+            "When using initial conditions (.ic) with ideal inductors, always append the 'uic' flag to the '.tran' command (e.g., 'tran 10p 100n uic') to avoid singular matrix errors during the initial DC bias calculation. Additionally, ensure device names are distinct from parameter names (e.g., use 'CL' instead of 'Cload' if '{Cload}' is a parameter) and multiplier names."
         ],
         "debug_knowledge_base": {
-            "no such vector|v.|#branch": "Remove the 'v.' prefix from the branch current vector name of any independent voltage source (e.g., change 'v.vdd#branch' to 'vdd#branch')."
+            "no such vector|v.|#branch": "Remove the 'v.' prefix from the branch current vector name of any independent voltage source (e.g., change 'v.vdd#branch' to 'vdd#branch').",
+            "vdd#branch|vxx#branch|vector not found|wrdata": "Replace any instances of source-branch current syntax (e.g., vdd#branch) in wrdata or measurement statements with the standard current vector syntax (e.g., i(vdd)).",
+            "timestep too small|initial timepoint|singular matrix|uic": "If the transient simulation fails with a 'timestep too small' error at the initial timepoint when '.ic' is active, append 'uic' to the '.tran' command. If there are naming conflicts between devices and parameters/multipliers, rename them to be unique."
         }
     }
 }
