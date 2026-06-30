@@ -51,7 +51,7 @@ test = category_numbers.num_class_2
 test = test[1:5]
 
 workflow_goal = 4 # only with spec table update and prompt creation
-# workflow_goal = 0 # only with netlist gen
+workflow_goal = 0 # only with netlist gen
 # workflow_goal = 1 # whole workflow
 # workflow_goal = 2 # only with RL sizer
 # workflow_goal = 3 # only with yaml creation
