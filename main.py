@@ -48,7 +48,8 @@ test = category_numbers.num_class_2
 # tested = category_numbers.num_class_40_samples_tested
 # tested_set = set(tested)
 # test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
-test = test[1:5]
+test = [test[0]]
+# test = test[1:5]
 
 workflow_goal = 4 # only with spec table update and prompt creation
 workflow_goal = 0 # only with netlist gen

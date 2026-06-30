@@ -1,5 +1,5 @@
 git add .
-git commit -m "new type generation looks good, let's see netlist gen
+git commit -m "now spec 32 is not a must. change the prompt of gen prompt agent
 "
 git push
 

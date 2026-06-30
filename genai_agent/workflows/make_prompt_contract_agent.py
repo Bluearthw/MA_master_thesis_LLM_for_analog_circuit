@@ -31,6 +31,7 @@ def make_prompt_spec_table_contract_agent_flow(category_json, spec_id_table):
 4. **Enforce Global Variables**: The generated prompt must strictly treat the following tokens as template literals. Do not replace them with values: '{{netlist}}', '{{cir_num}}', '{{trimmed_spec_table}}', '{{category_str}}', '{{line_wrdata_path_num}}', '{{f_end}}', '{{is_diff}}', and '{{general_rules}}'.
 5. **Prompt Termination**: The final line of the generated netlist agent prompt must end explicitly with the token '{{general_rules}}'.
 6. **Power Consolidations**: Do NOT create new or separate specification IDs for dynamic power, clock power, or active power. Always map any power measurement requirements back to the existing unified `current` ID. The Python backend will automatically determine whether to process it as an operating point (.op) or a transient (.tran) current integration based on the circuit type.
+7. **Conditional Specification Application**: Not all circuits require all specifications/contracts. E.g., 'Tuning Range & Gain (for VCOs)' is only for VCOs. Do not make VDD/VB as input and take extra VCO.
 
 # Output Requirement
 Return your analysis completely mapped to the designated structural schema, ensuring the 'prompt' field contains the full markdown text block."""    

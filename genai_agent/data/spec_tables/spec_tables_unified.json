@@ -360,13 +360,12 @@
       "aliases": [
         "oscillation frequency",
         "f_osc",
-        "osc_freq",
-        "center frequency",
-        "f0"
+        "fosc",
+        "osc frequency"
       ],
       "contract": {
         "sim_type": "TRAN",
-        "how_to_measure": "Perform a transient simulation (.tran) after applying appropriate startup conditions. Save the transient output voltage waveform over time. The Python script will perform a zero-crossing or FFT analysis on the steady-state portion of the waveform to compute the frequency.",
+        "how_to_measure": "Perform a transient simulation (.tran) of sufficient duration to ensure stable oscillation. Apply initial conditions (.ic) if necessary to kick-start the oscillator. Export the steady-state output node voltage waveform to 'tran_osc_freq.csv' using wrdata. The frequency is calculated in Python from the period of the steady-state output cycles.",
         "csv_filenames": [
           "tran_osc_freq.csv"
         ],
@@ -375,27 +374,28 @@
       }
     },
     "32": {
-      "target_id": "tuning_range_and_gain",
+      "target_id": "tuning_range_gain",
       "spec_name": "Tuning Range & Gain",
       "default_value": 100000000.0,
       "should_minimize": false,
       "aliases": [
         "tuning range and gain",
-        "tuning range",
+        "tuning range & gain",
         "tuning gain",
+        "k_vco",
         "kvco",
         "tuning sensitivity"
       ],
       "contract": {
         "sim_type": "TRAN",
-        "how_to_measure": "Run transient simulations (.tran) at three distinct tuning/control voltage levels (low, mid, high). Save the transient output waveforms to separate CSV files. The Python script will compute the oscillation frequency at each voltage level to extract the tuning range and Kvco (Hz/V).",
+        "how_to_measure": "For VCOs, run transient simulations at three distinct control voltages (low, mid, high). Export the steady-state output node waveforms to 'tran_tuning_low.csv', 'tran_tuning_mid.csv', and 'tran_tuning_high.csv' using wrdata. The Python post-processor will calculate the frequency at each point to determine the tuning range and gain (Hz/V).",
         "csv_filenames": [
-          "tran_vco_low.csv",
-          "tran_vco_mid.csv",
-          "tran_vco_high.csv"
+          "tran_tuning_low.csv",
+          "tran_tuning_mid.csv",
+          "tran_tuning_high.csv"
         ],
         "expected_columns": 2,
-        "python_function_name": "get_vco_tuning"
+        "python_function_name": "get_vco_tuning_range_gain"
       }
     }
   }

@@ -3,7 +3,10 @@ import os
 import time
 # region print
 def print_status(is_with_RL, test):
-    print("##test length:",len(test))
+    if isinstance(test, list):
+        print("##test length:",len(test), test)
+    else:
+        print("##test is not a list:", test)
     if is_with_RL == 0:
         print("Only netlist generation is enabled.")
     elif is_with_RL == 1:
