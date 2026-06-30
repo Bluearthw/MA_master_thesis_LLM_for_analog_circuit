@@ -351,6 +351,41 @@
         "voltage compliance",
         "compliance voltage"
       ]
+    },
+    "31": {
+      "target_id": "oscillation_frequency",
+      "spec_name": "Oscillation Frequency",
+      "default_value": 1000000000.0,
+      "should_minimize": false,
+      "aliases": [
+        "osc_freq",
+        "oscillation frequency",
+        "f_osc",
+        "f0"
+      ],
+      "contract": {
+        "sim_type": "TRAN",
+        "how_to_measure": "Run a transient analysis (.tran) of the oscillator with a sufficiently small time step. Ensure the simulation run time is long enough to cover both startup behavior and several cycles of steady-state oscillation. Use wrdata to output the time and output voltage node values to a CSV file.",
+        "csv_filenames": [
+          "tran_osc_freq.csv"
+        ],
+        "expected_columns": 2,
+        "python_function_name": "get_oscillation_frequency"
+      }
+    },
+    "32": {
+      "target_id": "tuning_range_gain",
+      "spec_name": "Tuning Range & Gain",
+      "default_value": 100000000.0,
+      "should_minimize": false,
+      "aliases": [
+        "tuning range and gain",
+        "tuning range",
+        "tuning gain",
+        "kvco",
+        "tuning sensitivity"
+      ],
+      "contract": {}
     }
   }
 }

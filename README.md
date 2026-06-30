@@ -1,5 +1,5 @@
 git add .
-git commit -m "pass has_input there to see. It is not you must use the contract. prompt is updated. test many sets to see whether 32 is there or not. The 32 calculations has problem. restructure output so that csv files is a list and add a how to measure entity
+git commit -m "update table substring flexible
 "
 git push
 

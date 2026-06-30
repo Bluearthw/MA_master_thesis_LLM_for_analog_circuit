@@ -192,7 +192,9 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
         # Map every unique registered alias (e.g., 'voltage gain' -> "0")
         for a in details.get("aliases", []):
             alias_to_id[a.lower()] = str_id
-
+    print("targetname_to_id:", targetname_to_id)
+    print("humanname_to_id:", humanname_to_id)
+    print("alias_to_id:", alias_to_id)
     old_max_id = float('inf')
     found_id = 0
     affected_ids = []
@@ -254,7 +256,16 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
         # Find if a simulation contract matches this spec item (checking spec_name or target_id)
         matching_contract = None
         for contract in (valid_contracts or []):
-            if contract.spec_name.lower() in ([spec_name.lower(), target_name.lower()] + item_aliases):
+            c_name_lower = contract.spec_name.lower()
+            
+            # Clean up common noise terms like " (for vcos)" to prevent false mismatches
+            c_name_cleaned = c_name_lower.split(" (")[0].replace("and", "&").strip()
+            item_name_cleaned = spec_name.lower().replace("and", "&").strip()
+            
+            # Check if any of our keys match or cross-intersect as substrings
+            possible_item_keys = [item_name_cleaned, target_name.lower()] + item_aliases
+            
+            if any(key in c_name_cleaned or c_name_cleaned in key for key in possible_item_keys if key):
                 matching_contract = contract
                 break
         
