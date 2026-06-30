@@ -84,6 +84,26 @@ def make_param_lines(param_names, tech = "45nm"):
         print(lines[-1])
     return "\n".join(lines)
 
+def _normalize_spec_id(spec_id):
+    if isinstance(spec_id, str) and spec_id.isdigit():
+        return int(spec_id)
+    return spec_id
+
+
+def _get_default_value(spec_id, spec_default_values):
+    if not spec_default_values:
+        return 0.0
+    if spec_id in spec_default_values:
+        return spec_default_values[spec_id]
+    if isinstance(spec_id, int) and str(spec_id) in spec_default_values:
+        return spec_default_values[str(spec_id)]
+    if isinstance(spec_id, str) and spec_id.isdigit():
+        int_id = int(spec_id)
+        if int_id in spec_default_values:
+            return spec_default_values[int_id]
+    return 0.0
+
+
 def get_targets(spec_ids, spec_id_dict=None, spec_default_values=None):
     """
     Get target metrics based on specification IDs.
@@ -97,8 +117,6 @@ def get_targets(spec_ids, spec_id_dict=None, spec_default_values=None):
               e.g., {'gain': 20, 'noise': 3.0e-2, 'slew_rate': 15.0, ...}
     """
     
-    # Default target values for each specification ID
-    
     # Convert to list if dict
     if isinstance(spec_ids, dict):
         spec_ids = list(spec_ids.keys())
@@ -106,13 +124,23 @@ def get_targets(spec_ids, spec_id_dict=None, spec_default_values=None):
     targets = {}
     
     for spec_id in spec_ids:
-        if spec_id in spec_id_dict:
-            metric_name = spec_id_dict[spec_id]
-            metric_default_value = spec_default_values.get(spec_id, 0.0) if spec_default_values else 0.0
-            
-            targets[metric_name] = metric_default_value
-        else:
+        normalized_id = _normalize_spec_id(spec_id)
+        match_id = None
+        if spec_id_dict is not None:
+            if normalized_id in spec_id_dict:
+                match_id = normalized_id
+            elif isinstance(normalized_id, int) and str(normalized_id) in spec_id_dict:
+                match_id = str(normalized_id)
+            elif isinstance(normalized_id, str) and normalized_id.isdigit() and int(normalized_id) in spec_id_dict:
+                match_id = int(normalized_id)
+
+        if match_id is None:
             raise ValueError(f"Specification ID {spec_id} is not recognized.")
+
+        metric_name = spec_id_dict[match_id]
+        metric_default_value = _get_default_value(match_id, spec_default_values)
+        targets[metric_name] = metric_default_value
+
     # Always include area (fixed)
     if 'area' not in targets:
         targets['area'] = 2.0e-6
