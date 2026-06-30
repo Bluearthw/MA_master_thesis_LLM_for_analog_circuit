@@ -50,17 +50,18 @@ test = category_numbers.num_class_2
 # test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
 test = test[1:5]
 
-workflow_goal = 0 # only with netlist gen
+workflow_goal = 4 # only with spec table update and prompt creation
+# workflow_goal = 0 # only with netlist gen
 # workflow_goal = 1 # whole workflow
 # workflow_goal = 2 # only with RL sizer
 # workflow_goal = 3 # only with yaml creation
-# workflow_goal = 4 # only with spec table update and prompt creation
 user_interation_utils.print_status(workflow_goal, test)
 # sys.exit(0)
 
 spec_id_unified = file_utils.get_dict_from_json(spec_tables_path)
 specifications_table = spec_id_unified["specifications"]
 list_min_targets = agent_utils.get_list_min_targets(specifications_table)
+valid_contracts = None
 if workflow_goal == 2:
     i = test[0]
     td3_runner.td3_start(circuit_name=f'{i}', list_min_targets=list_min_targets)
@@ -91,7 +92,7 @@ else:
         general_rules, category_gen_rules, category_debug_rules, is_cat_propmt_exist, cat_prompt_path = agent_utils.prepare_workflow_prompts_json(category_num)
         print("is_cat_propmt_exist =", is_cat_propmt_exist)
         if not is_cat_propmt_exist or workflow_goal == 4:
-            spec_id_unified = workflow.prepare_new_type(cat_prompt_path, cat_json, spec_tables_path, spec_id_unified)
+            spec_id_unified, valid_contracts = workflow.prepare_new_type(cat_prompt_path, cat_json, spec_tables_path, spec_id_unified)
             specifications_table = spec_id_unified["specifications"]
             list_min_targets = agent_utils.get_list_min_targets( specifications_table)
             # specifications_table = spec_id_unified["specifications"]
@@ -103,8 +104,10 @@ else:
         target_id_dict = agent_utils.make_dictionary_from_specifications("target_id", specifications_table)
         # contracts_dict = agent_utils.make_dictionary_from_specifications("contract", specifications_table)
         file_utils.save_dict_to_json(target_id_dict, f"{path_output_num}target_id_dict.json")
-        required_builtin_num_id_specs, required_num_id_specs_with_contracts = agent_utils.get_required_spec_contracts(trimmed_spec_name_table, specifications_table)
-        required_specs = (required_builtin_num_id_specs, required_num_id_specs_with_contracts)
+        if valid_contracts is None:
+            required_builtin_num_id_specs, required_num_id_specs_with_contracts = agent_utils.get_required_spec_contracts(trimmed_spec_name_table, specifications_table)
+            valid_contracts = required_num_id_specs_with_contracts
+
         print("general_rules =", general_rules)
         # print("###trimmed_spec_table",trimmed_spec_table)
         
@@ -122,7 +125,7 @@ else:
         cat_json = cat_json,
         category_gen_rules = category_gen_rules,
         category_debug_rules = category_debug_rules,
-        contracts = required_specs[1],
+        contracts = valid_contracts,
         )
         struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 15} # remove some array results
         print("====netlist generation done=======",i)

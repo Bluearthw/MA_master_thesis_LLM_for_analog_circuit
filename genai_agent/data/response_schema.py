@@ -50,15 +50,19 @@ class SpecMeasurementContract(BaseModel):
     )
     spec_id: int = Field(description="The unique identifier for the specification. Normally +1 compared to the previous specification for each new specification.")
     
+    how_to_measure: str = Field(
+        description="A concise, step-by-step instruction for how to simulate and calculate this specification in NGSpice. It should be clear enough for a human engineer to follow.")
+    
     sim_type: Literal["OP", "AC", "DC", "TRAN", "NOISE"] = Field(
         description="The strict NGSpice analysis type required to evaluate this specification."
     )
-    csv_filename: str = Field(
-        description="The strict filename the netlist agent must use in wrdata, it also tells the input port if it has (e.g., 'ac_gain_vin.csv'(gain),'ac_gain_vdd.csv'(PSRR))."
+    csv_filenames: List[str] = Field(
+        description="The strict filename the netlist agent must use in wrdata. There can be many files like (tran_tuning_low/mid/high.csv) for 1 specifications. It also tells the input port if it has (e.g., 'ac_gain_vin.csv'(gain),'ac_gain_vdd.csv'(PSRR))."
     )
     expected_columns: int = Field(
         description="Number of columns in CSV. Example: 3 for Single-Ended AC (f,r,i), 6 for Differential AC (f,r1,i1,f,r2,i2), 2 for OP/TRAN single node."
     )
+    
     python_function_name: str = Field(
         description="The mathematical recipe for the python calculator (e.g., 'get_dc_gain', 'get_psrr', 'get_cmrr')."
     )

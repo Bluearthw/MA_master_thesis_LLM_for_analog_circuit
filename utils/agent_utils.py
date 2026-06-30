@@ -262,7 +262,8 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
         if matching_contract:
             specifications_table[found_id]["contract"] = {
                 "sim_type": matching_contract.sim_type,
-                "csv_filename": matching_contract.csv_filename,
+                "how_to_measure": matching_contract.how_to_measure,
+                "csv_filenames": matching_contract.csv_filenames,
                 "expected_columns": matching_contract.expected_columns,
                 "python_function_name": matching_contract.python_function_name
             }

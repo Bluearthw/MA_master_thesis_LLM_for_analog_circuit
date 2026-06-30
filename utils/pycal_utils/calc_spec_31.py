@@ -1,21 +1,29 @@
 def calc_spec_31(raw_data):
-    import numpy as np
     if raw_data is None:
         return -31.0
+    import numpy as np
     try:
+        if raw_data.ndim != 2 or raw_data.shape[1] < 2:
+            return -31.1
         t = raw_data[:, 0]
         v = raw_data[:, 1]
-        v_detrend = v - np.mean(v)
-        zero_crossings = np.where(np.diff(np.sign(v_detrend)))[0]
-        if len(zero_crossings) < 3:
-            print("Not enough zero crossings found.")
-            return 0.0
-        t_cross = t[zero_crossings]
-        period = 2.0 * np.mean(np.diff(t_cross))
-        if period <= 0:
-            print("Invalid period calculated.")
-            return 0.0
-        return float(1.0 / period)
+        mask = ~np.isnan(t) & ~np.isnan(v)
+        t = t[mask]
+        v = v[mask]
+        n = len(t)
+        if n < 10:
+            return -31.2
+        t_steady = t[n // 2:]
+        v_steady = v[n // 2:]
+        v_ac = v_steady - np.mean(v_steady)
+        zero_cross = np.where(np.diff(np.sign(v_ac)))[0]
+        if len(zero_cross) < 3:
+            return -31.3
+        t_cross = t_steady[zero_cross]
+        periods = np.diff(t_cross[::2])
+        if len(periods) == 0:
+            return -31.4
+        freq = 1.0 / np.mean(periods)
+        return float(freq)
     except Exception:
-        print("An error occurred while calculating the spec 31.")
-        return 0.0
+        return -31.5

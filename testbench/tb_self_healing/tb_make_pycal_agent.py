@@ -7,7 +7,7 @@ from utils import file_utils
 from genai_agent.data.response_schema import SinglePluginFunction 
 def tb_make_pycal_agent():
     cat_json = {'category': 'Oscillators and Voltage-Controlled Oscillators (VCOs)', 'required_specs': ['Oscillation Frequency', 'Tuning Range & Gain (for VCOs)', 'Phase Noise', 'Output Swing / Amplitude', 'Power Consumption']}
-    filtered_contracts =  {'31': {'sim_type': 'TRAN', 'csv_filename': 'tran_osc_freq.csv', 'expected_columns': 2, 'python_function_name': 'get_oscillation_frequency'}, '32': {'sim_type': 'TRAN', 'csv_filename': 'tran_tuning.csv', 'expected_columns': 3, 'python_function_name': 'get_tuning_range_and_gain'}}
+    filtered_contracts =  {'31': {'sim_type': 'TRAN', 'csv_filenames': 'tran_osc_freq.csv', 'expected_columns': 2, 'python_function_name': 'get_oscillation_frequency'}, '32': {'sim_type': 'TRAN', 'csv_filename': 'tran_tuning.csv', 'expected_columns': 3, 'python_function_name': 'get_tuning_range_and_gain'}}
 
     make_pycalculation_agent.make_pycalculation_agent_flow(filtered_contracts, cat_json)
 
