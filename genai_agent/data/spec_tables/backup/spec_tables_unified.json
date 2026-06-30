@@ -351,6 +351,50 @@
         "voltage compliance",
         "compliance voltage"
       ]
+    },
+    "31": {
+      "target_id": "oscillation_frequency",
+      "spec_name": "Oscillation Frequency",
+      "default_value": 1000000000.0,
+      "should_minimize": false,
+      "aliases": [
+        "f_osc",
+        "oscillator frequency",
+        "center frequency",
+        "osc_freq"
+      ],
+      "contract": {
+        "sim_type": "TRAN",
+        "how_to_measure": "Run a transient analysis (.tran) until the circuit reaches a steady state. Save the transient voltage at the oscillator output using 'wrdata' to 'tran_osc_freq.csv'. The python calculator will determine the frequency based on the time interval between output zero-crossings or peak-to-peak periods in the steady-state region.",
+        "csv_filenames": [
+          "tran_osc_freq.csv"
+        ],
+        "expected_columns": 2,
+        "python_function_name": "get_oscillation_frequency"
+      }
+    },
+    "32": {
+      "target_id": "tuning_range_and_gain",
+      "spec_name": "Tuning Range and Gain",
+      "default_value": 100000000.0,
+      "should_minimize": false,
+      "aliases": [
+        "kvco",
+        "tuning range",
+        "tuning gain",
+        "vco gain"
+      ],
+      "contract": {
+        "sim_type": "TRAN",
+        "how_to_measure": "Run multiple transient simulations at the minimum, mid-range, and maximum control voltages (Vctrl). For each run, save the transient output voltage to 'tran_tuning_low.csv', 'tran_tuning_mid.csv', and 'tran_tuning_high.csv' respectively. The python calculator will evaluate the frequency at each point to verify tuning range and sensitivity (Kvco).",
+        "csv_filenames": [
+          "tran_tuning_low.csv",
+          "tran_tuning_mid.csv",
+          "tran_tuning_high.csv"
+        ],
+        "expected_columns": 2,
+        "python_function_name": "get_vco_tuning_range_and_gain"
+      }
     }
   }
 }

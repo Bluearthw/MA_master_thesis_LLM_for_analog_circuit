@@ -173,21 +173,30 @@ class DUT(NgspiceWrapper):
         print(spec_dict)
         return spec_dict
     
-    def measure_new_specs(self, cal_util_path, spec_id, data_path, spec_dict, table_target_id):
+    def measure_new_specs(self, cal_util_path, spec_id, data_paths, spec_dict, table_target_id):
+        """
+        Evaluates a dynamic calculator plugin using a list of file paths.
+        
+        :param data_paths: Can be a single string path or a list of string paths.
+        """
         if os.path.exists(cal_util_path):
-            # print(table_target_id)
             try:
+                # 1. Standardize data_paths to always be a list of strings
+                if isinstance(data_paths, str):
+                    paths_list = [data_paths]
+                else:
+                    paths_list = list(data_paths)
+
                 # 2. Dynamically load the python file from disk into memory
                 spec = importlib.util.spec_from_file_location(f"calc_spec_{spec_id}", cal_util_path)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
-                # 3. Read the raw data array
-                raw_data = np.genfromtxt(data_path, autostrip=True, skip_header=1)
                 
-                # 4. Find the target function inside the module and execute it!
+                # 3. Find the target function inside the module and execute it!
+                # We pass the list of paths directly into the plugin function
                 func_to_run = getattr(module, f"calc_spec_{spec_id}")
-                spec_dict[table_target_id[spec_id]] = float(func_to_run(raw_data))
-                # print(f"Successfully evaluated ID {spec_id} via dynamic plugin.")
+                spec_dict[table_target_id[spec_id]] = float(func_to_run(paths_list))
+                
                 return spec_dict
             except Exception as e:
                 print(f"CRITICAL: Failed running plugin for ID {spec_id}: {e}")
@@ -195,7 +204,8 @@ class DUT(NgspiceWrapper):
                 return spec_dict
         else:
             print(f"No calculator available for spec_id {spec_id}. Triggering healing agent...")
-            # Trigger your agent workflow here to generate the plugin file!
+            # (Insert your fallback or auto-healing trigger loop hook here)
+            return spec_dict
 
     def _get_best_crossing(cls, xvec, yvec, val):
         interp_fun = interp.InterpolatedUnivariateSpline(xvec, yvec)
