@@ -199,6 +199,7 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
     found_id = 0
     affected_ids = []
     # 4. Process each incoming spec item proposed by the LLM Agent
+    max_id = max([int(k) for k in specifications_table.keys()] or [-1])
     for it in items:
         try:
             print("it =", it)
@@ -227,13 +228,13 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
         if found_id is None and spec_name.lower() in humanname_to_id:
             found_id = humanname_to_id[spec_name.lower()]
 
+        
         # Rule D: Genuinely new metric. Calculate max ID and increment
         if found_id is None:
-            max_id = max([int(k) for k in specifications_table.keys()] or [-1])
-            
-            found_id = str(max_id + 1)
-            if old_max_id > max_id + 1:
-                old_max_id = max_id + 1
+            max_id += 1
+            if old_max_id > max_id:
+                old_max_id = max_id
+            found_id = str(max_id)
             # Initialize empty schema blueprint row for the brand-new index
             specifications_table[found_id] = {
                 "target_id": target_name,
@@ -254,33 +255,34 @@ def update_tables(struc, specifications_table, spec_tables_path, valid_contracts
         specifications_table[found_id]["aliases"] = merged_aliases
         # --- THE CONTRACT INJECTION ADDITION ---
         # Find if a simulation contract matches this spec item (checking spec_name or target_id)
-        matching_contract = None
-        for contract in (valid_contracts or []):
-            c_name_lower = contract.spec_name.lower()
+        if int(found_id) == max_id:
+            matching_contract = None
+            for contract in (valid_contracts or []):
+                c_name_lower = contract.spec_name.lower()
+                
+                # Clean up common noise terms like " (for vcos)" to prevent false mismatches
+                c_name_cleaned = c_name_lower.split(" (")[0].replace("and", "&").strip()
+                item_name_cleaned = spec_name.lower().replace("and", "&").strip()
+                
+                # Check if any of our keys match or cross-intersect as substrings
+                possible_item_keys = [item_name_cleaned, target_name.lower()] + item_aliases
+                
+                if any(key in c_name_cleaned or c_name_cleaned in key for key in possible_item_keys if key):
+                    matching_contract = contract
+                    break
             
-            # Clean up common noise terms like " (for vcos)" to prevent false mismatches
-            c_name_cleaned = c_name_lower.split(" (")[0].replace("and", "&").strip()
-            item_name_cleaned = spec_name.lower().replace("and", "&").strip()
-            
-            # Check if any of our keys match or cross-intersect as substrings
-            possible_item_keys = [item_name_cleaned, target_name.lower()] + item_aliases
-            
-            if any(key in c_name_cleaned or c_name_cleaned in key for key in possible_item_keys if key):
-                matching_contract = contract
-                break
-        
-        # If found, serialise the Pydantic structural data into the row entry
-        if matching_contract:
-            specifications_table[found_id]["contract"] = {
-                "sim_type": matching_contract.sim_type,
-                "how_to_measure": matching_contract.how_to_measure,
-                "csv_filenames": matching_contract.csv_filenames,
-                "expected_columns": matching_contract.expected_columns,
-                "python_function_name": matching_contract.python_function_name
-            }
-        elif "contract" not in specifications_table[found_id]:
-            # Keep empty if no match and it wasn't pre-existing
-            specifications_table[found_id]["contract"] = {}
+            # If found, serialise the Pydantic structural data into the row entry
+            if matching_contract and int(found_id) == max_id:
+                specifications_table[found_id]["contract"] = {
+                    "sim_type": matching_contract.sim_type,
+                    "how_to_measure": matching_contract.how_to_measure,
+                    "csv_filenames": matching_contract.csv_filenames,
+                    "expected_columns": matching_contract.expected_columns,
+                    "python_function_name": matching_contract.python_function_name
+                }
+            elif "contract" not in specifications_table[found_id]:
+                # Keep empty if no match and it wasn't pre-existing
+                specifications_table[found_id]["contract"] = {}
         if found_id not in affected_ids:
             affected_ids.append(found_id)
 

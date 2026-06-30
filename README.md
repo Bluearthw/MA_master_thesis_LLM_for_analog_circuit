@@ -1,5 +1,5 @@
 git add .
-git commit -m "update table substring flexible
+git commit -m "update update_table_functions
 "
 git push
 
