@@ -1,5 +1,5 @@
 git add .
-git commit -m "update dut measure and pycal prompt for multi paths
+git commit -m "new type generation looks good, let's see netlist gen
 "
 git push
 
