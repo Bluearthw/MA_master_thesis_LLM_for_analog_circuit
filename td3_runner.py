@@ -98,8 +98,10 @@ def warmup_exploration(args, env, env_pool, agent):
     return step_counter
 
 def train_policy(args, env_pool, agent, total_steps):
-    state, action, next_state, reward, done = env_pool.sample(args.batch_size)
-    batch = (state, action, reward, next_state, done)
+    if env_pool.size < args.batch_size:
+        return
+    state, action, next_state, reward, not_done = env_pool.sample(args.batch_size)
+    batch = (state, action, next_state, reward, not_done)
     agent.update_parameters(memory_batch=batch, update=total_steps)
 
 def td3_start(args=None, circuit_name=None, list_min_targets=None):

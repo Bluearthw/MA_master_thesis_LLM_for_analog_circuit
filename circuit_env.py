@@ -32,7 +32,7 @@ class CircuitEnv(gym.Env):
             self.path_circuit_yaml = circuit_yaml_path
         
         # self.data_for_dut = yaml_data['dut_config']
-        self.list_min_targets = list_min_targets
+        self.list_min_targets = list_min_targets or []
         self.dict_params = yaml_data['params']
         self.dict_targets = yaml_data['targets']
         self.hard_constraints = yaml_data['hard_constraints']
@@ -107,6 +107,7 @@ class CircuitEnv(gym.Env):
 
     def simulate(self, params):
         yaml_path = self.path_circuit_yaml
+        info = None
         try:
             dut = DUT_NGSpice(yaml_path)
             dut.output_files_folder = "./no_backup/output_files"
@@ -134,7 +135,8 @@ class CircuitEnv(gym.Env):
 
         except Exception as e:
             print(f"[Warning] Simulation failed: {e}")
-            print(f"Simulation info: {info}")
+            if info is not None:
+                print(f"Simulation info: {info}")
             spec_dict = {key: 0.0 for key in self.dict_targets.keys()}
 
         return spec_dict

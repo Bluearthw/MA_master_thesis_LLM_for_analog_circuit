@@ -1,5 +1,5 @@
 git add .
-git commit -m "change the env_pool.sample return. I remember there will be errors if I change it
+git commit -m "fix some bugs in RL
 "
 git push
 
