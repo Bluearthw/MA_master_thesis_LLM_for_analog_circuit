@@ -128,7 +128,13 @@ else:
         category_debug_rules = category_debug_rules,
         contracts = valid_contracts,
         )
-        struct_path_id = {k: v for k, v in struct_path_id.items() if k != 16 and k != 15} # remove some array results
+        filtered_struct_path_id = {}
+        for k, v in struct_path_id.items():
+            normalized_key = int(k) if isinstance(k, str) and k.isdigit() else k
+            if normalized_key in (15, 16):
+                continue
+            filtered_struct_path_id[normalized_key] = v
+        struct_path_id = filtered_struct_path_id
         print("====netlist generation done=======",i)
         
         data = {

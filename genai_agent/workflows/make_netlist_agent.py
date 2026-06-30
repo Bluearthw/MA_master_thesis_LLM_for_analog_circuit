@@ -23,23 +23,24 @@ def make_netlist_agent_flow(netlist, category_json, category_num, cir_num=4, tri
     else:
         c_num = category_num
     prompt_path = os.path.join(local_config.path_prompts, f"prompt_{c_num}.md")
-    if not os.path.isfile(prompt_path):
-        
-        # Final fallback: build a minimal prompt inline, 
-        ## !! or create one with agent!
+    category_json = json.dumps(category_json, indent=4)
+    if os.path.isfile(prompt_path):
+        prompt_text = file_utils.get_file_to_str(prompt_path)
+        if prompt_text is False:
+            print(f"Warning: prompt for category {category_num} could not be read, using minimal inline prompt.")
+            contents = f"You are given a netlist: {netlist}\nPlease produce a ready-to-run netlist and a list of spec simulations."
+        else:
+            contents = prompt_text.format(general_rules=general_rules,
+                                          f_end=f_end,
+                                          line_wrdata_path_num=line_wrdata_path_num,
+                                          netlist=netlist,
+                                          is_diff=is_diff,
+                                          trimmed_spec_table=trimmed_spec_name_table,
+                                          category_str=category_json,
+                                          cir_num=cir_num)
+    else:
         print(f"Warning: prompt for category {category_num} not found, using minimal inline prompt.")
         contents = f"You are given a netlist: {netlist}\nPlease produce a ready-to-run netlist and a list of spec simulations."
-    category_json = json.dumps(category_json, indent=4)
-    
-    contents = file_utils.get_file_to_str(prompt_path).format(general_rules=general_rules,
-                                                            f_end=f_end, 
-                                                            line_wrdata_path_num=line_wrdata_path_num, 
-                                                            netlist=netlist,
-                                                            is_diff = is_diff,
-                                                            trimmed_spec_table = trimmed_spec_name_table,
-                                                            category_str = category_json,
-                                                            cir_num = cir_num
-                                                            )
     contents = make_prompt(has_input, contracts, contents, category_gen_rules)
         
     

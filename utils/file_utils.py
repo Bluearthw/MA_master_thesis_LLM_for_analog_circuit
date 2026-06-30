@@ -157,12 +157,12 @@ def get_file_to_lines(path, n_line, start_from_end = False):
 def get_dict_from_json(path):
     if os.path.exists(path):
         try:
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
             print(f"Failed to read existing prompts JSON: {e}")
-            dict = {}
-    return dict
+            return {}
+    return {}
 
 def get_dict_from_json_with_int_keys(path):
     if os.path.exists(path):

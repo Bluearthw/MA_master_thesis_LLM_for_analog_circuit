@@ -1,3 +1,4 @@
+import os
 import sys
 
 import yaml
@@ -364,11 +365,11 @@ def update_yaml_targets(yaml_path, targets_dict):
         
     except Exception as e:
         print(f"Error updating YAML targets in {yaml_path}: {e}")
-
 #region save temp
 def save_temp(data):
     i = data['cir_name']
     path_temp = f'.\\genai_agent\\output\\{i}\\temp.yaml'
-    with open(path_temp, 'w') as f:
+    os.makedirs(os.path.dirname(path_temp), exist_ok=True)
+    with open(path_temp, 'w', encoding='utf-8') as f:
         yaml.dump(data, f)
 #endregion save temp
