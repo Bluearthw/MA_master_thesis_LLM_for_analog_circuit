@@ -1,9 +1,15 @@
 git add .
-git commit -m "now spec 32 is not a must. change the prompt of gen prompt agent
+git commit -m "change the env_pool.sample return. I remember there will be errors if I change it
 "
 git push
 
-So, my structure is if there is new type, I will create prompt contract and python calculation functions for it and update the specification table. Then I will ask netlist generator for new netlist. Now, the calculation function and netlist are not very correct. Should I
+git add .
+git commit -m "change the env_pool.sample return. I remember there will be errors if I change it
+"
+git tag -a 4types -m "4types of circuit, ready for RL
+"
+git push origin HEAD --follow-tags
+
 ## d g s b
 ## entrance: main.py!!
 

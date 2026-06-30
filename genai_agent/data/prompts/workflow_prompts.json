@@ -48,7 +48,8 @@
             "no such vector|v.|#branch": "Remove the 'v.' prefix from the branch current vector name of any independent voltage source (e.g., change 'v.vdd#branch' to 'vdd#branch').",
             "vdd#branch|vxx#branch|vector not found|wrdata": "Replace any instances of source-branch current syntax (e.g., vdd#branch) in wrdata or measurement statements with the standard current vector syntax (e.g., i(vdd)).",
             "timestep too small|initial timepoint|singular matrix|uic": "If the transient simulation fails with a 'timestep too small' error at the initial timepoint when '.ic' is active, append 'uic' to the '.tran' command. If there are naming conflicts between devices and parameters/multipliers, rename them to be unique.",
-            "Mandatory VDD Current simulation|spec_sims|not found": "Ensure that the 'Current' specification is explicitly declared in the 'spec_sims' metadata list of the simulation runner, in addition to having the '.op' current measurement command defined in the SPICE netlist."
+            "Mandatory VDD Current simulation|spec_sims|not found": "Ensure that the 'Current' specification is explicitly declared in the 'spec_sims' metadata list of the simulation runner, in addition to having the '.op' current measurement command defined in the SPICE netlist.",
+            "Mandatory VDD Current simulation|spec_sims|current.csv": "Ensure that the .op current simulation is present in the SPICE netlist (using vvdd#branch written to current.csv) AND make sure the 'spec_sims' array in the returned JSON explicitly registers specification ID 22 mapped to 'current.csv'."
         }
     }
 }

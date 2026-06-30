@@ -44,11 +44,11 @@ test = [439]# charge pump class_23:  [439, 440, 549, 550, 551, 552, 553, 603]
 # test = [9]
 # Convert tested to a set first for blazing fast lookups
 ############### oscillator
-test = category_numbers.num_class_2
+test = category_numbers.num_class_2_without_IIN1
 # tested = category_numbers.num_class_40_samples_tested
 # tested_set = set(tested)
 # test = [item for item in test if item not in tested_set] # Keep only the items that aren't in the tested set
-test = [test[0]]
+test = [436]
 # test = test[1:5]
 
 workflow_goal = 4 # only with spec table update and prompt creation

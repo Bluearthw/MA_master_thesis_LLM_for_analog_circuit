@@ -1,0 +1,2 @@
+- Always plan first, then code. Avoid coding without a clear plan or understanding of the problem.
+- Break down complex problems into smaller, manageable tasks. Tackle each task one at a time
