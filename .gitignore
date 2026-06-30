@@ -16,5 +16,9 @@ genai_agent/before2026_py_files/CAD/
 no_backup
 output_figs
 solutions
+material/dataset/*
+!material/dataset/.gitkeep
+material/classified_dataset/*
+!material/classified_dataset/.gitkeep
 ngspice
 ngspice_interface/files/yaml_files/

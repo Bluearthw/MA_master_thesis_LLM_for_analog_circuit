@@ -1,5 +1,5 @@
 git add .
-git commit -m "fix some bugs. Split gen_utils. 436 has pareto front!!
+git commit -m "clean up
 "
 git push
 
