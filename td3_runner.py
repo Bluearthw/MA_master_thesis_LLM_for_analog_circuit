@@ -130,30 +130,18 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
     total_time = time.time() - start_time
     print(f"[TD3 Runner] Training complete. Total runtime: {total_time:.2f} seconds ({total_time/60:.2f} minutes)")
 
-    # ============================
-    # Save best solution netlist
-    # ============================
-    try:
-        # Find the best design
-        best = env.simulation_engine  # DUT_NGSpice instance
-        csv_folder = Path("./solutions") / str(args.run_id)
-        csv_folder.mkdir(parents=True, exist_ok=True)
-
-        # (optional) find best params if available from reward history
-        # Here, just take the last simulated parameters as example
-        best_params = getattr(env, "param_values", None)
-        if not best_params:
-            print("[TD3 Runner] No parameter history found to save best netlist.")
-            return
-
-        # Create and copy the netlist
-        netlist_path = best.create_new_netlist(best_params, process="TT", temp_pvt=27, vdd=1.2)
+    best_netlist_path = getattr(env, "best_netlist_path", None)
+    if best_netlist_path and os.path.isfile(best_netlist_path):
+        csv_folder = Path(best_netlist_path).parent
         save_path = csv_folder / "pure_RL_best_solution.cir"
-        shutil.copy(netlist_path, save_path)
-        print(f"[TD3 Runner] Saved best netlist to: {save_path}")
-
-    except Exception as e:
-        print(f"[Warning] Failed to save best netlist: {e}")
+        shutil.copy2(best_netlist_path, save_path)
+        print(
+            f"[TD3 Runner] Saved highest-reward netlist "
+            f"(reward={env.best_reward:.6g}, constraints_met={env.best_hard_satisfied}) "
+            f"to: {save_path}"
+        )
+    else:
+        print("[TD3 Runner] No valid candidate netlist was available to save.")
 
 # td3_start(circuit_name='TwoStage')
 # td3_start(circuit_name='9')

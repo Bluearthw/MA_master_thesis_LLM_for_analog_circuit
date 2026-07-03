@@ -2,6 +2,7 @@ import gymnasium as gym
 from gymnasium.spaces import Box
 import numpy as np
 import os
+import json
 import yaml
 import math
 import shutil
@@ -25,6 +26,20 @@ class CircuitEnv(gym.Env):
         project_path = os.getcwd()
         yaml_directory = os.path.join(project_path, f"{simulator}_interface", 'files', 'yaml_files')
         circuit_yaml_path = os.path.join(yaml_directory, f'{circuit_name}.yaml')
+        self.output_files_dir = os.path.join(project_path, "no_backup", "output_files")
+        self.output_figs_dir = os.path.join(project_path, "output_figs", str(self.run_id))
+        self.solutions_dir = os.path.join(project_path, "solutions", str(self.run_id))
+        self.all_rl_cir_dir = os.path.join(self.solutions_dir, "allRLcir")
+        self.best_netlist_target_path = os.path.join(    self.solutions_dir, "best_so_far.cir")
+        self.best_metadata_path = os.path.join(    self.solutions_dir, "best_so_far.json")
+
+        for directory in (
+            self.output_files_dir,
+            self.output_figs_dir,
+            self.solutions_dir,
+            self.all_rl_cir_dir,
+        ):
+            os.makedirs(directory, exist_ok=True)
         # list_target_min_path = os.path.join
 
         with open(circuit_yaml_path, 'r') as f:
@@ -68,6 +83,12 @@ class CircuitEnv(gym.Env):
         self.score_history = []
         self.counter = 0
         self.pvt_corner = {'process': 'TT', 'voltage': 1.2, 'temp': 27}
+        self.best_reward = -np.inf
+        self.best_params = None
+        self.best_specs = None
+        self.best_step = None
+        self.best_hard_satisfied = False
+        self.best_netlist_path = None
 
 
     def action_refine(self, action):
@@ -110,7 +131,7 @@ class CircuitEnv(gym.Env):
         info = None
         try:
             dut = DUT_NGSpice(yaml_path)
-            dut.output_files_folder = "./no_backup/output_files"
+            dut.output_files_folder = self.output_files_dir
             process = self.pvt_corner['process']
             temp_pvt = self.pvt_corner['temp']
             vdd = self.pvt_corner['voltage']
@@ -237,15 +258,13 @@ class CircuitEnv(gym.Env):
         """
         self.evaluate(action)
         reward, hard_satisfied = self.reward_computation(self.cur_norm_specs)
+        self._save_best_candidate(reward, hard_satisfied)
         
         observation = self._build_observation(self.cur_norm_specs)
 
         self.reward_history.append(reward)
         self.score += reward
 
-        os.makedirs("./no_backup/output_files", exist_ok=True)
-        os.makedirs(f"./output_figs/{self.run_id}/", exist_ok=True)
-        os.makedirs(f"./solutions/{self.run_id}/", exist_ok=True)
 
         if hard_satisfied:
             plot_running_maximum(self.reward_history, self.run_id)
@@ -258,9 +277,7 @@ class CircuitEnv(gym.Env):
             try:
                 netlist_path = getattr(self.simulation_engine, "netlist_path", None)
                 if netlist_path and os.path.isfile(netlist_path):
-                    save_dir = os.path.join(f"./solutions/{self.run_id}/allRLcir/")
-                    os.makedirs(save_dir, exist_ok=True)
-                    target_path = os.path.join(save_dir, f"pareto_step_{self.env_steps}.cir")
+                    target_path = os.path.join(self.all_rl_cir_dir, f"pareto_step_{self.env_steps}.cir")
                     shutil.copy(netlist_path, target_path)
                     print(f"[CircuitEnv] Saved Pareto netlist to {target_path}")
                 else:
@@ -280,6 +297,70 @@ class CircuitEnv(gym.Env):
 
         info = {'goal_reached': hard_satisfied}
         return observation, reward, done, info
+
+    @staticmethod
+    def _to_serializable(value):
+        """Convert NumPy-backed candidate data to JSON-compatible values."""
+        if isinstance(value, dict):
+            return {str(key): CircuitEnv._to_serializable(item) for key, item in value.items()}
+        if isinstance(value, (list, tuple)):
+            return [CircuitEnv._to_serializable(item) for item in value]
+        if isinstance(value, np.ndarray):
+            return value.tolist()
+        if isinstance(value, np.generic):
+            return value.item()
+        return value
+
+    def _save_best_candidate(self, reward, hard_satisfied):
+        """Persist a new highest-reward candidate before temporary-file cleanup."""
+        reward_value = float(np.asarray(reward).reshape(-1)[0])
+        if not np.isfinite(reward_value) or reward_value <= self.best_reward:
+            return False
+
+        source_path = getattr(self.simulation_engine, "netlist_path", None)
+        if not source_path or not os.path.isfile(source_path):
+            print(f"[CircuitEnv] Cannot save best candidate; netlist is missing: {source_path}")
+            return False
+
+        target_path = self.best_netlist_target_path 
+        
+
+        try:
+            shutil.copy2(source_path, target_path)
+        except OSError as exc:
+            print(f"[CircuitEnv] Failed to save best candidate netlist: {exc}")
+            return False
+
+        self.best_reward = reward_value
+        self.best_params = dict(self.param_values)
+        self.best_specs = dict(self.real_specs)
+        self.best_step = self.env_steps
+        self.best_hard_satisfied = bool(hard_satisfied)
+        self.best_netlist_path = os.path.abspath(target_path)
+
+        metadata = {
+            "circuit_name": self.circuit_name,
+            "simulation_step": self.best_step,
+            "reward": self.best_reward,
+            "constraints_met": self.best_hard_satisfied,
+            "circuit_params": self.best_params,
+            "specs": self.best_specs,
+            "netlist_path": self.best_netlist_path,
+        }
+        metadata_path = self.best_metadata_path
+        temp_metadata_path = metadata_path + ".tmp"
+        try:
+            with open(temp_metadata_path, "w", encoding="utf-8") as metadata_file:
+                json.dump(self._to_serializable(metadata), metadata_file, indent=2, allow_nan=False)
+            os.replace(temp_metadata_path, metadata_path)
+        except (OSError, TypeError, ValueError) as exc:
+            print(f"[CircuitEnv] Best netlist saved, but metadata save failed: {exc}")
+
+        print(
+            f"[CircuitEnv] Saved new best candidate at step {self.best_step} "
+            f"with reward {self.best_reward:.6g}: {self.best_netlist_path}"
+        )
+        return True
 
 
     def reward_computation(self, norm_specs):
