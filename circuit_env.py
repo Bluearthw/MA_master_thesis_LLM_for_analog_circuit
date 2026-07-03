@@ -174,6 +174,7 @@ class CircuitEnv(gym.Env):
             value = norm_specs.get(key, -2.0)  # Use -2.0 as a default for missing specs
             if value == -2.0:
                 print(f"Warning: Spec '{key}' is missing in normalized specs; using default value -2.0.")
+                raise ValueError("key missing in normalized specs")
             if isinstance(value, (list, tuple, np.ndarray)):
                 obs_values.extend(np.ravel(np.asarray(value, dtype=np.float32)))
             else:
