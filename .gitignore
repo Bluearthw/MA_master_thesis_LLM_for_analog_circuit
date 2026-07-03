@@ -17,6 +17,7 @@ no_backup
 output_figs
 solutions
 material/dataset/*
+material/papers_found/
 !material/dataset/.gitkeep
 material/classified_dataset/*
 !material/classified_dataset/.gitkeep

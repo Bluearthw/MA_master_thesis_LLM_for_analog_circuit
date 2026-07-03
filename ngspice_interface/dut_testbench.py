@@ -81,8 +81,8 @@ class DUT(NgspiceWrapper):
         for spec_id, data_path in struct_path_id.items():
             # print(spec_id)
             if spec_id == 0:  # DC gain 
-                a = self.get_dc_gain(data_path)
-                print(f"DC gain: {a}")
+                a = self.get_dc_gain_VV(data_path)
+                # print(f"DC gain: {a}")
                 name = table_target_id[0]# you should not use '0' but 0 since the key is int
                 spec_dict[name] = float(a) # this is the magnitude you do not the whether it is inverted.
             elif spec_id == 1:  # Bandwidth (if separate from gain) or other AC sim
@@ -95,7 +95,6 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[3]] = float(self.get_in_equivalent_total_noise(data_path))
             #Trans
             elif spec_id == 4:  # slew rate
-                continue
                 spec_dict[table_target_id[4]] = float(self.get_slew_rate(data_path))
             
             elif spec_id == 5:  # gain margin
@@ -267,8 +266,8 @@ class DUT(NgspiceWrapper):
             # store gain as complex and compute magnitude/phase
             # self.vout_complex = data_gain[:, 1] + 1j * data_gain[:, 2]
             self.vout_complex = self._complex_from_cols(data_gain, 1, 2)
-            self.vout_db = np.abs(self.vout_complex)
-            self.mag_db = 20 * np.log10(self.vout_db)
+            self.vout_mag = np.abs(self.vout_complex)
+            self.mag_db = 20 * np.log10(self.vout_mag)
             phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
             if np.average(phase) > 0 and phase[0] > 175:
                 self.phase = phase - 180
@@ -298,8 +297,8 @@ class DUT(NgspiceWrapper):
         self.phase_v2 = np.unwrap(np.angle(self.vout2_complex, deg=True), period=360)
 
         self.vout_complex = self.vout1_complex - self.vout2_complex
-        self.vout_db = np.abs(self.vout_complex)
-        self.mag_db = 20 * np.log10(self.vout_db)
+        self.vout_mag = np.abs(self.vout_complex)
+        self.mag_db = 20 * np.log10(self.vout_mag)
         self.phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
 
     def load_acm_data(self, path_acm=""):
@@ -335,14 +334,14 @@ class DUT(NgspiceWrapper):
         self.phase_v2 = np.unwrap(np.angle(self.vout2_complex, deg=True), period=360)
 
     #0 DC Gain
-    def get_dc_gain(self, path_gain="", ):
+    def get_dc_gain_VV(self, path_gain="", ):
         """Returns the magnitude at the lowest frequency."""
         if self.path_ac_gain is None and not self.is_diff :
             self.load_ac_gain_data(path_gain)
         elif self.path_adm is None and self.is_diff:
             self.load_adm_data(path_gain)
 
-        return self.vout_db[0]
+        return self.vout_mag[0]
 
     #1 Bandwidth
     def get_bandwidth(self,path=""):
@@ -389,7 +388,7 @@ class DUT(NgspiceWrapper):
         """Return the differential-mode gain (dB) based on the adm file."""
         if self.path_adm is None:
             self.load_adm_data(path_adm)
-        return self.vout_db, self.mag_db
+        return self.vout_mag, self.mag_db
         
     #16 phase response
     def get_phase_response(self, path_gain=""):
@@ -571,7 +570,7 @@ class DUT(NgspiceWrapper):
             self.path_trans = path
             data_trans = np.genfromtxt(path, autostrip=True, skip_header=1)
             self.data_trans = data_trans
-            print(data_trans)
+            # print(data_trans)
         vout_tran = self.data_trans[:, 1] #  vout is the second column
         time = self.data_trans[:, 0] #  time is the first column
 
@@ -695,26 +694,26 @@ class DUT(NgspiceWrapper):
         # avoid log10(0)
         psrr_gain_mag_db = 20 * np.log10(np.where(psrr_gain_mag == 0, 1e-30, psrr_gain_mag))
 
-        # If the circuit has an input path (AC gain), compute Vout_db on PSRR freq grid
-        if has_input and self.vout_db is not None and len(self.vout_db) > 0:
-            vout_db = self.vout_db
+        # If the circuit has an input path (AC gain), compute vout_mag on PSRR freq grid
+        if has_input and self.vout_mag is not None and len(self.vout_mag) > 0:
+            vout_mag = self.vout_mag
             # if self.freq matches psrr freq, use directly; otherwise interpolate vout to psrr freq
-            if hasattr(self, 'freq') and len(self.freq) == len(vout_db) and np.allclose(self.freq, freq):
-                common_vout_db = vout_db
+            if hasattr(self, 'freq') and len(self.freq) == len(vout_mag) and np.allclose(self.freq, freq):
+                common_vout_mag = vout_mag
                 common_freq = freq
             else:
                 common_freq = freq
-                # ensure we have valid self.freq; otherwise assume vout_db grid equals freq
+                # ensure we have valid self.freq; otherwise assume vout_mag grid equals freq
                 if not hasattr(self, 'freq') or self.freq is None or len(self.freq) == 0:
                     # fallback: cannot align, use first N points
-                    minlen = min(len(vout_db), len(freq))
-                    common_vout_db = vout_db[:minlen]
+                    minlen = min(len(vout_mag), len(freq))
+                    common_vout_mag = vout_mag[:minlen]
                     common_freq = freq[:minlen]
                     psrr_gain_mag_db = psrr_gain_mag_db[:minlen]
                 else:
-                    common_vout_db = np.interp(common_freq, self.freq, vout_db)
+                    common_vout_mag = np.interp(common_freq, self.freq, vout_mag)
 
-            psrr_db = common_vout_db - psrr_gain_mag_db
+            psrr_db = common_vout_mag - psrr_gain_mag_db
             freq_out = common_freq
         else:
             # when no input gain available, return negative of supply-to-output gain (supply->out)
@@ -801,7 +800,7 @@ class DUT(NgspiceWrapper):
         if data_cm.ndim == 1:
             data_cm = data_cm.reshape(1, -1)
 
-        adm_mag = self.vout_db
+        adm_mag = self.vout_mag
 
         vcm_complex = data_cm[:, 1] + 1j * data_cm[:, 2]
         acm_mag = np.abs(vcm_complex)

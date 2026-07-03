@@ -22,10 +22,12 @@
     ],
     "category_1": {
         "generation_guidelines": [
-            ""
+            "",
+            "NGSpice 'alter' syntax: Do not use the 'source' keyword when modifying independent voltage sources inside .control blocks. CORRECT: 'alter vin dc=0.6 ac=1.0' INCORRECT: 'alter source vin dc=0.6 ac=1.0'."
         ],
         "debug_knowledge_base": {
-            "place_holder": "place_holder"
+            "place_holder": "place_holder",
+            "excess parameter name|no such device or model name source|alter source": "Remove the 'source' keyword from any 'alter source <device>' commands inside the control block, transforming them to 'alter <device>'."
         }
     },
     "category_6": {

@@ -167,6 +167,25 @@ class CircuitEnv(gym.Env):
         self.real_specs = self.simulate(self.param_values)
         self.cur_norm_specs = self.normalize_specs(self.real_specs)
 
+    def _build_observation(self, norm_specs):
+        """Build a fixed-length observation vector in the YAML target order."""
+        obs_values = []
+        for key in self.dict_targets.keys():
+            value = norm_specs.get(key, -2.0)  # Use -2.0 as a default for missing specs
+            if value == -2.0:
+                print(f"Warning: Spec '{key}' is missing in normalized specs; using default value -2.0.")
+            if isinstance(value, (list, tuple, np.ndarray)):
+                obs_values.extend(np.ravel(np.asarray(value, dtype=np.float32)))
+            else:
+                obs_values.append(float(value))
+
+        observation = np.asarray(obs_values, dtype=np.float32)
+        if observation.size < self.obs_dim:
+            observation = np.pad(observation, (0, self.obs_dim - observation.size), constant_values=0.0)
+        elif observation.size > self.obs_dim:
+            observation = observation[: self.obs_dim]
+
+        return np.nan_to_num(observation, nan=0.0, posinf=1e6, neginf=-1e6)
 
     def reset(self, *, seed=None, options=None):
         self.episode_steps = 0
@@ -174,18 +193,7 @@ class CircuitEnv(gym.Env):
         self.evaluate(action)
         self.score = 0.0
         
-        # Ensure observation has correct dimension by filling missing specs with 0.0
-        ob_list = []
-        for key in self.dict_targets.keys():
-            value = self.cur_norm_specs.get(key, 0.0)
-            # Handle case where value might be an array (flatten it)
-            if isinstance(value, (list, np.ndarray)):
-                ob_list.extend(np.ravel(value))
-            else:
-                ob_list.append(value)
-        observation = np.array(ob_list, dtype=np.float32)
-
-        observation = np.nan_to_num(observation, nan=0.0, posinf=1e6, neginf=-1e6)
+        observation = self._build_observation(self.cur_norm_specs)
         """
          This method performs the following steps:
         1. Initializes the episode steps counter to zero.
@@ -229,11 +237,7 @@ class CircuitEnv(gym.Env):
         self.evaluate(action)
         reward, hard_satisfied = self.reward_computation(self.cur_norm_specs)
         
-        # Ensure observation has correct dimension by filling missing specs with 0.0
-        # print("CIR ENV : self.dict_targets ",self.dict_targets)
-        # print("CIR ENV : self.cur_norm_specs ",self.cur_norm_specs)
-        # if the returned spec_dict is not corresponded to the requriement in yaml, it will tells error(dimension problem)
-        observation = np.concatenate([np.ravel(v) for v in self.cur_norm_specs.values()]).astype(np.float32)
+        observation = self._build_observation(self.cur_norm_specs)
 
         self.reward_history.append(reward)
         self.score += reward

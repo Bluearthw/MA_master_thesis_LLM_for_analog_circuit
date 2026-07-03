@@ -7,50 +7,49 @@ class ReplayBuffer(object):
 		self.max_size = max_size
 		self.ptr = 0
 		self.size = 0
-		
-		self.state = np.zeros((max_size, state_dim))
-		self.action = np.zeros((max_size, action_dim))
-		self.next_state = np.zeros((max_size, state_dim))
-		self.reward = np.zeros((max_size, num_rewards))
-		self.not_done = np.zeros((max_size, 1))
+		self.state_dim = state_dim
+		self.action_dim = action_dim
+		self.num_rewards = num_rewards
+
+		self.state = np.zeros((max_size, state_dim), dtype=np.float32)
+		self.action = np.zeros((max_size, action_dim), dtype=np.float32)
+		self.next_state = np.zeros((max_size, state_dim), dtype=np.float32)
+		self.reward = np.zeros((max_size, num_rewards), dtype=np.float32)
+		self.not_done = np.zeros((max_size, 1), dtype=np.float32)
 
 		self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+	def _prepare_vector(self, value, expected_dim, name):
+		arr = np.asarray(value, dtype=np.float32).reshape(-1)
+		if arr.size != expected_dim:
+			print(f"{name} has shape {arr.shape}; expected ({expected_dim},)")
+			raise ValueError(f"{name} has shape {arr.shape}; expected ({expected_dim},)")
+		return arr
 
 	def push(self, state, action, reward, next_state, done):
-		
-		self.action[self.ptr] = action
-		# if isinstance(state, tuple):
-		# 	state = state[0]  # keep only the numeric array
-		# if isinstance(next_state, tuple):
-		# 	next_state = next_state[0]
-		self.state[self.ptr] = state
-		# print(self.next_state[self.ptr])
-		# print(next_state)
-		self.next_state[self.ptr] = next_state
-		# use flattened to fix "ValueError: setting an array element with a sequence. The requested array would exceed the maximum number of dimension of 1."
-		# self.state[self.ptr] = np.array(state).flatten()
-		# self.next_state[self.ptr] = np.array(next_state).flatten()
-		# if state.shape[0] != self.state.shape[1]:
-		# 	raise ValueError(f"State length mismatch: got {state.shape[0]}, expected {self.state.shape[1]}")
-		# if next_state.shape[0] != self.next_state.shape[1]:
-		# 	raise ValueError(f"Next state length mismatch: got {next_state.shape[0]}, expected {self.next_state.shape[1]}")
+		prepared_state = self._prepare_vector(state, self.state_dim, "state")
+		prepared_next_state = self._prepare_vector(next_state, self.state_dim, "next_state")
+		prepared_action = self._prepare_vector(action, self.action_dim, "action")
+		prepared_reward = self._prepare_vector(reward, self.num_rewards, "reward")
 
-
-		self.reward[self.ptr] = reward
-		self.not_done[self.ptr] = 1. - done
+		self.action[self.ptr] = prepared_action
+		self.state[self.ptr] = prepared_state
+		self.next_state[self.ptr] = prepared_next_state
+		self.reward[self.ptr] = prepared_reward.reshape(1, -1) if self.num_rewards > 1 else prepared_reward
+		self.not_done[self.ptr] = 1.0 - float(done)
 
 		self.ptr = (self.ptr + 1) % self.max_size
 		self.size = min(self.size + 1, self.max_size)
 
-
 	def sample(self, batch_size):
-		ind = np.random.randint(0, self.size, size=batch_size)
+		if self.size == 0:
+			raise ValueError("Cannot sample from an empty replay buffer")
 
+		ind = np.random.randint(0, self.size, size=batch_size)
 		return (
 			torch.FloatTensor(self.state[ind]).to(self.device),
 			torch.FloatTensor(self.action[ind]).to(self.device),
 			torch.FloatTensor(self.next_state[ind]).to(self.device),
 			torch.FloatTensor(self.reward[ind]).to(self.device),
-			torch.FloatTensor(self.not_done[ind]).to(self.device)
+			torch.FloatTensor(self.not_done[ind]).to(self.device),
 		)

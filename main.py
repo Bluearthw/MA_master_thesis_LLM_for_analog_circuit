@@ -26,7 +26,8 @@ def select_test_set():
     # return category_numbers.num_class_23
     # return [439]
     # return category_numbers.num_class_2_without_IIN1
-    return [436]
+    test_num = [9] #simplest SISO
+    return test_num
 
 
 def get_workflow_goal():
@@ -36,7 +37,8 @@ def get_workflow_goal():
     # 2: RL sizer only
     # 3: yaml creation only
     # 4: spec/prompt update only
-    return 1
+    workflow_goal = 2
+    return workflow_goal
 
 
 def create_output_dir(circuit_id):
@@ -74,9 +76,9 @@ def normalize_struct_path_id(struct_path_id):
     return filtered_struct_path_id
 
 
-def handle_workflow_mode_3(test, specifications_table):
+def handle_workflow_mode_3_make_yaml(test_nums, specifications_table):
     """Generate a full yaml file from the saved temporary yaml data."""
-    path_yaml = f"./genai_agent/output/{test[0]}/temp.yaml"
+    path_yaml = f"./genai_agent/output/{test_nums[0]}/temp.yaml"
     with open(path_yaml, "r", encoding="utf-8") as f:
         yaml_data = yaml.load(f, Loader=yaml.Loader)
 
@@ -171,23 +173,23 @@ def run_circuit_workflow(i, workflow_goal, list_min_targets, spec_id_unified, sp
 
 
 def main():
-    test = select_test_set()
+    test_nums = select_test_set()
     workflow_goal = get_workflow_goal()
-    user_interation_utils.print_status(workflow_goal, test)
-
+    user_interation_utils.print_status(workflow_goal, test_nums)
+    gen_utils.test_delay(1, "init info")
     spec_id_unified, specifications_table = load_specification_data()
     list_min_targets = agent_utils.get_list_min_targets(specifications_table)
     valid_contracts = None
 
     if workflow_goal == 2:
-        td3_runner.td3_start(circuit_name=f"{test[0]}", list_min_targets=list_min_targets)
+        td3_runner.td3_start(circuit_name=f"{test_nums[0]}", list_min_targets=list_min_targets)
         return
 
     if workflow_goal == 3:
-        handle_workflow_mode_3(test, specifications_table)
+        handle_workflow_mode_3_make_yaml(test_nums, specifications_table)
         return
 
-    for i in test:
+    for i in test_nums:
         spec_id_unified, valid_contracts, list_min_targets = run_circuit_workflow(
             i,
             workflow_goal,
