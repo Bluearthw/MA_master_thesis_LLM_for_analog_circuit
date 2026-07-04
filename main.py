@@ -87,7 +87,10 @@ def handle_workflow_mode_3_make_yaml(test_nums, specifications_table):
     data_for_dut_yaml = yaml_data["data_for_dut_yaml"]
 
     target_id_dict = agent_utils.make_dictionary_from_specifications("target_id", specifications_table)
-    spec_default_values = None
+    spec_default_values = {
+        str(spec_id): details.get("default_value", 0.0) 
+        for spec_id, details in specifications_table.items()
+    }
     path_yaml = yaml_creation.make_full_yaml(
         path_netlist,
         path_ids=yaml_data["path_ids"],

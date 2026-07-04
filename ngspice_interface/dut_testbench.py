@@ -38,7 +38,7 @@ class DUT(NgspiceWrapper):
         # store gain as complex and compute magnitude/phase
         self.vout_complex = None
         self.vout_mag = None
-        self.mag_db = None
+        self.vout_db = None
         self.phase = None
 
         self.psrr_db = 0
@@ -267,7 +267,7 @@ class DUT(NgspiceWrapper):
             # self.vout_complex = data_gain[:, 1] + 1j * data_gain[:, 2]
             self.vout_complex = self._complex_from_cols(data_gain, 1, 2)
             self.vout_mag = np.abs(self.vout_complex)
-            self.mag_db = 20 * np.log10(self.vout_mag)
+            self.vout_db = 20 * np.log10(self.vout_mag)
             phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
             if np.average(phase) > 0 and phase[0] > 175:
                 self.phase = phase - 180
@@ -298,7 +298,7 @@ class DUT(NgspiceWrapper):
 
         self.vout_complex = self.vout1_complex - self.vout2_complex
         self.vout_mag = np.abs(self.vout_complex)
-        self.mag_db = 20 * np.log10(self.vout_mag)
+        self.vout_db = 20 * np.log10(self.vout_mag)
         self.phase = np.unwrap(np.angle(self.vout_complex, deg=True), period=360)
 
     def load_acm_data(self, path_acm=""):
@@ -353,17 +353,17 @@ class DUT(NgspiceWrapper):
             if self.path_ac_gain is None:
                 self.load_ac_gain_data(path)
         #used for both, it is already 1 signal after calculation
-        length = len(self.mag_db)
-        last_mag_db =  np.mean(self.mag_db[int(length*0.7) : -1])
-        first_mag_db = np.mean(self.mag_db[0 : int(length*0.3)])
+        length = len(self.vout_db)
+        last_mag_db =  np.mean(self.vout_db[int(length*0.7) : -1])
+        first_mag_db = np.mean(self.vout_db[0 : int(length*0.3)])
         if last_mag_db < first_mag_db: 
         # LP
-            target = self.mag_db[0] - 3
-            bw, found = self._get_best_crossing(self.freq, self.mag_db, target)
+            target = self.vout_db[0] - 3
+            bw, found = self._get_best_crossing(self.freq, self.vout_db, target)
             return bw if found else 0
         else:#HP
-            target = self.mag_db[-1] - 3
-            bw, found = self._get_best_crossing(self.freq, self.mag_db, target)
+            target = self.vout_db[-1] - 3
+            bw, found = self._get_best_crossing(self.freq, self.vout_db, target)
             return self.freq[-1] - bw if found else 0
 
     #15 AC gain #single port
@@ -371,7 +371,7 @@ class DUT(NgspiceWrapper):
         """Returns the maximum gain in dB."""
         if self.path_ac_gain is None:
             self.load_ac_gain_data(path_gain)
-        return self.mag_db
+        return self.vout_db
     
     #17 common-mode gain (Vout1+Vout2)/2
     def get_common_mode_gain(self, path_acm=""):
@@ -388,7 +388,7 @@ class DUT(NgspiceWrapper):
         """Return the differential-mode gain (dB) based on the adm file."""
         if self.path_adm is None:
             self.load_adm_data(path_adm)
-        return self.vout_mag, self.mag_db
+        return self.vout_mag, self.vout_db
         
     #16 phase response
     def get_phase_response(self, path_gain=""):
@@ -416,7 +416,7 @@ class DUT(NgspiceWrapper):
         
         try:
             phi_interpolate = interp.interp1d(self.freq, phi_deg)
-            mag_db_interpolate = interp.interp1d(self.freq, self.mag_db)
+            mag_db_interpolate = interp.interp1d(self.freq, self.vout_db)
             
             def phase_error(f):
                 return phi_interpolate(f) - target_phase
@@ -679,6 +679,7 @@ class DUT(NgspiceWrapper):
             self.path_psrr = path_psrr
 
         data_psrr = np.genfromtxt(path_psrr, autostrip=True, skip_header=1)
+        ###?????
         if data_psrr.ndim == 1:
             data_psrr = data_psrr.reshape(1, -1) # if it is complex output already
             print("data is complex already")
@@ -696,24 +697,24 @@ class DUT(NgspiceWrapper):
 
         # If the circuit has an input path (AC gain), compute vout_mag on PSRR freq grid
         if has_input and self.vout_mag is not None and len(self.vout_mag) > 0:
-            vout_mag = self.vout_mag
+            vout_db = self.vout_db
             # if self.freq matches psrr freq, use directly; otherwise interpolate vout to psrr freq
-            if hasattr(self, 'freq') and len(self.freq) == len(vout_mag) and np.allclose(self.freq, freq):
-                common_vout_mag = vout_mag
+            if hasattr(self, 'freq') and len(self.freq) == len(vout_db) and np.allclose(self.freq, freq):
+                common_vout_db = vout_db
                 common_freq = freq
             else:
                 common_freq = freq
                 # ensure we have valid self.freq; otherwise assume vout_mag grid equals freq
                 if not hasattr(self, 'freq') or self.freq is None or len(self.freq) == 0:
                     # fallback: cannot align, use first N points
-                    minlen = min(len(vout_mag), len(freq))
-                    common_vout_mag = vout_mag[:minlen]
+                    minlen = min(len(vout_db), len(freq))
+                    common_vout_db = vout_db[:minlen]
                     common_freq = freq[:minlen]
                     psrr_gain_mag_db = psrr_gain_mag_db[:minlen]
                 else:
-                    common_vout_mag = np.interp(common_freq, self.freq, vout_mag)
+                    common_vout_db = np.interp(common_freq, self.freq, vout_db)
 
-            psrr_db = common_vout_mag - psrr_gain_mag_db
+            psrr_db = common_vout_db - psrr_gain_mag_db
             freq_out = common_freq
         else:
             # when no input gain available, return negative of supply-to-output gain (supply->out)
@@ -790,7 +791,7 @@ class DUT(NgspiceWrapper):
             for path in path_acm:
                 if 'cm' in path:
                     data_cm = np.genfromtxt(path, autostrip=True, skip_header=1)
-            if self.mag_db is None:
+            if self.vout_db is None:
                 raise ValueError("there is no ac_dm when you want cmrr!!")
 
         if data_cm is None:
@@ -936,7 +937,7 @@ class DUT(NgspiceWrapper):
         # max(self.mag_db),
         # min(self.mag_db))
 
-        ugbw, found = self._get_best_crossing(self.freq, self.mag_db, 0)
+        ugbw, found = self._get_best_crossing(self.freq, self.vout_db, 0)
         return ugbw if found else 0
         
     def get_current_matching(self, paths):

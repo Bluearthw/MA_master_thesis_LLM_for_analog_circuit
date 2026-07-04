@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 
 import yaml
@@ -12,39 +13,64 @@ def make_technology_line(tech = "45nm"):
 def make_cir_name_line(name = 9):
     return f'circuit_name: "{name}"'  
   
-def get_params(file_path):
-    """
-    Extract all parameter names from a .cir netlist file.
-    
-    Args:
-        file_path (str): Path to the .cir file
-        
-    Returns:
-        list: List of parameter names
-    """
-    params = set()  # use set to avoid duplicates
+def get_param_definitions(file_path):
+    """Return .param names mapped to their original netlist values."""
+    definitions = {}
     try:
         with open(file_path, 'r') as f:
-            lines = f.readlines()
-        
-        for line in lines:
-            if line.strip().startswith('.param'):
-                parts = line.strip().split()
-                for part in parts[1:]:
-                    if '=' in part:
-                        name = part.split('=')[0]
-                        params.add(name)
-        
-        params.discard("trf")# discard does not raise an error if the element is not there
-        params.discard("period")
+            for line in f:
+                if not line.strip().lower().startswith('.param'):
+                    continue
+                uncommented = line.split(';', 1)[0].split('$', 1)[0]
+                for name, value in re.findall(r"([A-Za-z_]\w*)\s*=\s*([^\s]+)", uncommented):
+                    definitions[name] = value
     except Exception as e:
         print(f"Error reading file {file_path}: {e}")
-        return []
-    print(params)
-    return sorted(list(params))
+        return {}
+    return definitions
 
-def make_param_lines(param_names, tech = "45nm"):
-    
+
+def _parse_spice_number(value):
+    """Parse a simple SPICE number into SI units; return None for expressions."""
+    if value is None:
+        return None
+    match = re.fullmatch(
+        r"([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)([A-Za-z]+)?",
+        str(value).strip(),
+        re.IGNORECASE,
+    )
+    if not match:
+        return None
+    suffix = (match.group(2) or "").lower()
+    multipliers = {
+        "": 1.0,
+        "t": 1e12,
+        "g": 1e9,
+        "meg": 1e6,
+        "k": 1e3,
+        "m": 1e-3,
+        "u": 1e-6,
+        "n": 1e-9,
+        "p": 1e-12,
+        "f": 1e-15,
+    }
+    multiplier = multipliers.get(suffix)
+    if multiplier is None:
+        return None
+    return float(match.group(1)) * multiplier
+
+
+def _bias_parameter_kind(name):
+    """Classify explicit external bias parameters without capturing signal inputs."""
+    canonical = re.sub(r"_?val$", "", name.lower())
+    if re.fullmatch(r"(?:vbias|vb)\d*", canonical):
+        return "voltage"
+    if re.fullmatch(r"(?:ibias|ib)\d*", canonical):
+        return "current"
+    return None
+
+
+def make_param_lines(param_names, tech="45nm", param_values=None, supply_voltage=1.2):
     # Define tech-specific constants
     if tech == "45nm":
         l_min = "45.0e-09"
@@ -59,28 +85,64 @@ def make_param_lines(param_names, tech = "45nm"):
         w_min, w_max, w_step = "5.0e-07", "50.0e-07", "5.0e-07"
 
     lines = ["params:"]
-    
+    param_values = param_values or {}
+    fixed_parameters = {
+        "vdd",
+        "vdd_val",
+        "vss",
+        "gnd",
+        "trf",
+        "period",
+        "temp_pvt",
+        "vhigh",
+        "vlow",
+        "vcm",
+        "icmv",
+        "vref",
+    }
+
     for name in param_names:
-        # Determine if it's a multiplier (m), width (w), or length (l)
         prefix = name[0].lower()
+        normalized_name = name.lower()
+        bias_kind = _bias_parameter_kind(name)
         print(f"Processing parameter: {name}, prefix: {prefix}")
-        if prefix == 'm':
-            # Multipliers are usually integers
+
+        if normalized_name in fixed_parameters or normalized_name.startswith(("vclk", "clk")):
+            continue
+        if bias_kind == "voltage":
+            voltage_step = supply_voltage / 24.0
+            val_str = (
+                f"[!!float 0.0, !!float {supply_voltage:.6g}, "
+                f"!!float {voltage_step:.6g}]"
+            )
+        elif bias_kind == "current":
+            nominal = _parse_spice_number(param_values.get(name))
+            if nominal is None or nominal <= 0:
+                current_min, current_max = 1e-6, 1e-3
+            else:
+                current_min = max(nominal / 10.0, 1e-12)
+                current_max = nominal * 10.0
+            current_step = (current_max - current_min) / 100.0
+            val_str = (
+                f"[!!float {current_min:.6g}, !!float {current_max:.6g}, "
+                f"!!float {current_step:.6g}]"
+            )
+        elif prefix == 'm':
             val_str = "[1, 25, 1]"
         elif prefix == 'w':
             val_str = f"[{w_min}, {w_max}, {w_step}]"
         elif prefix == 'l':
             val_str = f"[{l_min}, {l_max}, {l_step}]"
         elif prefix == 'v' or prefix == 'i':
+            # Signal inputs and testbench controls are not sizing parameters.
             continue
         elif prefix == 'r':
             val_str = "[!!float 0, !!float 9.9e+3, !!float 100]"
-            
         else:
-            # Fallback for things like 'cap' 
+            # Fallback for things like 'cap'
             val_str = "[!!float 0.1e-12, !!float 10.0e-12, !!float 0.1e-12]"
-            
-        lines.append(f"  {name}:  !!python/tuple {val_str}")# do not use \t or there will be error while reading
+
+        lines.append(f"  {name}:  !!python/tuple {val_str}")
         print(lines[-1])
     return "\n".join(lines)
 
@@ -292,7 +354,9 @@ def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multipl
     Returns:
         str: combined YAML content
     """
-    params = get_params(path)
+    param_values = get_param_definitions(path)
+    params = sorted(param_values)
+    params = [name for name in params if name not in {"trf", "period"}]
     
     targets_dict = get_targets(path_ids or [], spec_id_dict, spec_default_values)
 
@@ -302,7 +366,7 @@ def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multipl
     yaml_sections = [
         make_cir_name_line(cir_name),
         make_technology_line(tech),
-        make_param_lines(params, tech),
+        make_param_lines(params, tech, param_values=param_values),
         make_targets_lines(targets_dict),
         make_spec_weights_lines(spec_weights),
         make_circuit_multipliers(params, multiplier_value),

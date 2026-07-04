@@ -58,7 +58,7 @@ def test_phase_calculation():
     
 
 
-def test_DUT(cir_num, is_differential_output=False, has_input = False, target_dc_vout=0.6, pid=None):
+def test_DUT_sim_and_meas(cir_num, is_differential_output=False, has_input = False, target_dc_vout=0.6, pid=None):
     path_output_num = local_config.path_output + f"{cir_num}/"
     if pid is None:
         path = path_output_num + "struct_path_id.json"
@@ -179,7 +179,7 @@ def test_get_vdd(cir_cum):
 def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
     if sim:
         gen_utils.run_ngspice_direct_from_final_netlist(cir_cum)
-    dut = test_DUT(path_id, cir_cum) 
+    dut = test_DUT_sim_and_meas(path_id, cir_cum) 
     sink_path = local_config.path_output + f"{cir_cum}/sink_current.csv"
     source_path = local_config.path_output + f"{cir_cum}/source_current.csv"
     
@@ -256,7 +256,7 @@ def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
 # test_DUT(1005, has_input=True, is_differential_output=True)
-test_DUT(405)
+test_DUT_sim_and_meas(9)
 # test_v_compliance_range(sim = True)
 # test_v_compliance_range(sim = False)
 

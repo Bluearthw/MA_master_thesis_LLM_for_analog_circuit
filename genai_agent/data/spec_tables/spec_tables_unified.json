@@ -54,7 +54,7 @@
     "4": {
       "target_id": "slew_rate",
       "spec_name": "Slew rate",
-      "default_value": 15.0,
+      "default_value": 1.0,
       "should_minimize": false,
       "aliases": [
         "slew rate",

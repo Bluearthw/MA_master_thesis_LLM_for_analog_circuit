@@ -96,11 +96,11 @@ table_target_id = {
 }
 
 table_targets_default_values = {
-    0: 10.0,          # dc_gain (dB)
+    0: 10.0,          # dc_gain (V/V)
     1: 1.0e+2,        # bandwidth (Hz)
-    2: 10.0,          # psrr (dB)
+    2: 10.0,          # psrr (V/V)
     3: 1.0e-6,        # input_total_noise (V)
-    4: 15.0,          # slew_rate (V/us)
+    4: 1.0,           # slew_rate (V/us)
     5: 45.0,          # gain_margin (dB)
     6: 60.0,          # phase_margin (degrees)
     7: 3.0e-6,        # output_total_noise (V/sqrt(Hz))-> V
