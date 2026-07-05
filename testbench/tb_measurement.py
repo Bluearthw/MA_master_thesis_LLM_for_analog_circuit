@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+import yaml
 # local import
 sys.path.append(".")
 from ngspice_interface import dut_testbench
@@ -75,7 +76,34 @@ def test_DUT_sim_and_meas(cir_num, is_differential_output=False, has_input = Fal
     dut.netlist_path = path
     result = dut.measure_metrics(p_id)
     print(result)
- 
+def test_DUT_sim_and_meas_with_yaml(circuit_name):
+    project_path = os.getcwd()
+    simulator = 'ngspice'
+    yaml_directory = os.path.join(project_path, f"{simulator}_interface", 'files', 'yaml_files')
+    circuit_yaml_path = os.path.join(yaml_directory, f'{circuit_name}.yaml')
+    dut = dut_testbench.DUT(yaml_path=circuit_yaml_path)
+    dut.circuit_name = str(circuit_name)
+    with open(circuit_yaml_path, 'r') as f:
+        yaml_data = yaml.load(f, Loader=yaml.Loader)
+
+    path_ids = yaml_data['path_id']
+    vdd = getattr(dut, 'VDD_VAL', getattr(dut, 'VDD', 1.2))
+    netlist_path = dut.create_new_netlist(
+        parameters=dict(dut.parameters),
+        process='TT',
+        temp_pvt=27,
+        vdd=vdd,
+    )
+    simulation_error = dut.simulate(netlist_path)
+    if simulation_error != 0:
+        raise RuntimeError(
+            f"Circuit {circuit_name} ngspice simulation failed: {simulation_error}"
+        )
+
+    dut.netlist_path = netlist_path
+    result = dut.measure_metrics(path_ids)
+    print(result)
+    return result
 def test_DUT_with_yaml():
     project_path = os.getcwd()
     # yaml_path = os.path.join(project_path, 'ngspice_interface', 'files', 'yaml_files', '9.yaml')
@@ -256,7 +284,9 @@ def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
 # test_DUT(1005, has_input=True, is_differential_output=True)
+test_DUT_sim_and_meas_with_yaml(9)
 test_DUT_sim_and_meas(9)
+
 # test_v_compliance_range(sim = True)
 # test_v_compliance_range(sim = False)
 

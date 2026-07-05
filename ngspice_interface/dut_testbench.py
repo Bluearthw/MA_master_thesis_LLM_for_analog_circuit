@@ -19,9 +19,9 @@ from genai_agent.data.local_config import path_output
 from genai_agent.data.local_config import path_cal_util 
 from utils import file_utils
 class DUT(NgspiceWrapper):
-    def __init__(self, path_yaml = "", is_differential = False, has_input = True, dc_vout_target = None, netlist_path = None):
-        super().__init__(path_yaml)
-        if path_yaml == "": # these are also from yaml
+    def __init__(self, yaml_path = "", is_differential = False, has_input = True, dc_vout_target = None, netlist_path = None):
+        super().__init__(yaml_path)
+        if yaml_path == "": # these are also from yaml
             self.is_diff = is_differential
             self.has_input = has_input
             self.dc_vout_target = dc_vout_target
@@ -89,6 +89,7 @@ class DUT(NgspiceWrapper):
                 spec_dict[table_target_id[1]] = float(self.get_bandwidth(data_path))
             
             elif spec_id == 2:  # PSRR
+                
                 spec_dict[table_target_id[2]] = self.get_psrr(data_path, self.has_input, 0)[0] #[1] is freq
             
             elif spec_id == 3:  # input noise
@@ -693,8 +694,10 @@ class DUT(NgspiceWrapper):
 
         psrr_gain_mag = np.abs(psrr_gain_complex)
         # avoid log10(0)
-        psrr_gain_mag_db = 20 * np.log10(np.where(psrr_gain_mag == 0, 1e-30, psrr_gain_mag))
-
+        psrr_gain_db = 20 * np.log10(np.where(psrr_gain_mag == 0, 1e-30, psrr_gain_mag))
+        print("psrr_gain_mag",psrr_gain_mag[0:10])
+        print("psrr_gain_db",psrr_gain_db[0:10])
+        print("has_input",has_input)
         # If the circuit has an input path (AC gain), compute vout_mag on PSRR freq grid
         if has_input and self.vout_mag is not None and len(self.vout_mag) > 0:
             vout_db = self.vout_db
@@ -710,19 +713,20 @@ class DUT(NgspiceWrapper):
                     minlen = min(len(vout_db), len(freq))
                     common_vout_db = vout_db[:minlen]
                     common_freq = freq[:minlen]
-                    psrr_gain_mag_db = psrr_gain_mag_db[:minlen]
+                    psrr_gain_db = psrr_gain_db[:minlen]
                 else:
                     common_vout_db = np.interp(common_freq, self.freq, vout_db)
 
-            psrr_db = common_vout_db - psrr_gain_mag_db
+            psrr_db = common_vout_db - psrr_gain_db
+            print("common_vout_db",common_vout_db[0:10])
             freq_out = common_freq
         else:
             # when no input gain available, return negative of supply-to-output gain (supply->out)
-            psrr_db = - psrr_gain_mag_db
+            psrr_db = - psrr_gain_db
             freq_out = freq
 
         # Provide query modes
-        
+        # print("psrr",psrr_db[0:10])
         if target_f == -1: # array,-1
             return psrr_db, freq_out
         elif target_f == -2:# min,-2

@@ -62,11 +62,7 @@ class CircuitEnv(gym.Env):
         for name, value in self.dict_params.items():
             self.param_ranges[name] = {'min': value[0], 'max': value[1], 'step': value[2]}
         
-        # is_diff = self.data_for_dut.get('is_differential', False)
-        # has_input = self.data_for_dut.get('has_input', False)
-        # target_dc_vout = self.data_for_dut.get('target_dc_vout', 0.0)
         self.simulation_engine = DUT_NGSpice(circuit_yaml_path)
-        # self.simulation_engine.output_files_folder = local_config.path_output
 
         print(f"\n Initialized {circuit_name} with simulator {simulator} \n")
 

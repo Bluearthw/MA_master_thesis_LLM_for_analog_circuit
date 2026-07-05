@@ -8,6 +8,38 @@ import sys
 sys.path.append(".")
 from utils import file_utils, sim_utils 
 from genai_agent.data import local_config 
+
+
+_PARAM_ASSIGNMENT_RE = re.compile(r"([A-Za-z_]\w*)\s*=\s*([^\s;]+)")
+
+
+def _parse_spice_number(value):
+    match = re.fullmatch(
+        r"([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)([A-Za-z]+)?",
+        value,
+        re.IGNORECASE,
+    )
+    if not match:
+        raise ValueError(f"Unsupported SPICE parameter value: {value}")
+
+    suffix = (match.group(2) or "").lower()
+    units = {
+        "": 1.0,
+        "t": 1e12,
+        "g": 1e9,
+        "meg": 1e6,
+        "k": 1e3,
+        "m": 1e-3,
+        "u": 1e-6,
+        "n": 1e-9,
+        "p": 1e-12,
+        "f": 1e-15,
+    }
+    if suffix not in units:
+        raise ValueError(f"Unsupported SPICE unit in parameter value: {value}")
+    return float(match.group(1)) * units[suffix]
+
+
 class NgspiceWrapper(object):
     
     def __init__(self, path_yaml = ""):
@@ -45,29 +77,11 @@ class NgspiceWrapper(object):
         with open(self.netlist_path, 'r') as f:
             for line in f:
                 if line.startswith(".param"):  # Find parameter lines
-                    match = re.search(r"(\w+)=([\w\.]+(?:e[+-]\d+)?)", line)
-                    if match:
-                        param_name = match.group(1)
-                        param_value = match.group(2)
-                        units = {'f':1e-15, 'p': 1e-12, 'n': 1e-9, 'u': 1e-6, 'm': 1e-3, 'k': 1e3, 'meg': 1e6, 'g': 1e9}
+                    for param_name, param_value in _PARAM_ASSIGNMENT_RE.findall(line):
                         if param_name in ["trf", "period", "VDD_VAL", "VDD"]:
-                            value = None
-                            for unit, multiplier in units.items():
-                                if unit in param_value:
-                                    value = float(param_value.rstrip(unit)) * multiplier
-                                    break
-                            if value is None:  # If no unit was found, just convert the value to float
-                                value = float(param_value)
-                            setattr(self, param_name, value)
+                            setattr(self, param_name, _parse_spice_number(param_value))
                         elif param_name in self.param_names:
-                            value = None
-                            for unit, multiplier in units.items():
-                                if unit in param_value:
-                                    value = float(param_value.rstrip(unit)) * multiplier
-                                    break
-                            if value is None:  # If no unit was found, just convert the value to float
-                                value = float(param_value)
-                            self.parameters[param_name] = value
+                            self.parameters[param_name] = _parse_spice_number(param_value)
 
     def generate_random_name(self, length=10):
         letters = string.ascii_lowercase
@@ -90,7 +104,7 @@ class NgspiceWrapper(object):
         for i, line in enumerate(lines):
             if line.startswith(".param"):  # Find parameter lines
                 # Split the line into individual parameter assignments
-                param_assignments = re.findall(r"(\w+)=([\w\.]+(?:e[+-]\d+)?)", line)
+                param_assignments = _PARAM_ASSIGNMENT_RE.findall(line)
                 new_assignments = []
                 for param_name, old_value in param_assignments:
                     if parameters is not None and param_name in parameters:
