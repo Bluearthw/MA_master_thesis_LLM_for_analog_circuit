@@ -1,6 +1,7 @@
 git add .
-git commit -m "transform pdf to md, more specs target requirement control
+git commit -m "simple agent to remove unrelated specs like for single stage, GM,PM are not needed
 "
+
 git push
 
 git add .

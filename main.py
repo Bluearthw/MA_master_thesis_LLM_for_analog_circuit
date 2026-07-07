@@ -4,7 +4,7 @@ import yaml
 
 from genai_agent.data import category_numbers
 from genai_agent.data.local_config import path_output, spec_tables_path
-from genai_agent.workflows import workflow
+from genai_agent.workflows import spec_applicability_agent, workflow
 from utils import agent_utils, file_utils, gen_utils, user_interation_utils, yaml_creation
 import td3_runner
 
@@ -31,7 +31,7 @@ def get_workflow_goal():
     # 2: RL sizer only
     # 3: yaml creation only
     # 4: spec/prompt update only
-    workflow_goal = 2
+    workflow_goal = 1
     return workflow_goal
 
 
@@ -70,6 +70,19 @@ def normalize_struct_path_id(struct_path_id):
     return filtered_struct_path_id
 
 
+def apply_spec_applicability_filter(struct_path_id, target_id_dict, path_netlist, data_for_dut_yaml):
+    """Remove high-confidence topology-inapplicable specs before YAML creation."""
+    netlist = file_utils.get_file_to_str(path_netlist)
+    report = spec_applicability_agent.analyze_spec_applicability(
+        struct_path_id,
+        target_id_dict,
+        netlist,
+        data_for_dut_yaml=data_for_dut_yaml,
+    )
+    spec_applicability_agent.print_report(report)
+    return report["keep_path_id"], report
+
+
 def handle_workflow_mode_3_make_yaml(test_nums, specifications_table):
     """Generate a full yaml file from the saved temporary yaml data."""
     path_yaml = f"./genai_agent/output/{test_nums[0]}/temp.yaml"
@@ -81,6 +94,13 @@ def handle_workflow_mode_3_make_yaml(test_nums, specifications_table):
     data_for_dut_yaml = yaml_data["data_for_dut_yaml"]
 
     target_id_dict = agent_utils.make_dictionary_from_specifications("target_id", specifications_table)
+    yaml_data["path_ids"] = normalize_struct_path_id(yaml_data["path_ids"])
+    yaml_data["path_ids"], applicability_report = apply_spec_applicability_filter(
+        yaml_data["path_ids"],
+        target_id_dict,
+        path_netlist,
+        data_for_dut_yaml,
+    )
     spec_default_values = {
         str(spec_id): details.get("default_value", 0.0) 
         for spec_id, details in specifications_table.items()
@@ -92,6 +112,7 @@ def handle_workflow_mode_3_make_yaml(test_nums, specifications_table):
         data_for_dut_yaml=data_for_dut_yaml,
         spec_id_dict=target_id_dict,
         spec_default_values=spec_default_values,
+        target_context={"spec_applicability": applicability_report},
     )
     print("yaml path =", path_yaml)
 
@@ -138,6 +159,12 @@ def run_circuit_workflow(i, workflow_goal, list_min_targets, spec_id_unified, sp
     )
 
     struct_path_id = normalize_struct_path_id(struct_path_id)
+    struct_path_id, applicability_report = apply_spec_applicability_filter(
+        struct_path_id,
+        target_id_dict,
+        path_netlist,
+        data_for_dut_yaml,
+    )
     print("====netlist generation done=======", i)
 
     data = {
@@ -146,6 +173,7 @@ def run_circuit_workflow(i, workflow_goal, list_min_targets, spec_id_unified, sp
         "path_ids": struct_path_id,
         "spec_sims": spec_sims,
         "data_for_dut_yaml": data_for_dut_yaml,
+        "spec_applicability": applicability_report,
     }
     yaml_creation.save_temp(data)
 
@@ -157,6 +185,7 @@ def run_circuit_workflow(i, workflow_goal, list_min_targets, spec_id_unified, sp
         data_for_dut_yaml=data_for_dut_yaml,
         spec_id_dict=target_id_dict,
         spec_default_values=spec_default_values,
+        target_context={"spec_applicability": applicability_report},
     )
     print("yaml path =", path_yaml)
     print("====yaml done=======", i)
