@@ -1,5 +1,5 @@
 git add .
-git commit -m "before suggested spec requirements
+git commit -m "transform pdf to md
 "
 git push
 
