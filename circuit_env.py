@@ -164,7 +164,10 @@ class CircuitEnv(gym.Env):
         norm_dict = {}
         for key, value in spec_dict.items():
             if isinstance(value, (dict, list, np.ndarray)):
+                print(f"Normalization Warning: Spec '{key}' is a complex type ({type(value)}). Normalization may not be meaningful.")
                 continue
+            if value < 0:
+                print(f"Normalization Warning: Spec '{key}' has a negative value ({value}). Normalization may not be meaningful.")
             goal = self.dict_targets[key]
             # print("CE: value",value)
             if not np.isfinite(value) or not np.isfinite(goal):

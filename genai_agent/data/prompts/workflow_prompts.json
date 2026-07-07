@@ -18,17 +18,18 @@
         "- Ideal block is accetable if it is not a big difference to the result.",
         "- Try to align the end frequency for all ac simulations:{f_end}",
         "13. **Mandatory VDD Power Measurement**: Regardless of the specific category requirements, you must ALWAYS explicitly include a current (.op) measurement for the primary supply rail (VDD) to track static power consumption.",
-        "14. **Strict Specification Isolation (Zero Spec-Creep)**: Beyond the mandatory VDD measurement, do NOT assume, infer, or add any other test circuits, stimuli, or `.meas` commands. Simulate and analyze ONLY the specifications explicitly listed in the provided requirement. Disregard any peripheral or optional metrics mentioned in reference descriptions."
+        "14. **Strict Specification Isolation (Zero Spec-Creep)**: Beyond the mandatory VDD measurement, do NOT assume, infer, or add any other test circuits, stimuli, or `.meas` commands. Simulate and analyze ONLY the specifications explicitly listed in the provided requirement. Disregard any peripheral or optional metrics mentioned in reference descriptions.",
+        "15. **Preserve optimizable input bias parameters**: If an input source is declared with an optimizable DC bias parameter such as `VIN_BIAS`, `VCM_BIAS`, or `IIN_BIAS`, do NOT replace that DC value with a numeric literal in `.control`. Prefer changing only the AC magnitude, e.g. `alter vin ac=1.0` or `alter vin ac=0`, so RL sizing can still tune the bias parameter."
     ],
     "category_1": {
         "generation_guidelines": [
-            "",
-            "NGSpice 'alter' syntax: Do not use the 'source' keyword when modifying independent voltage sources inside .control blocks. CORRECT: 'alter vin dc=0.6 ac=1.0' INCORRECT: 'alter source vin dc=0.6 ac=1.0'."
+            "NGSpice 'alter' syntax: Do not use the 'source' keyword when modifying independent voltage sources inside .control blocks. CORRECT: `alter vin ac=1.0` or `alter vin ac=0`; INCORRECT: `alter source vin ac=1.0`. For optimizable biased inputs, preserve the source-line DC parameter and alter only the AC setting unless a fixed non-optimizable testbench DC value is explicitly required."
         ],
         "debug_knowledge_base": {
             "place_holder": "place_holder",
             "excess parameter name|no such device or model name source|alter source": "Remove the 'source' keyword from any 'alter source <device>' commands inside the control block, transforming them to 'alter <device>'.",
-            "no such vector|cannot evaluate new parameter|syntax error in line segment|pulse": "If NGSpice reports 'no such vector' or syntax/evaluation errors during an 'alter' command of a source containing complex mathematical parameters (e.g. pulse or sin expressions), move the complex parameterized transient stimulus declaration directly to the main netlist source line, and remove the parameter-based alter statement from the .control block."
+            "no such vector|cannot evaluate new parameter|syntax error in line segment|pulse": "If NGSpice reports 'no such vector' or syntax/evaluation errors during an 'alter' command of a source containing complex mathematical parameters (e.g. pulse or sin expressions), move the complex parameterized transient stimulus declaration directly to the main netlist source line, and remove the parameter-based alter statement from the .control block.",
+            "no such parameter ac_mag|only a single param - value pair supported|cannot alter parameters": "Replace all instances of '@source[ac_mag]' or '@source[ac]' with 'alter source_name ac=value'. Ensure any transient waveforms (like PULSE) are defined on the source definition in the netlist, and use 'alter source_name ac=0.0' or 'alter source_name ac=1.0' to toggle simulation modes."
         }
     },
     "category_6": {

@@ -148,6 +148,7 @@ def user_input_targets(targets):
             print("Error: Please enter a valid number.")
     
     print("\nFinal target values:")
+    sorted_targets = sorted(targets.items())
     for i, (key, value) in enumerate(sorted_targets, 1):
         print(f"  {i}. {key}: {value}")
     

@@ -5,6 +5,7 @@ import sys
 import yaml
 sys.path.append(".")
 from genai_agent.data import local_config
+from genai_agent.workflows import target_suggestion_agent
 from utils import gen_utils
 from utils import file_utils
 from utils import user_interation_utils
@@ -170,7 +171,7 @@ def _get_default_value(spec_id, spec_default_values):
     return 0.0
 
 
-def get_targets(spec_ids, spec_id_dict=None, spec_default_values=None):
+def get_targets(spec_ids, spec_id_dict=None, spec_default_values=None, target_context=None):
     """
     Get target metrics based on specification IDs.
     
@@ -210,6 +211,10 @@ def get_targets(spec_ids, spec_id_dict=None, spec_default_values=None):
     # Always include area (fixed)
     if 'area' not in targets:
         targets['area'] = 2.0e-6
+
+    suggestion = target_suggestion_agent.suggest_target_values(targets, target_context)
+    target_suggestion_agent.print_suggestions(suggestion)
+    targets = suggestion["targets"]
 
     targets = user_interation_utils.user_input_targets(targets)
     
@@ -344,7 +349,7 @@ def make_dut_yaml_lines(data_for_dut_yaml):
     
     return "\n".join(lines)
 
-def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multiplier_value=2, tech='45nm', data_for_dut_yaml=None, spec_id_dict=None, spec_default_values=None):
+def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multiplier_value=2, tech='45nm', data_for_dut_yaml=None, spec_id_dict=None, spec_default_values=None, target_context=None):
     """
     Build full YAML content and save to file from provided parameter list and target ids.
 
@@ -362,7 +367,13 @@ def make_full_yaml(path, path_ids=None, cir_name = 9, spec_weights=None, multipl
     params = sorted(param_values)
     params = [name for name in params if name not in {"trf", "period"}]
     
-    targets_dict = get_targets(path_ids or [], spec_id_dict, spec_default_values)
+    target_context = dict(target_context or {})
+    target_context.setdefault("netlist_path", path)
+    target_context.setdefault("cir_name", cir_name)
+    target_context.setdefault("data_for_dut_yaml", data_for_dut_yaml)
+    target_context.setdefault("tech", tech)
+
+    targets_dict = get_targets(path_ids or [], spec_id_dict, spec_default_values, target_context=target_context)
 
     if spec_weights is None:
         spec_weights = {k: 1.0 for k in targets_dict.keys()}

@@ -1,6 +1,7 @@
 git add .
-git commit -m "update tb_meas_sim. Now V_bias is a param for RL
+git commit -m "simple agent to remove unrelated specs like for single stage, GM,PM are not needed
 "
+
 git push
 
 git add .
