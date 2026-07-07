@@ -90,7 +90,7 @@ class DUT(NgspiceWrapper):
             
             elif spec_id == 2:  # PSRR
                 
-                spec_dict[table_target_id[2]] = self.get_psrr(data_path, self.has_input, 0)[0] #[1] is freq
+                spec_dict[table_target_id[2]] = self.get_psrr_db_vv_f(data_path, self.has_input, 0)[1] #[0]is db. [2] is freq
             
             elif spec_id == 3:  # input noise
                 spec_dict[table_target_id[3]] = float(self.get_in_equivalent_total_noise(data_path))
@@ -664,7 +664,7 @@ class DUT(NgspiceWrapper):
         return useful_swing_range, out_swing_min, out_swing_max
 
     #2 Power Supply Rejection Ratio (PSRR)
-    def get_psrr(self, path_psrr, has_input, target_f=50):
+    def get_psrr_db_vv_f(self, path_psrr, has_input, target_f=50):
         """Compute PSRR (default at 50Hz) and support several query modes.
 
         Default (mode=None) returns (psrr_db_array, freq_array) for compatibility.
@@ -696,9 +696,9 @@ class DUT(NgspiceWrapper):
         psrr_gain_mag = np.abs(psrr_gain_complex)
         # avoid log10(0)
         psrr_gain_db = 20 * np.log10(np.where(psrr_gain_mag == 0, 1e-30, psrr_gain_mag))
-        print("psrr_gain_mag",psrr_gain_mag[0:10])
-        print("psrr_gain_db",psrr_gain_db[0:10])
-        print("has_input",has_input)
+        # print("psrr_gain_mag",psrr_gain_mag[0:10])
+        # print("psrr_gain_db",psrr_gain_db[0:10])
+        # print("has_input",has_input)
         # If the circuit has an input path (AC gain), compute vout_mag on PSRR freq grid
         if has_input and self.vout_mag is not None and len(self.vout_mag) > 0:
             vout_db = self.vout_db
@@ -719,7 +719,7 @@ class DUT(NgspiceWrapper):
                     common_vout_db = np.interp(common_freq, self.freq, vout_db)
 
             psrr_db = common_vout_db - psrr_gain_db
-            print("common_vout_db",common_vout_db[0:10])
+            # print("common_vout_db",common_vout_db[0:10])
             freq_out = common_freq
         else:
             # when no input gain available, return negative of supply-to-output gain (supply->out)
@@ -728,23 +728,25 @@ class DUT(NgspiceWrapper):
 
         # Provide query modes
         # print("psrr",psrr_db[0:10])
+        psrr_vv = 10 ** (psrr_db / 20)
         if target_f == -1: # array,-1
-            return psrr_db, freq_out
+            return psrr_db, psrr_vv, freq_out
         elif target_f == -2:# min,-2
             # CRITICAL FIX: Limit the search to your active bandwidth (e.g., up to 10MHz or 100MHz)
             # Why? PSRR often drops to 0dB at extremely high frequencies (10GHz+) where the circuit dies.
             # We want the minimum inside the real operating band.
             #limit or not?
             idx = np.argmin(psrr_db)
-            return float(psrr_db[idx]), float(freq_out[idx])
+            return float(psrr_db[idx]), float(psrr_vv[idx]), float(freq_out[idx])
         elif target_f == 0:# dc,
             f = np.argmin(freq_out)
             if f != 0:
                 print(f"DC point is not at index 0. Using f {f}")
-            return float(psrr_db[f]), float(freq_out[f])
+            return float(psrr_db[f]), float(psrr_vv[f]), float(freq_out[f])
         else:
-            val = float(np.interp(float(target_f), freq_out, psrr_db))
-            return val, target_f
+            val_db = float(np.interp(float(target_f), freq_out, psrr_db))
+            val_vv = float(np.interp(float(target_f), freq_out, psrr_vv))
+            return val_db, val_vv, target_f
 
         
     

@@ -31,7 +31,7 @@ def get_workflow_goal():
     # 2: RL sizer only
     # 3: yaml creation only
     # 4: spec/prompt update only
-    workflow_goal = 1
+    workflow_goal = 2
     return workflow_goal
 
 
