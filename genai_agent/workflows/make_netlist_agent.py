@@ -56,7 +56,15 @@ def make_netlist_agent_flow(netlist, category_json, category_num, cir_num=4, tri
 def make_prompt(has_input, contracts, contents, category_gen_rules):
     # Ensure has_input has a clean string representation for the LLM
     if has_input is True:
-        input_status_str = "### [CIRCUIT INPUT CONFIGURATION]\nThis circuit requires an active input stimulus source (e.g., vin, vdm, or pulse generators). Ensure the .control block excites these inputs appropriately.\n"
+        input_status_str = (
+            "### [CIRCUIT INPUT CONFIGURATION]\n"
+            "This circuit requires an active input stimulus source (e.g., vin, vdm, or pulse generators). "
+            "Ensure the .control block excites these inputs appropriately. When the preprocessed netlist "
+            "defines VIN_BIAS, VCM_BIAS, or IIN_BIAS, preserve those parameters and use their "
+            "symbolic names consistently in source definitions, alter commands, and pulse expressions; "
+            "do not replace them with numeric DC literals. For differential inputs, use VCM_BIAS as the "
+            "input common-mode level and keep the differential stimulus at zero DC bias.\n"
+        )
     elif has_input is False:
         input_status_str = "### [CIRCUIT INPUT CONFIGURATION]\nThis circuit is a self-biasing/autonomous block (NO active input signal source). Do NOT attempt to sweep or pulse an external input source; rely purely on VDD/VSS.\n"
     else:

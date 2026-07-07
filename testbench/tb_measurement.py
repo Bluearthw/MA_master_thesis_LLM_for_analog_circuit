@@ -61,6 +61,14 @@ def test_phase_calculation():
 
 def test_DUT_sim_and_meas(cir_num, is_differential_output=False, has_input = False, target_dc_vout=0.6, pid=None):
     path_output_num = local_config.path_output + f"{cir_num}/"
+    metadata_path = path_output_num + "debug_metadata.json"
+    metadata = file_utils.get_dict_from_json(metadata_path)
+    if "is_differential_output" in metadata:
+        is_differential_output = metadata["is_differential_output"]
+    
+    if "has_input" in metadata:
+        has_input = metadata["has_input"]
+
     if pid is None:
         path = path_output_num + "struct_path_id.json"
         print("Path:", path)
@@ -68,14 +76,15 @@ def test_DUT_sim_and_meas(cir_num, is_differential_output=False, has_input = Fal
     else:
         p_id = pid
     print("p_id:", p_id)
+    print("DUT metadata:", {"is_differential_output": is_differential_output, "has_input": has_input})
     dut =dut_testbench.DUT(is_differential=is_differential_output, has_input=has_input, dc_vout_target=target_dc_vout)
     dut.circuit_name = str(cir_num)
     path = path_output_num + "final_netlist.cir"#???
     tb_netlist_simulation.test_run_ngspice_direct_from_final_netlist(path_nl=path)
     print("Netlist path:", path)
     dut.netlist_path = path
-    result = dut.measure_metrics(p_id)
-    print(result)
+    dut.measure_metrics(p_id) # it has print
+
 def test_DUT_sim_and_meas_with_yaml(circuit_name):
     project_path = os.getcwd()
     simulator = 'ngspice'
@@ -284,7 +293,7 @@ def test_v_compliance_range(cir_cum= 439, path_id = path_id_439, sim = False):
 # test_DUT_psrr_len_problem(path_id_9_psrr, 9)
 # test_DUT_with_yaml()
 # test_DUT(1005, has_input=True, is_differential_output=True)
-test_DUT_sim_and_meas_with_yaml(9)
+# test_DUT_sim_and_meas_with_yaml(9)
 test_DUT_sim_and_meas(9)
 
 # test_v_compliance_range(sim = True)

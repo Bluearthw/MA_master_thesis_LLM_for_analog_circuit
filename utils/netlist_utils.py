@@ -150,6 +150,59 @@ def add_DC_source(netlist, vdd="1.2", vb1="0.7", ib1="0.01"):
     return "\n".join(lines)
 
 
+def add_input_source(
+    netlist,
+    has_voltage_input=False,
+    has_differential_input=False,
+    has_current_input=False,
+    vin_bias="0.6",
+    vcm_bias="0.6",
+    iin_bias="0",
+):
+    """Add symbolic input-bias parameters and sources to a raw circuit netlist."""
+    reference_node = "VSS" if re.search(r"\bVSS\b", netlist, re.IGNORECASE) else "0"
+    param_lines = []
+    source_lines = []
+
+    if has_differential_input:
+        if not re.search(r"^\s*\.param\b.*\bVCM_BIAS\s*=", netlist, re.IGNORECASE | re.MULTILINE):
+            param_lines.append(f".param VCM_BIAS={vcm_bias}")
+        if not re.search(r"^\s*[ve]\w*\s+VIN1\b", netlist, re.IGNORECASE | re.MULTILINE):
+            source_lines.extend([
+                f"vcm_bias VCM_INPUT {reference_node} dc=VCM_BIAS",
+                f"vdm_input VDM_INPUT {reference_node} dc=0 ac=1",
+                f"ein1 VIN1 VCM_INPUT VDM_INPUT {reference_node} 0.5",
+                f"ein2 VIN2 VCM_INPUT VDM_INPUT {reference_node} -0.5",
+            ])
+    elif has_voltage_input:
+        if not re.search(r"^\s*\.param\b.*\bVIN_BIAS\s*=", netlist, re.IGNORECASE | re.MULTILINE):
+            param_lines.append(f".param VIN_BIAS={vin_bias}")
+        if not re.search(r"^\s*v\w*\s+VIN1\b", netlist, re.IGNORECASE | re.MULTILINE):
+            source_lines.append(f"vin VIN1 {reference_node} dc=VIN_BIAS ac=1")
+    elif has_current_input:
+        if not re.search(r"^\s*\.param\b.*\bIIN_BIAS\s*=", netlist, re.IGNORECASE | re.MULTILINE):
+            param_lines.append(f".param IIN_BIAS={iin_bias}")
+        if not re.search(r"^\s*i\w*\s+IIN1\b", netlist, re.IGNORECASE | re.MULTILINE):
+            source_lines.append(f"iin IIN1 {reference_node} dc=IIN_BIAS ac=1")
+
+    if not param_lines and not source_lines:
+        return netlist
+
+    lines = netlist.splitlines()
+    insertion_point = next(
+        (
+            index
+            for index, line in enumerate(lines)
+            if line.strip()
+            and (line.strip()[0].isalpha() or line.strip().startswith("."))
+        ),
+        0,
+    )
+    lines[insertion_point:insertion_point] = param_lines
+    lines.extend(source_lines)
+    return "\n".join(lines)
+
+
 def add_C_load(netlist, node="VOUT1", Cload="10p"):
     param_line = f"\n.param Cload={Cload}"
     cload_line = f"\nCload {node} VSS {{Cload}}"

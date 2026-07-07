@@ -63,6 +63,10 @@ def _parse_spice_number(value):
 def _bias_parameter_kind(name):
     """Classify explicit external bias parameters without capturing signal inputs."""
     canonical = re.sub(r"_?val$", "", name.lower())
+    if canonical in {"vin_bias", "vcm_bias"}:
+        return "voltage"
+    if canonical == "iin_bias":
+        return "current"
     if re.fullmatch(r"(?:vbias|vb)\d*", canonical):
         return "voltage"
     if re.fullmatch(r"(?:ibias|ib)\d*", canonical):

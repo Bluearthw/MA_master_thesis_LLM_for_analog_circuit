@@ -1,5 +1,5 @@
 git add .
-git commit -m "multi params support and e support. tb_sim_meas_with_yaml
+git commit -m "update tb_meas_sim. Now V_bias is a param for RL
 "
 git push
 

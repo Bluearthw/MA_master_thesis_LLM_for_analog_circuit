@@ -8,13 +8,7 @@ from genai_agent.workflows import workflow
 from utils import agent_utils, file_utils, gen_utils, user_interation_utils, yaml_creation
 import td3_runner
 
-WORKFLOW_LABELS = {
-    0: "netlist generation only",
-    1: "full workflow",
-    2: "RL sizer only",
-    3: "yaml creation only",
-    4: "prompt/spec update only",
-}
+
 
 
 def select_test_set():

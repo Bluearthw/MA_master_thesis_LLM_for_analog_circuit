@@ -27,7 +27,8 @@
         ],
         "debug_knowledge_base": {
             "place_holder": "place_holder",
-            "excess parameter name|no such device or model name source|alter source": "Remove the 'source' keyword from any 'alter source <device>' commands inside the control block, transforming them to 'alter <device>'."
+            "excess parameter name|no such device or model name source|alter source": "Remove the 'source' keyword from any 'alter source <device>' commands inside the control block, transforming them to 'alter <device>'.",
+            "no such vector|cannot evaluate new parameter|syntax error in line segment|pulse": "If NGSpice reports 'no such vector' or syntax/evaluation errors during an 'alter' command of a source containing complex mathematical parameters (e.g. pulse or sin expressions), move the complex parameterized transient stimulus declaration directly to the main netlist source line, and remove the parameter-based alter statement from the .control block."
         }
     },
     "category_6": {

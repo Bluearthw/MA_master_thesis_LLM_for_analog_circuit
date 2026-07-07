@@ -15,13 +15,25 @@ def pre_process_circuit(cir_num):
     cir_path = local_config.path_dataset + f"{cir_num}/{cir_num}.cir"
     circuit_string = file_utils.get_file_to_str(cir_path)
 
-    has_input = has_port_from_nl(circuit_string)
+    has_voltage_input = has_port_from_nl(circuit_string, target_ports=["VIN1"])
+    has_current_input = has_port_from_nl(circuit_string, target_ports=["IIN1"])
+    has_differential_input = (
+        has_port_from_nl(circuit_string, target_ports=["VIN1"])
+        and has_port_from_nl(circuit_string, target_ports=["VIN2"])
+    )
+    has_input = has_voltage_input or has_current_input
     is_diff = has_port_from_nl(circuit_string, target_ports=["VOUT2"])
 
     circuit_string = modify_duplicate_component(circuit_string)
     circuit_string = clean_netlist(circuit_string)
     circuit_string = add_params(circuit_string)
     circuit_string = add_DC_source(circuit_string)
+    circuit_string = add_input_source(
+        circuit_string,
+        has_voltage_input=has_voltage_input,
+        has_differential_input=has_differential_input,
+        has_current_input=has_current_input,
+    )
 
     cat_json = file_utils.get_dict_from_json(local_config.path_category_jsons + f"{category_num}.json")
     netlist = add_control(circuit_string)
