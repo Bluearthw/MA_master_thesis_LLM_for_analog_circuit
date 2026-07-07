@@ -399,7 +399,7 @@ class DUT(NgspiceWrapper):
         return self.phase
 
     #5 gain margin
-    def get_gain_margin(self, path_gain):
+    def get_gain_margin(self, path_gain, gain_margin_cap = 120.0):
         """
         Calculates the gain margin (in dB).
         Gain margin is the gain at the phase crossover frequency (where phase = -180°).
@@ -433,14 +433,15 @@ class DUT(NgspiceWrapper):
             # Positive gain margin means stable system
             gain_margin = -gain_at_crossing
             
-            return gain_margin
+            return min(float(gain_margin), gain_margin_cap)
         except ValueError:
             # Phase never crosses -180 degrees
             print("Warning: Phase does not cross -180 degrees in the frequency range")
-            if (phi_deg[-1] < 10 and phi_deg[0] > 1) or (phi_deg[-1] < -170 and phi_deg[0] < 1):
-                return self.freq[-1]
-            else:
-                return 0
+            stable_no_crossing = (
+                (phi_deg[-1] < 10 and phi_deg[0] > 1)
+                or (phi_deg[-1] < -170 and phi_deg[0] < 1)
+            )
+            return gain_margin_cap if stable_no_crossing else 0.0
 
     #6 phase margin # assumed LP!!!
     def get_phase_margin(self, path_gain=""): 

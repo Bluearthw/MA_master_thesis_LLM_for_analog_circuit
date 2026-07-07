@@ -1,5 +1,5 @@
 git add .
-git commit -m "update tb_meas_sim. Now V_bias is a param for RL
+git commit -m "before suggested spec requirements
 "
 git push
 

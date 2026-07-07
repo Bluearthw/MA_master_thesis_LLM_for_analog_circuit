@@ -2,7 +2,7 @@
 
 ## Working agreement
 
-- Before modifying files, explain the implementation plan in 3-6 concise bullets.
+- Before modifying files, explain the implementation plan in 3-6 concise bullets. Mention the file to be modified.
 - Wait for user approval before making major architectural changes.
 - Preserve unrelated user changes in the working tree.
 
