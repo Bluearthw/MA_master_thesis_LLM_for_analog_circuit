@@ -10,6 +10,7 @@ from pathlib import Path
 
 from utils import gen_utils 
 from utils import file_utils 
+from td3_llm import save_best_candidate_record, seed_replay_from_category_memory
 warmup_step = 1000
 def readParser():
     parser = argparse.ArgumentParser(description='TD3-based RL for Circuit Sizing')
@@ -58,6 +59,15 @@ def readParser():
     
     parser.add_argument('--run_id', type=str, default=datetime.now().strftime('%Y-%m-%d--%H-%M-%S'), metavar='N',
                         help='run identifier (default: current time)')
+
+    parser.add_argument('--warm_start_category', type=str, default=None,
+                        help='optional category-memory key for td3_llm warm-start')
+
+    parser.add_argument('--warm_start_records', type=int, default=20,
+                        help='maximum compatible category-memory records to evaluate before TD3')
+
+    parser.add_argument('--warm_start_reduce_random', action="store_true",
+                        help='subtract seeded records from random warmup count')
     
     return parser.parse_args()
 
@@ -84,6 +94,17 @@ def train(args, env, agent, env_pool):
 
 def warmup_exploration(args, env, env_pool, agent):
     step_counter = 0
+    if getattr(args, "warm_start_category", None):
+        seeded = seed_replay_from_category_memory(
+            env,
+            env_pool,
+            args.warm_start_category,
+            max_records=getattr(args, "warm_start_records", 20),
+        )
+        if getattr(args, "warm_start_reduce_random", False):
+            step_counter = min(seeded, args.w)
+            print(f"[td3_llm] Random warmup starts at {step_counter}/{args.w} after memory seeding.")
+
     while step_counter < args.w:
         obs = env.reset()
         done = False
@@ -125,6 +146,13 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
     env_pool = ReplayBuffer(state_dim, action_dim, max_size=args.replay_size)
     # Training
     train(args, env, agent, env_pool)
+
+    if getattr(args, "warm_start_category", None):
+        saved_memory_path = save_best_candidate_record(env, args.warm_start_category)
+        if saved_memory_path:
+            print(f"[td3_llm] Saved best candidate to category memory: {saved_memory_path}")
+        else:
+            print("[td3_llm] No finite best candidate available for category memory.")
 
     # compute and print total runtime
     total_time = time.time() - start_time
