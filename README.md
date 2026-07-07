@@ -1,5 +1,5 @@
 git add .
-git commit -m "transform pdf to md
+git commit -m "transform pdf to md, more specs target requirement control
 "
 git push
 
