@@ -35,6 +35,33 @@ def get_workflow_goal():
     return workflow_goal
 
 
+def get_td3_experiment_mode():
+    """Choose the TD3 sizing preset used when workflow_goal is RL sizing."""
+    return "baseline"
+    # return "op_seed"
+
+
+def make_td3_args(circuit_id, mode):
+    """Build TD3 runner arguments from a named experiment preset."""
+    args = td3_runner.readParser([])
+    args.circuit_name = str(circuit_id)
+    args.run_id = f"{mode}_{circuit_id}"
+
+    if mode == "baseline":
+        return args
+
+    if mode == "op_seed":
+        args.T = 1000
+        args.dc_seed_samples = 500
+        args.dc_seed_elites = 20
+        args.dc_seed_method = "sobol"
+        args.full_warmup_steps = 100
+        args.warm_start_reduce_random = True
+        return args
+
+    raise ValueError(f"Unknown TD3 experiment mode: {mode}")
+
+
 def create_output_dir(circuit_id):
     output_dir = Path(f"{path_output}{circuit_id}")
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -117,7 +144,7 @@ def handle_workflow_mode_3_make_yaml(test_nums, specifications_table):
     print("yaml path =", path_yaml)
 
 
-def run_circuit_workflow(i, workflow_goal, list_min_targets, spec_id_unified, specifications_table, valid_contracts):
+def run_circuit_workflow(i, workflow_goal, list_min_targets, spec_id_unified, specifications_table, valid_contracts, td3_experiment_mode):
     print("######*======", i)
     create_output_dir(i)
 
@@ -192,7 +219,8 @@ def run_circuit_workflow(i, workflow_goal, list_min_targets, spec_id_unified, sp
 
     if workflow_goal == 1:
         print("##list_min_targets =", list_min_targets)
-        td3_runner.td3_start(circuit_name=f"{i}", list_min_targets=list_min_targets)
+        td3_args = make_td3_args(i, td3_experiment_mode)
+        td3_runner.td3_start(args=td3_args, circuit_name=f"{i}", list_min_targets=list_min_targets)
 
     gen_utils.test_delay(30)
     return spec_id_unified, valid_contracts, list_min_targets
@@ -201,6 +229,7 @@ def run_circuit_workflow(i, workflow_goal, list_min_targets, spec_id_unified, sp
 def main():
     test_nums = select_test_set()
     workflow_goal = get_workflow_goal()
+    td3_experiment_mode = get_td3_experiment_mode()
     user_interation_utils.print_status(workflow_goal, test_nums)
     gen_utils.test_delay(1, "init info")
     spec_id_unified, specifications_table = load_specification_data()
@@ -208,7 +237,8 @@ def main():
     valid_contracts = None
 
     if workflow_goal == 2:
-        td3_runner.td3_start(circuit_name=f"{test_nums[0]}", list_min_targets=list_min_targets)
+        td3_args = make_td3_args(test_nums[0], td3_experiment_mode)
+        td3_runner.td3_start(args=td3_args, circuit_name=f"{test_nums[0]}", list_min_targets=list_min_targets)
         return
 
     if workflow_goal == 3:
@@ -223,6 +253,7 @@ def main():
             spec_id_unified,
             specifications_table,
             valid_contracts,
+            td3_experiment_mode,
         )
 
 

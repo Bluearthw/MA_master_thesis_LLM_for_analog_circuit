@@ -90,7 +90,20 @@ class NgspiceWrapper(object):
         unique_name = timestamp + "_" + random_string
         return unique_name
 
-    def create_new_netlist(self, parameters=None, process='TT', temp_pvt=None, vdd=None, vcm=None, vhigh=None):
+    def _keep_line_for_analysis_mode(self, line, analysis_mode):
+        if analysis_mode == "full":
+            return True
+        if analysis_mode != "op":
+            raise ValueError(f"Unsupported analysis_mode: {analysis_mode}")
+
+        stripped = line.strip().lower()
+        if stripped.startswith(("tran ", "ac ", "noise ")):
+            return False
+        if stripped.startswith("wrdata") and any(token in stripped for token in ("tran_", "ac_", "noise_")):
+            return False
+        return True
+
+    def create_new_netlist(self, parameters=None, process='TT', temp_pvt=None, vdd=None, vcm=None, vhigh=None, analysis_mode="full"):
         # Define the new netlist path randomly
         self.random_name = self.circuit_name + f"_{self.generate_random_name()}"
         new_netlist_path = os.path.join(self.output_netlists_folder, self.random_name + ".cir")
@@ -138,6 +151,8 @@ class NgspiceWrapper(object):
                     old_file_name = match.group(1)
                     new_file_name = os.path.join(self.output_files_folder, old_file_name.split('_')[0] + "_" + self.random_name)
                     lines[i] = line.replace(old_file_name, new_file_name)
+
+        lines = [line for line in lines if self._keep_line_for_analysis_mode(line, analysis_mode)]
         
         # Open the new netlist and write lines
         os.makedirs(os.path.dirname(new_netlist_path), exist_ok=True)

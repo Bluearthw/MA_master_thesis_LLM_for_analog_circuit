@@ -1,6 +1,15 @@
 """Optional TD3 warm-start helpers for category-level sizing experiments."""
 
 from .category_memory import save_best_candidate_record
-from .warm_start import seed_replay_from_category_memory
+from .warm_start import (
+    collect_low_fidelity_elites,
+    seed_replay_from_category_memory,
+    seed_replay_from_low_fidelity_elites,
+)
 
-__all__ = ["save_best_candidate_record", "seed_replay_from_category_memory"]
+__all__ = [
+    "collect_low_fidelity_elites",
+    "save_best_candidate_record",
+    "seed_replay_from_category_memory",
+    "seed_replay_from_low_fidelity_elites",
+]

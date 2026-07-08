@@ -10,9 +10,14 @@ from pathlib import Path
 
 from utils import gen_utils 
 from utils import file_utils 
-from td3_llm import save_best_candidate_record, seed_replay_from_category_memory
+from td3_llm import (
+    collect_low_fidelity_elites,
+    save_best_candidate_record,
+    seed_replay_from_category_memory,
+    seed_replay_from_low_fidelity_elites,
+)
 warmup_step = 1000
-def readParser():
+def readParser(argv=None):
     parser = argparse.ArgumentParser(description='TD3-based RL for Circuit Sizing')
 
     parser.add_argument('--seed', type=int, default=123456, metavar='N',
@@ -60,6 +65,9 @@ def readParser():
     parser.add_argument('--run_id', type=str, default=datetime.now().strftime('%Y-%m-%d--%H-%M-%S'), metavar='N',
                         help='run identifier (default: current time)')
 
+    parser.add_argument('--circuit_name', type=str, default=None,
+                        help='circuit YAML/netlist id to size when running td3_runner.py directly')
+
     parser.add_argument('--warm_start_category', type=str, default=None,
                         help='optional category-memory key for td3_llm warm-start')
 
@@ -68,8 +76,20 @@ def readParser():
 
     parser.add_argument('--warm_start_reduce_random', action="store_true",
                         help='subtract seeded records from random warmup count')
+
+    parser.add_argument('--dc_seed_samples', type=int, default=0,
+                        help='number of cheap OP/DC samples to rank before full TD3 warmup')
+
+    parser.add_argument('--dc_seed_elites', type=int, default=0,
+                        help='number of OP/DC elite candidates to evaluate with full specs and seed into replay')
+
+    parser.add_argument('--dc_seed_method', type=str, default="random", choices=("random", "sobol"),
+                        help='sampling method for OP/DC candidate generation')
+
+    parser.add_argument('--full_warmup_steps', type=int, default=None,
+                        help='override the number of random full-spec warmup steps after optional seeding')
     
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 def train(args, env, agent, env_pool):
     total_steps = warmup_exploration(args, env, env_pool, agent)
@@ -94,6 +114,32 @@ def train(args, env, agent, env_pool):
 
 def warmup_exploration(args, env, env_pool, agent):
     step_counter = 0
+    full_warmup_steps = getattr(args, "full_warmup_steps", None)
+    target_random_warmup = args.w if full_warmup_steps is None else max(0, int(full_warmup_steps))
+    seed_log_dir = Path(env.solutions_dir) / "warm_start"
+
+    if getattr(args, "dc_seed_samples", 0) > 0 and getattr(args, "dc_seed_elites", 0) > 0:
+        elites = collect_low_fidelity_elites(
+            env,
+            sample_count=args.dc_seed_samples,
+            elite_count=args.dc_seed_elites,
+            method=getattr(args, "dc_seed_method", "random"),
+            seed=getattr(args, "seed", None),
+            log_path=seed_log_dir / "op_dc_candidates.json",
+        )
+        seeded = seed_replay_from_low_fidelity_elites(
+            env,
+            env_pool,
+            elites,
+            log_path=seed_log_dir / "op_dc_seeded_transitions.json",
+        )
+        if getattr(args, "warm_start_reduce_random", False):
+            step_counter = min(seeded, target_random_warmup)
+            print(
+                f"[td3_llm] Random warmup starts at {step_counter}/"
+                f"{target_random_warmup} after OP/DC seeding."
+            )
+
     if getattr(args, "warm_start_category", None):
         seeded = seed_replay_from_category_memory(
             env,
@@ -102,10 +148,10 @@ def warmup_exploration(args, env, env_pool, agent):
             max_records=getattr(args, "warm_start_records", 20),
         )
         if getattr(args, "warm_start_reduce_random", False):
-            step_counter = min(seeded, args.w)
-            print(f"[td3_llm] Random warmup starts at {step_counter}/{args.w} after memory seeding.")
+            step_counter = min(step_counter + seeded, target_random_warmup)
+            print(f"[td3_llm] Random warmup starts at {step_counter}/{target_random_warmup} after memory seeding.")
 
-    while step_counter < args.w:
+    while step_counter < target_random_warmup:
         obs = env.reset()
         done = False
         while not done:
@@ -129,6 +175,10 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
     import time  
     if args is None:
         args = readParser()
+    if circuit_name is None:
+        circuit_name = getattr(args, "circuit_name", None)
+    if circuit_name is None:
+        raise ValueError("circuit_name is required. Pass --circuit_name or call td3_start(circuit_name=...).")
     start_time = time.time()
     # Set random seed
     torch.manual_seed(args.seed)
@@ -173,3 +223,5 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
 
 # td3_start(circuit_name='TwoStage')
 # td3_start(circuit_name='9')
+if __name__ == "__main__":
+    td3_start()

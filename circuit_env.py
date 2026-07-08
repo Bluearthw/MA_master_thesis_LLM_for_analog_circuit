@@ -122,7 +122,7 @@ class CircuitEnv(gym.Env):
         return param_list
 
 
-    def simulate(self, params):
+    def simulate(self, params, analysis_mode="full"):
         yaml_path = self.path_circuit_yaml
         info = None
         try:
@@ -133,7 +133,7 @@ class CircuitEnv(gym.Env):
             vdd = self.pvt_corner['voltage']
 
             # Create and simulate new netlist
-            new_netlist_path = dut.create_new_netlist(params, process, temp_pvt, vdd)
+            new_netlist_path = dut.create_new_netlist(params, process, temp_pvt, vdd, analysis_mode=analysis_mode)
             print(f"New netlist created at: {new_netlist_path}")
             dut.netlist_path = new_netlist_path   # <-- ADD THIS LINE
             info = dut.simulate(new_netlist_path) # True of false
@@ -143,7 +143,10 @@ class CircuitEnv(gym.Env):
             
             # Measure specs
             # print("CE: self path ids",self.path_ids)
-            spec_dict = dut.measure_metrics(self.path_ids)
+            if analysis_mode == "op":
+                spec_dict = self._measure_low_fidelity_specs()
+            else:
+                spec_dict = dut.measure_metrics(self.path_ids)
             self.last_netV = spec_dict.get('netV', None) #？？？？ it it none
 
             # Keep DUT and its unique netlist path
@@ -158,7 +161,80 @@ class CircuitEnv(gym.Env):
 
         return spec_dict
 
+    def _dc_output_path(self):
+        for spec_id, data_path in self.path_ids.items():
+            if int(spec_id) in (22, 23):
+                return data_path
+        return None
 
+    def _read_op_dc_values(self):
+        dc_path = self._dc_output_path()
+        if not dc_path or not os.path.exists(dc_path):
+            return None
+        try:
+            data = np.genfromtxt(dc_path, autostrip=True, skip_header=1)
+        except Exception as exc:
+            print(f"[CircuitEnv] Failed reading OP/DC data {dc_path}: {exc}")
+            return None
+
+        arr = np.asarray(data, dtype=np.float64)
+        if arr.size == 0:
+            return None
+        if arr.ndim == 1:
+            arr = arr.reshape(1, -1)
+        return arr[-1]
+
+    def _measure_low_fidelity_specs(self):
+        spec_dict = {}
+        dc_values = self._read_op_dc_values()
+        if dc_values is not None and dc_values.size >= 2:
+            spec_dict["current"] = float(abs(dc_values[1]))
+        return spec_dict
+
+    def dc_feasibility_reward(self, spec_dict):
+        reward = 0.0
+        current = spec_dict.get("current")
+        if current is not None and np.isfinite(current):
+            current_target = float(self.dict_targets.get("current", abs(current) + 1e-12))
+            current_ratio = abs(float(current)) / (current_target + 1e-12)
+            if current_ratio <= 1.0:
+                reward += 1.0 - current_ratio
+            else:
+                reward -= current_ratio - 1.0
+        else:
+            reward -= 1.0
+
+        op_values = self._read_op_dc_values()
+        if op_values is not None and op_values.size >= 3:
+            node_voltages = op_values[2:]
+            vdd = float(self.pvt_corner.get("voltage", 1.2))
+            finite = np.isfinite(node_voltages)
+            in_range = finite & (node_voltages >= -0.05 * vdd) & (node_voltages <= 1.05 * vdd)
+            reward += float(np.mean(in_range)) if node_voltages.size else 0.0
+
+            mid_supply = 0.5 * vdd
+            output_like = node_voltages[-1]
+            if np.isfinite(output_like):
+                centered = 1.0 - min(abs(output_like - mid_supply) / (mid_supply + 1e-12), 1.0)
+                reward += 0.25 * centered
+        elif current is None:
+            reward -= 0.5
+
+        if getattr(self.simulation_engine, "netlist_path", None):
+            reward += 0.1
+        return float(reward)
+
+    def evaluate_low_fidelity(self, action):
+        self.param_values = self.action_refine(action)
+        self.real_specs = self.simulate(self.param_values, analysis_mode="op")
+        reward = self.dc_feasibility_reward(self.real_specs)
+        return {
+            "action": np.asarray(action, dtype=np.float32).copy(),
+            "params": dict(self.param_values),
+            "specs": dict(self.real_specs),
+            "reward": reward,
+            "netlist_path": getattr(self.simulation_engine, "netlist_path", None),
+        }
 
     def normalize_specs(self, spec_dict):
         norm_dict = {}

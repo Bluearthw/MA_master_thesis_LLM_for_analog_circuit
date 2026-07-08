@@ -1,5 +1,5 @@
 git add .
-git commit -m "simple agent to remove unrelated specs like for single stage, GM,PM are not needed
+git commit -m "RL update test
 "
 
 git push
@@ -16,6 +16,12 @@ git push origin HEAD --follow-tags
 
 venv\Scripts\Activate.ps1
 # MA_master_thesis_LLM_for_analog_circuit
+
+
+night goal:
+Create a goal: finish implementing td3_llm.
+
+Work autonomously until it is done or genuinely blocked. You may inspect the repo, edit files, run tests, and start local dev servers as needed. Do not make destructive git changes. If you hit an ambiguous product decision, choose the most conservative option and document it. If blocked for three consecutive attempts, mark the goal blocked and explain exactly what input is needed.
 
 number of netlists : 894
 "amplifier" and "Amplifier"
