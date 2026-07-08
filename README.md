@@ -19,9 +19,7 @@ venv\Scripts\Activate.ps1
 
 
 night goal:
-Create a goal: finish implementing td3_llm.
-
-Work autonomously until it is done or genuinely blocked. You may inspect the repo, edit files, run tests, and start local dev servers as needed. Do not make destructive git changes. If you hit an ambiguous product decision, choose the most conservative option and document it. If blocked for three consecutive attempts, mark the goal blocked and explain exactly what input is needed.
+Let's make the  warm-up simulation same: for op-seed, let's use 1024 and 100 seed?
 
 number of netlists : 894
 "amplifier" and "Amplifier"

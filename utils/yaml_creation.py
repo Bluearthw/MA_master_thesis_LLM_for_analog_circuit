@@ -171,7 +171,7 @@ def _get_default_value(spec_id, spec_default_values):
     return 0.0
 
 
-def get_targets(spec_ids, spec_id_dict=None, spec_default_values=None, target_context=None):
+def get_targets(spec_ids, spec_id_dict=None, spec_default_values=None, target_context=None, is_target_suggest=False):
     """
     Get target metrics based on specification IDs.
     
@@ -214,7 +214,8 @@ def get_targets(spec_ids, spec_id_dict=None, spec_default_values=None, target_co
 
     suggestion = target_suggestion_agent.suggest_target_values(targets, target_context)
     target_suggestion_agent.print_suggestions(suggestion)
-    targets = suggestion["targets"]
+    if is_target_suggest:
+        targets = suggestion["targets"]
 
     targets = user_interation_utils.user_input_targets(targets)
     

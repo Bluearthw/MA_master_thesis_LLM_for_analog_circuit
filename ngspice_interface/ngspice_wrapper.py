@@ -93,10 +93,17 @@ class NgspiceWrapper(object):
     def _keep_line_for_analysis_mode(self, line, analysis_mode):
         if analysis_mode == "full":
             return True
-        if analysis_mode != "op":
+        if analysis_mode not in ("op", "op_ac"):
             raise ValueError(f"Unsupported analysis_mode: {analysis_mode}")
 
         stripped = line.strip().lower()
+        if analysis_mode == "op_ac":
+            if stripped.startswith(("tran ", "noise ")):
+                return False
+            if stripped.startswith("wrdata") and any(token in stripped for token in ("tran_", "noise_")):
+                return False
+            return True
+
         if stripped.startswith(("tran ", "ac ", "noise ")):
             return False
         if stripped.startswith("wrdata") and any(token in stripped for token in ("tran_", "ac_", "noise_")):

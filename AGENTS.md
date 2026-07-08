@@ -3,7 +3,7 @@
 ## Working agreement
 
 - Before modifying files, explain the implementation plan in 3-6 concise bullets. Mention the file to be modified.
-- Wait for user approval before making major architectural changes.
+- Wait for user approval before making major architectural changes or starting test.
 - Preserve unrelated user changes in the working tree.
 - Use local version control (`git add .` and `git commit -m`) to checkpoint your progress. 
   - Do NOT push to remote branches.

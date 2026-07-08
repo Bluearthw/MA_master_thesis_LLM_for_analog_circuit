@@ -85,6 +85,8 @@ class CircuitEnv(gym.Env):
         self.best_step = None
         self.best_hard_satisfied = False
         self.best_netlist_path = None
+        self.full_simulations = 0
+        self.low_fidelity_simulations = 0
 
 
     def action_refine(self, action):
@@ -125,6 +127,10 @@ class CircuitEnv(gym.Env):
     def simulate(self, params, analysis_mode="full"):
         yaml_path = self.path_circuit_yaml
         info = None
+        if analysis_mode == "full":
+            self.full_simulations += 1
+        else:
+            self.low_fidelity_simulations += 1
         try:
             dut = DUT_NGSpice(yaml_path)
             dut.output_files_folder = self.output_files_dir
@@ -143,7 +149,7 @@ class CircuitEnv(gym.Env):
             
             # Measure specs
             # print("CE: self path ids",self.path_ids)
-            if analysis_mode == "op":
+            if analysis_mode in ("op", "op_ac"):
                 spec_dict = self._measure_low_fidelity_specs()
             else:
                 spec_dict = dut.measure_metrics(self.path_ids)
@@ -186,47 +192,29 @@ class CircuitEnv(gym.Env):
 
     def _measure_low_fidelity_specs(self):
         spec_dict = {}
-        dc_values = self._read_op_dc_values()
-        if dc_values is not None and dc_values.size >= 2:
-            spec_dict["current"] = float(abs(dc_values[1]))
+        if 0 in self.path_ids:
+            try:
+                spec_dict["dc_gain"] = float(self.simulation_engine.get_dc_gain_VV(self.path_ids[0]))
+            except Exception as exc:
+                print(f"[CircuitEnv] Failed reading low-fidelity DC gain: {exc}")
         return spec_dict
 
     def dc_feasibility_reward(self, spec_dict):
-        reward = 0.0
-        current = spec_dict.get("current")
-        if current is not None and np.isfinite(current):
-            current_target = float(self.dict_targets.get("current", abs(current) + 1e-12))
-            current_ratio = abs(float(current)) / (current_target + 1e-12)
-            if current_ratio <= 1.0:
-                reward += 1.0 - current_ratio
-            else:
-                reward -= current_ratio - 1.0
-        else:
-            reward -= 1.0
+        dc_gain = spec_dict.get("dc_gain")
+        if dc_gain is None or not np.isfinite(dc_gain):
+            return -1.0
 
-        op_values = self._read_op_dc_values()
-        if op_values is not None and op_values.size >= 3:
-            node_voltages = op_values[2:]
-            vdd = float(self.pvt_corner.get("voltage", 1.2))
-            finite = np.isfinite(node_voltages)
-            in_range = finite & (node_voltages >= -0.05 * vdd) & (node_voltages <= 1.05 * vdd)
-            reward += float(np.mean(in_range)) if node_voltages.size else 0.0
+        gain = abs(float(dc_gain))
+        if gain <= 0.0:
+            return -1.0
 
-            mid_supply = 0.5 * vdd
-            output_like = node_voltages[-1]
-            if np.isfinite(output_like):
-                centered = 1.0 - min(abs(output_like - mid_supply) / (mid_supply + 1e-12), 1.0)
-                reward += 0.25 * centered
-        elif current is None:
-            reward -= 0.5
-
-        if getattr(self.simulation_engine, "netlist_path", None):
-            reward += 0.1
-        return float(reward)
+        target = float(self.dict_targets.get("dc_gain", 1.0))
+        target = max(target, 1e-12)
+        return float((gain - target) / (gain + target + 1e-12))
 
     def evaluate_low_fidelity(self, action):
         self.param_values = self.action_refine(action)
-        self.real_specs = self.simulate(self.param_values, analysis_mode="op")
+        self.real_specs = self.simulate(self.param_values, analysis_mode="op_ac")
         reward = self.dc_feasibility_reward(self.real_specs)
         return {
             "action": np.asarray(action, dtype=np.float32).copy(),

@@ -1,5 +1,6 @@
 import argparse
 import os
+import json
 import torch
 import numpy as np
 from td3 import TD3, ReplayBuffer
@@ -207,6 +208,33 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
     # compute and print total runtime
     total_time = time.time() - start_time
     print(f"[TD3 Runner] Training complete. Total runtime: {total_time:.2f} seconds ({total_time/60:.2f} minutes)")
+    summary = {
+        "run_id": str(args.run_id),
+        "circuit_name": str(circuit_name),
+        "seed": int(args.seed),
+        "total_runtime_seconds": float(total_time),
+        "T": int(args.T),
+        "warmup_steps": int(args.w),
+        "full_warmup_steps": getattr(args, "full_warmup_steps", None),
+        "dc_seed_samples": int(getattr(args, "dc_seed_samples", 0)),
+        "dc_seed_elites": int(getattr(args, "dc_seed_elites", 0)),
+        "dc_seed_method": str(getattr(args, "dc_seed_method", "random")),
+        "warm_start_reduce_random": bool(getattr(args, "warm_start_reduce_random", False)),
+        "env_steps": int(getattr(env, "env_steps", 0)),
+        "full_simulations": int(getattr(env, "full_simulations", 0)),
+        "low_fidelity_simulations": int(getattr(env, "low_fidelity_simulations", 0)),
+        "best_reward": float(getattr(env, "best_reward", float("-inf"))),
+        "best_step": getattr(env, "best_step", None),
+        "best_constraints_met": bool(getattr(env, "best_hard_satisfied", False)),
+        "best_netlist_path": getattr(env, "best_netlist_path", None),
+    }
+    summary_path = Path(env.solutions_dir) / "run_summary.json"
+    try:
+        with open(summary_path, "w", encoding="utf-8") as summary_file:
+            json.dump(summary, summary_file, indent=2, allow_nan=False)
+        print(f"[TD3 Runner] Saved run summary to: {summary_path}")
+    except (OSError, TypeError, ValueError) as exc:
+        print(f"[TD3 Runner] Failed to save run summary: {exc}")
 
     best_netlist_path = getattr(env, "best_netlist_path", None)
     if best_netlist_path and os.path.isfile(best_netlist_path):

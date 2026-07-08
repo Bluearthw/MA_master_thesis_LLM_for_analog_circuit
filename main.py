@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from datetime import datetime
 import yaml
 
 from genai_agent.data import category_numbers
@@ -37,15 +38,16 @@ def get_workflow_goal():
 
 def get_td3_experiment_mode():
     """Choose the TD3 sizing preset used when workflow_goal is RL sizing."""
-    return "baseline"
-    # return "op_seed"
+    # return "baseline"
+    return "op_seed"
 
 
 def make_td3_args(circuit_id, mode):
     """Build TD3 runner arguments from a named experiment preset."""
     args = td3_runner.readParser([])
     args.circuit_name = str(circuit_id)
-    args.run_id = f"{mode}_{circuit_id}"
+    timestamp = datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
+    args.run_id = f"{timestamp}_{mode}_{circuit_id}"
 
     if mode == "baseline":
         return args
