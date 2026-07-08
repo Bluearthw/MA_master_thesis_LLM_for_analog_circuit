@@ -32,7 +32,8 @@ def get_workflow_goal():
     # 2: RL sizer only
     # 3: yaml creation only
     # 4: spec/prompt update only
-    workflow_goal = 2
+    # 6: experimental category-level LLM-assisted RL sizer
+    workflow_goal = 6
     return workflow_goal
 
 
@@ -47,7 +48,13 @@ def make_run_id(circuit_id, mode):
     return f"{timestamp}_{circuit_id}_{mode}"
 
 
-def make_td3_args(circuit_id, mode, run_id=None):
+def make_category_memory_key(circuit_id):
+    """Build a conservative category-memory key for cross-circuit TD3 reuse."""
+    category_num = gen_utils.find_cat_from_num(circuit_id)
+    return f"category_{category_num}"
+
+
+def make_td3_args(circuit_id, mode, run_id=None, category_key=None):
     """Build TD3 runner arguments from a named experiment preset."""
     args = td3_runner.readParser([])
     args.circuit_name = str(circuit_id)
@@ -65,7 +72,30 @@ def make_td3_args(circuit_id, mode, run_id=None):
         args.warm_start_reduce_random = True
         return args
 
+    if mode == "category_llm_rl":
+        args.T = 30
+        args.batch_size = 8
+        args.dc_seed_samples = 20
+        args.dc_seed_elites = 5
+        args.dc_seed_method = "sobol"
+        args.low_fidelity_strategy = "op_ac_domain"
+        args.full_warmup_steps = 5
+        args.warm_start_category = category_key or make_category_memory_key(circuit_id)
+        args.warm_start_records = 20
+        args.warm_start_reduce_random = True
+        return args
+
     raise ValueError(f"Unknown TD3 experiment mode: {mode}")
+
+
+def run_category_llm_rl_sizer(circuit_id, list_min_targets):
+    """Run the Phase-1 experimental category-memory TD3 path from main."""
+    mode = "category_llm_rl"
+    category_key = make_category_memory_key(circuit_id)
+    run_id = make_run_id(circuit_id, mode)
+    td3_args = make_td3_args(circuit_id, mode, run_id=run_id, category_key=category_key)
+    print(f"[workflow_goal=6] category_key={category_key}, run_id={run_id}")
+    td3_runner.td3_start(args=td3_args, circuit_name=f"{circuit_id}", list_min_targets=list_min_targets)
 
 
 def create_output_dir(circuit_id):
@@ -260,6 +290,10 @@ def main():
     if workflow_goal == 2:
         td3_args = make_td3_args(test_nums[0], td3_experiment_mode)
         td3_runner.td3_start(args=td3_args, circuit_name=f"{test_nums[0]}", list_min_targets=list_min_targets)
+        return
+
+    if workflow_goal == 6:
+        run_category_llm_rl_sizer(test_nums[0], list_min_targets)
         return
 
     if workflow_goal == 3:

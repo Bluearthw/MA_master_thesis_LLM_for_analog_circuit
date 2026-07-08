@@ -15,6 +15,8 @@ def print_status(is_with_RL, test):
         print("Only RL sizer is enabled.")
     elif is_with_RL == 3:
         print("Only yaml creation is enabled.")
+    elif is_with_RL == 6:
+        print("Experimental category-level LLM-assisted RL sizer is enabled.")
 
 # endregion print
 # region user input
