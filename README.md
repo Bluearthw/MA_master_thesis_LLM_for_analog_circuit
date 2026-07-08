@@ -1,5 +1,5 @@
 git add .
-git commit -m "RL update test
+git commit -m "Use td3-llm-research-loop on material/codex_night/goal.md
 "
 
 git push

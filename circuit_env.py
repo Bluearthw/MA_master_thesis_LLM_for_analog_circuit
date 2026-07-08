@@ -87,6 +87,7 @@ class CircuitEnv(gym.Env):
         self.best_netlist_path = None
         self.full_simulations = 0
         self.low_fidelity_simulations = 0
+        self.first_success_full_simulations = None
 
 
     def action_refine(self, action):
@@ -402,6 +403,8 @@ class CircuitEnv(gym.Env):
 
 
         if hard_satisfied:
+            if self.first_success_full_simulations is None:
+                self.first_success_full_simulations = self.full_simulations
             plot_running_maximum(self.reward_history, self.run_id)
             csvName = file_utils.save_solutions_csv(self.run_id, self.env_steps, self.param_values, self.real_specs, reward)
             solutions2pareto(csvName, self.run_id, True)

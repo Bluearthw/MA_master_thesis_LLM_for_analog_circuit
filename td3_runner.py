@@ -244,6 +244,7 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
             "env_steps": int(getattr(env, "env_steps", 0)),
             "full_simulations": int(getattr(env, "full_simulations", 0)),
             "low_fidelity_simulations": int(getattr(env, "low_fidelity_simulations", 0)),
+            "first_success_full_simulations": getattr(env, "first_success_full_simulations", None),
             "best_reward": float(getattr(env, "best_reward", float("-inf"))),
             "best_step": getattr(env, "best_step", None),
             "best_constraints_met": bool(getattr(env, "best_hard_satisfied", False)),
