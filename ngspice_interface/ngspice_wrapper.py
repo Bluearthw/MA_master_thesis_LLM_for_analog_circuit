@@ -61,6 +61,7 @@ class NgspiceWrapper(object):
             self.output_files_folder = os.path.join(project_path, 'no_backup', 'output_files')
             self.param_names = yaml_data['params'].keys()
             self.parameters = {}
+            self.mos_devices = []
             self.read_netlist()
 
             #for dut init
@@ -76,12 +77,32 @@ class NgspiceWrapper(object):
     def read_netlist(self):
         with open(self.netlist_path, 'r') as f:
             for line in f:
+                stripped = line.strip()
                 if line.startswith(".param"):  # Find parameter lines
                     for param_name, param_value in _PARAM_ASSIGNMENT_RE.findall(line):
                         if param_name in ["trf", "period", "VDD_VAL", "VDD"]:
                             setattr(self, param_name, _parse_spice_number(param_value))
                         elif param_name in self.param_names:
                             self.parameters[param_name] = _parse_spice_number(param_value)
+                elif stripped and stripped[0].lower() == "m":
+                    self.mos_devices.append(stripped.split()[0])
+
+    def _op_device_wrdata_line(self):
+        if not self.mos_devices:
+            return None
+        self.op_device_path = os.path.join(self.output_files_folder, f"op_devices_{self.random_name}.csv")
+        vectors = []
+        for device_name in self.mos_devices:
+            vectors.extend(
+                [
+                    f"@{device_name}[vds]",
+                    f"@{device_name}[vgs]",
+                    f"@{device_name}[vth]",
+                    f"@{device_name}[gm]",
+                    f"@{device_name}[id]",
+                ]
+            )
+        return f"wrdata {self.op_device_path} {' '.join(vectors)}\n"
 
     def generate_random_name(self, length=10):
         letters = string.ascii_lowercase
@@ -160,6 +181,13 @@ class NgspiceWrapper(object):
                     lines[i] = line.replace(old_file_name, new_file_name)
 
         lines = [line for line in lines if self._keep_line_for_analysis_mode(line, analysis_mode)]
+        if analysis_mode in ("op", "op_ac"):
+            op_wrdata_line = self._op_device_wrdata_line()
+            if op_wrdata_line:
+                for index, line in enumerate(lines):
+                    if line.strip().lower() == "op":
+                        lines.insert(index + 1, op_wrdata_line)
+                        break
         
         # Open the new netlist and write lines
         os.makedirs(os.path.dirname(new_netlist_path), exist_ok=True)

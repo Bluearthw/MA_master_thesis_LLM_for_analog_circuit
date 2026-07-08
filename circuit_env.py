@@ -197,9 +197,61 @@ class CircuitEnv(gym.Env):
                 spec_dict["dc_gain"] = float(self.simulation_engine.get_dc_gain_VV(self.path_ids[0]))
             except Exception as exc:
                 print(f"[CircuitEnv] Failed reading low-fidelity DC gain: {exc}")
+        op_device_metrics = self._read_op_device_metrics()
+        if op_device_metrics:
+            spec_dict.update(op_device_metrics)
         return spec_dict
 
-    def dc_feasibility_reward(self, spec_dict):
+    def _read_op_device_metrics(self):
+        device_path = getattr(self.simulation_engine, "op_device_path", None)
+        if not device_path or not os.path.exists(device_path):
+            return {}
+        try:
+            data = np.genfromtxt(device_path, autostrip=True, skip_header=1)
+        except Exception as exc:
+            print(f"[CircuitEnv] Failed reading OP device data {device_path}: {exc}")
+            return {}
+
+        arr = np.asarray(data, dtype=np.float64)
+        if arr.size == 0:
+            return {}
+        if arr.ndim == 1:
+            values = arr
+        else:
+            values = arr[-1]
+
+        # wrdata emits x/y pairs for each vector. Keep the value columns.
+        if values.size % 2 == 0:
+            values = values[1::2]
+
+        if values.size < 5:
+            return {}
+
+        device_values = values[: (values.size // 5) * 5].reshape(-1, 5)
+        vds = device_values[:, 0]
+        vgs = device_values[:, 1]
+        vth = device_values[:, 2]
+        gm = device_values[:, 3]
+        ids = device_values[:, 4]
+
+        finite_rows = np.all(np.isfinite(device_values), axis=1)
+        alive_rows = finite_rows & (np.abs(gm) > 1e-12) & (np.abs(ids) > 1e-12)
+        overdrive = np.abs(vgs - vth)
+        saturation_rows = alive_rows & (np.abs(vds) + 1e-12 >= overdrive)
+
+        total = int(device_values.shape[0])
+        alive_count = int(np.count_nonzero(alive_rows))
+        saturation_count = int(np.count_nonzero(saturation_rows))
+        return {
+            "op_device_count": total,
+            "op_alive_count": alive_count,
+            "op_saturation_count": saturation_count,
+            "op_alive_ratio": float(alive_count / total) if total else 0.0,
+            "op_saturation_ratio": float(saturation_count / total) if total else 0.0,
+            "op_mean_abs_gm": float(np.mean(np.abs(gm[finite_rows]))) if np.any(finite_rows) else 0.0,
+        }
+
+    def ac_gain_reward(self, spec_dict):
         dc_gain = spec_dict.get("dc_gain")
         if dc_gain is None or not np.isfinite(dc_gain):
             return -1.0
@@ -212,15 +264,35 @@ class CircuitEnv(gym.Env):
         target = max(target, 1e-12)
         return float((gain - target) / (gain + target + 1e-12))
 
-    def evaluate_low_fidelity(self, action):
+    def op_domain_reward(self, spec_dict):
+        device_count = int(spec_dict.get("op_device_count", 0) or 0)
+        if device_count <= 0:
+            return -1.0
+
+        saturation_ratio = float(spec_dict.get("op_saturation_ratio", 0.0) or 0.0)
+        alive_ratio = float(spec_dict.get("op_alive_ratio", 0.0) or 0.0)
+        return float(2.0 * saturation_ratio + alive_ratio)
+
+    def dc_feasibility_reward(self, spec_dict, strategy="ac_gain"):
+        if strategy == "ac_gain":
+            return self.ac_gain_reward(spec_dict)
+        if strategy == "op_domain":
+            return self.op_domain_reward(spec_dict)
+        if strategy == "op_ac_domain":
+            return self.op_domain_reward(spec_dict) + 0.25 * self.ac_gain_reward(spec_dict)
+        raise ValueError(f"Unsupported low-fidelity strategy: {strategy}")
+
+    def evaluate_low_fidelity(self, action, strategy="ac_gain"):
         self.param_values = self.action_refine(action)
-        self.real_specs = self.simulate(self.param_values, analysis_mode="op_ac")
-        reward = self.dc_feasibility_reward(self.real_specs)
+        analysis_mode = "op" if strategy == "op_domain" else "op_ac"
+        self.real_specs = self.simulate(self.param_values, analysis_mode=analysis_mode)
+        reward = self.dc_feasibility_reward(self.real_specs, strategy=strategy)
         return {
             "action": np.asarray(action, dtype=np.float32).copy(),
             "params": dict(self.param_values),
             "specs": dict(self.real_specs),
             "reward": reward,
+            "strategy": strategy,
             "netlist_path": getattr(self.simulation_engine, "netlist_path", None),
         }
 

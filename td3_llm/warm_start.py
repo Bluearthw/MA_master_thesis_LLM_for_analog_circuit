@@ -88,6 +88,7 @@ def _sample_actions(action_space, count, method="random", seed=None):
 def _to_jsonable_candidate(candidate):
     return {
         "reward": float(candidate.get("reward", 0.0)),
+        "strategy": candidate.get("strategy"),
         "action": np.asarray(candidate.get("action", []), dtype=np.float32).tolist(),
         "params": _to_jsonable_value(candidate.get("params", {})),
         "specs": _to_jsonable_value(candidate.get("specs", {})),
@@ -116,24 +117,24 @@ def _write_json(path, payload):
         json.dump(payload, file, indent=2, allow_nan=False)
 
 
-def collect_low_fidelity_elites(env, sample_count, elite_count, method="random", seed=None, log_path=None):
+def collect_low_fidelity_elites(env, sample_count, elite_count, method="random", seed=None, log_path=None, strategy="ac_gain"):
     actions = _sample_actions(env.action_space, sample_count, method=method, seed=seed)
     candidates = []
     for index, action in enumerate(actions, start=1):
         try:
-            candidate = env.evaluate_low_fidelity(action)
+            candidate = env.evaluate_low_fidelity(action, strategy=strategy)
             candidates.append(candidate)
             print(
-                f"[td3_llm] OP/DC sample {index}/{len(actions)} "
+                f"[td3_llm] {strategy} sample {index}/{len(actions)} "
                 f"reward={candidate['reward']:.6g}"
             )
         except Exception as exc:
-            print(f"[td3_llm] OP/DC sample {index}/{len(actions)} failed: {exc}")
+            print(f"[td3_llm] {strategy} sample {index}/{len(actions)} failed: {exc}")
 
     candidates.sort(key=lambda item: float(item.get("reward", -np.inf)), reverse=True)
     selected = candidates[: max(0, int(elite_count))]
     print(
-        f"[td3_llm] Selected {len(selected)} OP/DC elite candidates "
+        f"[td3_llm] Selected {len(selected)} {strategy} elite candidates "
         f"from {len(candidates)} successful low-fidelity samples."
     )
 
@@ -145,6 +146,7 @@ def collect_low_fidelity_elites(env, sample_count, elite_count, method="random",
             "sample_count": int(sample_count),
             "elite_count": int(elite_count),
             "method": str(method),
+            "strategy": str(strategy),
             "seed": seed,
             "num_successful_samples": len(candidates),
             "candidates": [_to_jsonable_candidate(item) for item in candidates],
@@ -179,7 +181,7 @@ def seed_replay_from_low_fidelity_elites(env, replay_buffer, elites, log_path=No
             }
         )
 
-    print(f"[td3_llm] Seeded {seeded} full-reward transitions from OP/DC elites.")
+    print(f"[td3_llm] Seeded {seeded} full-reward transitions from low-fidelity elites.")
     _write_json(
         log_path,
         {

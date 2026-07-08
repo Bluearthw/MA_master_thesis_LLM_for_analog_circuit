@@ -87,6 +87,10 @@ def readParser(argv=None):
     parser.add_argument('--dc_seed_method', type=str, default="random", choices=("random", "sobol"),
                         help='sampling method for OP/DC candidate generation')
 
+    parser.add_argument('--low_fidelity_strategy', type=str, default="ac_gain",
+                        choices=("ac_gain", "op_domain", "op_ac_domain"),
+                        help='low-fidelity reward strategy for candidate generation')
+
     parser.add_argument('--full_warmup_steps', type=int, default=None,
                         help='override the number of random full-spec warmup steps after optional seeding')
     
@@ -126,6 +130,7 @@ def warmup_exploration(args, env, env_pool, agent):
             elite_count=args.dc_seed_elites,
             method=getattr(args, "dc_seed_method", "random"),
             seed=getattr(args, "seed", None),
+            strategy=getattr(args, "low_fidelity_strategy", "ac_gain"),
             log_path=seed_log_dir / "op_dc_candidates.json",
         )
         seeded = seed_replay_from_low_fidelity_elites(
@@ -219,6 +224,7 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
         "dc_seed_samples": int(getattr(args, "dc_seed_samples", 0)),
         "dc_seed_elites": int(getattr(args, "dc_seed_elites", 0)),
         "dc_seed_method": str(getattr(args, "dc_seed_method", "random")),
+        "low_fidelity_strategy": str(getattr(args, "low_fidelity_strategy", "ac_gain")),
         "warm_start_reduce_random": bool(getattr(args, "warm_start_reduce_random", False)),
         "env_steps": int(getattr(env, "env_steps", 0)),
         "full_simulations": int(getattr(env, "full_simulations", 0)),
