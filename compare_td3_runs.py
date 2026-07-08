@@ -13,21 +13,22 @@ def _read_json(path):
 def _load_run(solutions_dir, run_id):
     run_dir = solutions_dir / run_id
     summary = _read_json(run_dir / "run_summary.json") or {}
+    rl_summary = summary.get("rl", summary)
     best = _read_json(run_dir / "best_so_far.json") or {}
     candidates = _read_json(run_dir / "warm_start" / "op_dc_candidates.json") or {}
     seeded = _read_json(run_dir / "warm_start" / "op_dc_seeded_transitions.json") or {}
 
     return {
         "run_id": run_id,
-        "runtime_s": summary.get("total_runtime_seconds"),
-        "env_steps": summary.get("env_steps"),
-        "full_sims": summary.get("full_simulations"),
-        "low_fidelity_sims": summary.get("low_fidelity_simulations", 0),
+        "runtime_s": rl_summary.get("total_runtime_seconds"),
+        "env_steps": rl_summary.get("env_steps"),
+        "full_sims": rl_summary.get("full_simulations"),
+        "low_fidelity_sims": rl_summary.get("low_fidelity_simulations", 0),
         "cheap_samples": candidates.get("num_successful_samples", 0),
         "seeded_elites": seeded.get("seeded", 0),
-        "best_reward": best.get("reward", summary.get("best_reward")),
-        "best_step": best.get("simulation_step", summary.get("best_step")),
-        "constraints_met": best.get("constraints_met", summary.get("best_constraints_met")),
+        "best_reward": best.get("reward", rl_summary.get("best_reward")),
+        "best_step": best.get("simulation_step", rl_summary.get("best_step")),
+        "constraints_met": best.get("constraints_met", rl_summary.get("best_constraints_met")),
         "specs": best.get("specs", {}),
     }
 

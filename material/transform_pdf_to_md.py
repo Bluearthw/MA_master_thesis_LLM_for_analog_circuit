@@ -1,8 +1,9 @@
 import pymupdf4llm
 import os
 # Replace with the path to your 2-column thesis PDF
-pdf_name = "Efficient Analog Circuit Sizing with Domain-Guided Sampling and_advpub_2025CDP0005.pdf"
-pdf_path = r"material\\papers_found\\july\\" + pdf_name 
+pdf_name = "AnalogAgent Self-Improving Analog Circuit Design_2603_23910v1.pdf"
+# pdf_path = r"material\\papers_found\\july\\" + pdf_name 
+pdf_path = r"material\\papers_found\\" + pdf_name 
 os.path.exists(pdf_path) or exit(f"❌ PDF not found at '{pdf_path}'. Please check the path.")
 print("Processing layout and separating columns...")
 
@@ -11,7 +12,7 @@ print("Processing layout and separating columns...")
 md_text = pymupdf4llm.to_markdown(pdf_path)
 
 # Save to a clean markdown file
-output_dir = os.path.join("material", "clean_md")
+output_dir = os.path.join("material", "papers_found", "clean_paper")
 os.makedirs(output_dir, exist_ok=True)
 output_path = os.path.join(output_dir, f"cleaned_{pdf_name.replace('.pdf', '')}.md")
 with open(output_path, "w", encoding="utf-8") as f:

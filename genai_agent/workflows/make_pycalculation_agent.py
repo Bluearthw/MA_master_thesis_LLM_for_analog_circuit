@@ -8,7 +8,7 @@ from utils import agent_utils
 from genai_agent.data import local_config
 from genai_agent.data import response_schema
 
-def make_pycalculation_agent_flow(contracts, category_json):
+def make_pycalculation_agent_flow(contracts, category_json, metrics_run_id=None, metrics_circuit_name=None, metrics_mode=None):
     category_str = json.dumps(category_json, indent=4)
     contracts_str = json.dumps(contracts, indent=4)
     
@@ -64,7 +64,14 @@ def calc_spec_32(data_paths):
 Generate the complete list of standalone Python plugin functions matching the validation schema requirements."""
 
     try:
-        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_make_pycal_func_list)
+        struc = agent_utils.call_agent(
+            contents=contents,
+            response_schema=response_schema.Struct_make_pycal_func_list,
+            metrics_run_id=metrics_run_id,
+            metrics_agent_name="pycal_gen",
+            metrics_circuit_name=metrics_circuit_name,
+            metrics_mode=metrics_mode,
+        )
         
         return struc
     except Exception as e:

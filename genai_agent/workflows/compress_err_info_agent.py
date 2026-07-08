@@ -11,7 +11,7 @@ from utils import agent_utils
 # from utils import gen_utils
 from utils import file_utils
 
-def compress_agent_flow(debug_history, general_rules, category_num):
+def compress_agent_flow(debug_history, general_rules, category_num, metrics_run_id=None, metrics_circuit_name=None, metrics_mode=None):
     contents = f"""## INPUT DATA
 ### 1. Current Category State:{general_rules}
 
@@ -30,7 +30,14 @@ You are an advanced Knowledge Curator for an automated SPICE circuit design and 
    - Create an error-keyword-mapped item for the `debug_knowledge_base` so the debugger knows what to do if it slips through."""
     # Delegate retry/backoff and error handling to a central helper.
     try:
-        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_compress)
+        struc = agent_utils.call_agent(
+            contents=contents,
+            response_schema=response_schema.Struct_compress,
+            metrics_run_id=metrics_run_id,
+            metrics_agent_name="compress_agent",
+            metrics_circuit_name=metrics_circuit_name,
+            metrics_mode=metrics_mode,
+        )
         pprint("###struc_compress = ", struc)
         # Validate structure
         normalized = validate_struct_compress(struc)
@@ -208,12 +215,19 @@ def _write_audit_log(prompts_dir: str, category_num: int, analysis: str, applied
         print(f"Warning: could not write log: {e}")
 
 
-def compress_agent_flow(debug_history, general_rules, category_num):
+def compress_agent_flow(debug_history, general_rules, category_num, metrics_run_id=None, metrics_circuit_name=None, metrics_mode=None):
     """Main entry used in production: calls the agent and persists recommended updates."""
     contents = _build_system_prompt(debug_history, general_rules)
     # Delegate retry/backoff and error handling to central helper.
     try:
-        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_compress)
+        struc = agent_utils.call_agent(
+            contents=contents,
+            response_schema=response_schema.Struct_compress,
+            metrics_run_id=metrics_run_id,
+            metrics_agent_name="compress_agent",
+            metrics_circuit_name=metrics_circuit_name,
+            metrics_mode=metrics_mode,
+        )
     except Exception as e:
         print(f"compress_agent_flow: call_agent failed: {e}")
         raise

@@ -42,12 +42,16 @@ def get_td3_experiment_mode():
     return "op_seed"
 
 
-def make_td3_args(circuit_id, mode):
+def make_run_id(circuit_id, mode):
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    return f"{timestamp}_{circuit_id}_{mode}"
+
+
+def make_td3_args(circuit_id, mode, run_id=None):
     """Build TD3 runner arguments from a named experiment preset."""
     args = td3_runner.readParser([])
     args.circuit_name = str(circuit_id)
-    timestamp = datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
-    args.run_id = f"{timestamp}_{mode}_{circuit_id}"
+    args.run_id = run_id or make_run_id(circuit_id, mode)
 
     if mode == "baseline":
         return args
@@ -76,13 +80,19 @@ def load_specification_data():
     return spec_id_unified, specifications_table
 
 
-def update_prompt_spec_if_needed(category_num, cat_json, spec_id_unified, workflow_goal):
+def update_prompt_spec_if_needed(category_num, cat_json, spec_id_unified, workflow_goal, metrics_run_id=None, metrics_circuit_name=None, metrics_mode=None):
     """Prepare prompt files and refresh spec contracts when needed."""
     general_rules, category_gen_rules, category_debug_rules, is_cat_prompt_exist, cat_prompt_path = agent_utils.prepare_workflow_prompts_json(category_num)
 
     if not is_cat_prompt_exist or workflow_goal == 4:
         spec_id_unified, valid_contracts = workflow.prepare_new_type(
-            cat_prompt_path, cat_json, spec_tables_path, spec_id_unified
+            cat_prompt_path,
+            cat_json,
+            spec_tables_path,
+            spec_id_unified,
+            metrics_run_id=metrics_run_id,
+            metrics_circuit_name=metrics_circuit_name,
+            metrics_mode=metrics_mode,
         )
         return spec_id_unified, valid_contracts, general_rules, category_gen_rules, category_debug_rules
 
@@ -149,12 +159,19 @@ def handle_workflow_mode_3_make_yaml(test_nums, specifications_table):
 def run_circuit_workflow(i, workflow_goal, list_min_targets, spec_id_unified, specifications_table, valid_contracts, td3_experiment_mode):
     print("######*======", i)
     create_output_dir(i)
+    run_id = make_run_id(i, td3_experiment_mode if workflow_goal == 1 else "llm")
 
     path_output_num, category_num, category_str, netlist, has_input, is_diff, cat_json = gen_utils.pre_process_circuit(i)
     print("####is_diff =", is_diff)
 
     spec_id_unified, valid_contracts, general_rules, category_gen_rules, category_debug_rules = update_prompt_spec_if_needed(
-        category_num, cat_json, spec_id_unified, workflow_goal
+        category_num,
+        cat_json,
+        spec_id_unified,
+        workflow_goal,
+        metrics_run_id=run_id,
+        metrics_circuit_name=str(i),
+        metrics_mode=td3_experiment_mode if workflow_goal == 1 else "llm",
     )
     specifications_table = spec_id_unified["specifications"]
     list_min_targets = agent_utils.get_list_min_targets(specifications_table)
@@ -185,6 +202,8 @@ def run_circuit_workflow(i, workflow_goal, list_min_targets, spec_id_unified, sp
         category_gen_rules=category_gen_rules,
         category_debug_rules=category_debug_rules,
         contracts=valid_contracts,
+        metrics_run_id=run_id,
+        metrics_mode=td3_experiment_mode if workflow_goal == 1 else "llm",
     )
 
     struct_path_id = normalize_struct_path_id(struct_path_id)
@@ -221,7 +240,7 @@ def run_circuit_workflow(i, workflow_goal, list_min_targets, spec_id_unified, sp
 
     if workflow_goal == 1:
         print("##list_min_targets =", list_min_targets)
-        td3_args = make_td3_args(i, td3_experiment_mode)
+        td3_args = make_td3_args(i, td3_experiment_mode, run_id=run_id)
         td3_runner.td3_start(args=td3_args, circuit_name=f"{i}", list_min_targets=list_min_targets)
 
     gen_utils.test_delay(30)

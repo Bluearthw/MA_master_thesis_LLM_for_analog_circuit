@@ -31,6 +31,8 @@ def sim_debug_measure_loop(
     general_rules=None,
     category_debug_rules=None,
     trimmed_spec_table=None,
+    metrics_run_id=None,
+    metrics_mode=None,
 ):
     """Run SPICE simulation, debug failures, and measure the resulting netlist."""
     counter = 0
@@ -119,6 +121,9 @@ def sim_debug_measure_loop(
             spec_sims,
             general_rules,
             category_debug_rules,
+            metrics_run_id=metrics_run_id,
+            metrics_circuit_name=str(cir_num),
+            metrics_mode=metrics_mode,
         )
 
         file_utils.save_dict_to_json(
@@ -172,6 +177,8 @@ def generate_netlist(
     category_gen_rules=None,
     category_debug_rules=None,
     contracts=None,
+    metrics_run_id=None,
+    metrics_mode=None,
 ):
     """Build a candidate netlist, run simulation, debug failures, and return measurement data."""
     print("generating netlist...")
@@ -190,6 +197,8 @@ def generate_netlist(
         category_gen_rules=category_gen_rules,
         contracts=contracts,
         has_input=has_input,
+        metrics_run_id=metrics_run_id,
+        metrics_mode=metrics_mode,
     )
 
     target_dc_vout = getattr(struc, "target_dc_vout", None)
@@ -227,11 +236,20 @@ def generate_netlist(
         general_rules=general_rules,
         category_debug_rules=category_debug_rules,
         trimmed_spec_table=trimmed_spec_name_table,
+        metrics_run_id=metrics_run_id,
+        metrics_mode=metrics_mode,
     )
 
     if counter > 0:
         gen_utils.test_delay(30 * counter, "compress")
-        compress_err_info_agent.compress_agent_flow(debug_history, general_rules, category_num)
+        compress_err_info_agent.compress_agent_flow(
+            debug_history,
+            general_rules,
+            category_num,
+            metrics_run_id=metrics_run_id,
+            metrics_circuit_name=str(cir_num),
+            metrics_mode=metrics_mode,
+        )
 
     path_netlist = path_output_num + "final_netlist.cir"
     data_for_dut_yaml = (is_differential_output, has_input, target_dc_vout)
@@ -239,7 +257,7 @@ def generate_netlist(
 
 
 
-def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_unified):
+def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_unified, metrics_run_id=None, metrics_circuit_name=None, metrics_mode=None):
     """Create or refresh the specification contract table for the current category."""
     backup_spec_table_path = os.path.join(
         os.getcwd(),
@@ -257,6 +275,9 @@ def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_u
     struct_create_prompt = make_prompt_contract_agent.make_prompt_spec_table_contract_agent_flow(
         category_json,
         spec_id_table,
+        metrics_run_id=metrics_run_id,
+        metrics_circuit_name=metrics_circuit_name,
+        metrics_mode=metrics_mode,
     )
     file_utils.save_str_to_file(struct_create_prompt.prompt, cat_prompt_path)
     if not os.path.isfile(cat_prompt_path):
@@ -274,7 +295,12 @@ def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_u
     print("#### valid_contracts =", valid_contracts)
 
     gen_utils.test_delay(30, "update table")
-    struc_update_table = update_spec_table_agent.update_table_agent_flow(missing_specs)
+    struc_update_table = update_spec_table_agent.update_table_agent_flow(
+        missing_specs,
+        metrics_run_id=metrics_run_id,
+        metrics_circuit_name=metrics_circuit_name,
+        metrics_mode=metrics_mode,
+    )
 
     updated_spec_id_unified, affected_ids = agent_utils.update_tables(
         struc_update_table,
@@ -284,11 +310,18 @@ def prepare_new_type(cat_prompt_path, category_json, spec_tables_path, spec_id_u
     )
     print("## new ids ##\naffected_ids =", affected_ids)
 
-    make_pycal(affected_ids, updated_spec_id_unified, category_json)
+    make_pycal(
+        affected_ids,
+        updated_spec_id_unified,
+        category_json,
+        metrics_run_id=metrics_run_id,
+        metrics_circuit_name=metrics_circuit_name,
+        metrics_mode=metrics_mode,
+    )
     return updated_spec_id_unified, valid_contracts
 
 
-def make_pycal(affected_ids, updated_spec_id_unified, category_json):
+def make_pycal(affected_ids, updated_spec_id_unified, category_json, metrics_run_id=None, metrics_circuit_name=None, metrics_mode=None):
     """Save calculation helper plugins for a changed spec contract set."""
     specifications_table = updated_spec_id_unified["specifications"]
 
@@ -314,7 +347,13 @@ def make_pycal(affected_ids, updated_spec_id_unified, category_json):
     print("#### category_json =", category_json)
 
     gen_utils.test_delay(30, "make pycal")
-    struc = make_pycalculation_agent.make_pycalculation_agent_flow(filtered_contracts, category_json)
+    struc = make_pycalculation_agent.make_pycalculation_agent_flow(
+        filtered_contracts,
+        category_json,
+        metrics_run_id=metrics_run_id,
+        metrics_circuit_name=metrics_circuit_name,
+        metrics_mode=metrics_mode,
+    )
     print("## make_calculation_rule_struct =", struc)
 
     for plugin in struc.plugins:

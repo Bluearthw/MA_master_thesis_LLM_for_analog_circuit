@@ -2,7 +2,7 @@ from genai_agent.data import local_config
 from genai_agent.data import response_schema
 from utils import agent_utils
 from utils import file_utils
-def debug_agent_flow(netlist, formatted_history_input, trimmed_spec_table, spec_sims, general_rules = None, category_debug_rules = None):
+def debug_agent_flow(netlist, formatted_history_input, trimmed_spec_table, spec_sims, general_rules = None, category_debug_rules = None, metrics_run_id=None, metrics_circuit_name=None, metrics_mode=None):
     """Call the debug agent to fix a netlist and return the parsed response model.
 
     - `general_rules` is expected to be a list of rule lines (from workflow_prompts.json).
@@ -38,7 +38,14 @@ General Rules:{general_rules}
         contents += f"\n**More rules about this category**: {category_debug_rules}"
     # Delegate retry/backoff and error handling to a central helper.
     try:
-        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_debug)
+        struc = agent_utils.call_agent(
+            contents=contents,
+            response_schema=response_schema.Struct_debug,
+            metrics_run_id=metrics_run_id,
+            metrics_agent_name="debug_agent",
+            metrics_circuit_name=metrics_circuit_name,
+            metrics_mode=metrics_mode,
+        )
 
         # Robust printing for both simple and extended Struct_debug variants
         if hasattr(struc, 'bug_analysis'):

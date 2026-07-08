@@ -8,7 +8,7 @@ from utils import agent_utils
 from genai_agent.data import local_config
 from genai_agent.data import response_schema
 
-def make_prompt_spec_table_contract_agent_flow(category_json, spec_id_table):
+def make_prompt_spec_table_contract_agent_flow(category_json, spec_id_table, metrics_run_id=None, metrics_circuit_name=None, metrics_mode=None):
     print("generating prompt...")
     category_json = json.dumps(category_json, indent=4)
     spec_id_table = json.dumps(spec_id_table, indent=4)
@@ -37,7 +37,14 @@ def make_prompt_spec_table_contract_agent_flow(category_json, spec_id_table):
 Return your analysis completely mapped to the designated structural schema, ensuring the 'prompt' field contains the full markdown text block."""    
     
     try:
-        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_make_prompt_spec_contract)
+        struc = agent_utils.call_agent(
+            contents=contents,
+            response_schema=response_schema.Struct_make_prompt_spec_contract,
+            metrics_run_id=metrics_run_id,
+            metrics_agent_name="contract_gen",
+            metrics_circuit_name=metrics_circuit_name,
+            metrics_mode=metrics_mode,
+        )
         print("##struc create prompt= ", struc)
         return struc
     except Exception as e:

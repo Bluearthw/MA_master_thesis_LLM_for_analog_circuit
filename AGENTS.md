@@ -10,7 +10,11 @@
   - Commit ONLY when a logical unit of work is completed and verified (e.g., a single feature implemented, an error resolved, or a full set of unit tests passing).
   - Do not create multiple granular commits for a single debugging session; bundle related modifications into a single, descriptive commit.
   - Structure commit messages clearly: `<type>(<scope>): <short description>` (e.g., `feat(auth): add local ADC fallback routing`).
-
+- Use the run ID format `YYYYMMDD-HHMMSS_circuitNum_mode` for generated run directories and logs.
+  - `YYYYMMDD-HHMMSS`: local start time of the run.
+  - `circuitNum`: circuit/output identifier, e.g. `405`.
+  - `mode`: short method name, e.g. `td3_baseline`, `op_warmstart`, `llm_td3`.
+  - Example: `20260708-143012_405_td3_baseline`.
 ## Project conventions
 
 - Run commands from the repository root unless a task requires another directory.

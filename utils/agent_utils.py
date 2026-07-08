@@ -12,6 +12,7 @@ sys.path.append('.')
 from utils import gen_utils
 from genai_agent.data import local_config
 from utils import file_utils
+from utils.workflow_metrics import record_llm_call
 def get_client():
     return genai.Client(http_options=HttpOptions(api_version="v1"))
 
@@ -22,7 +23,11 @@ def call_agent(contents: str,
                max_retries: int = 5,
                backoff_base: int = 60,
                client=None,
-               config_extra: dict = None):
+               config_extra: dict = None,
+               metrics_run_id: str = None,
+               metrics_agent_name: str = None,
+               metrics_circuit_name: str = None,
+               metrics_mode: str = None):
     """Call the model and return parsed response with retry/backoff for transient errors.
 
     Args:
@@ -33,6 +38,10 @@ def call_agent(contents: str,
         backoff_base: base wait seconds used for exponential backoff (wait = backoff_base * attempt).
         client: optional pre-created client. If None, `gen_utils.get_client()` is used.
         config_extra: additional key/value pairs to include in the `config` passed to `generate_content`.
+        metrics_run_id: optional run ID for LLM call accounting.
+        metrics_agent_name: optional logical agent name for LLM call accounting.
+        metrics_circuit_name: optional circuit identifier to store with the run summary.
+        metrics_mode: optional workflow mode to store with the run summary.
 
     Returns:
         response.parsed object on success.
@@ -56,6 +65,12 @@ def call_agent(contents: str,
             if config_extra:
                 cfg.update(config_extra)
 
+            record_llm_call(
+                metrics_run_id,
+                metrics_agent_name,
+                circuit_name=metrics_circuit_name,
+                mode=metrics_mode,
+            )
             response = client.models.generate_content(
                 model=model,
                 contents=contents,

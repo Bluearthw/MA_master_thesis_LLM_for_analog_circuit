@@ -11,7 +11,7 @@ from utils import gen_utils as gen_utils
 from utils import agent_utils
 from utils import file_utils
 
-def update_table_agent_flow(missing_specs):
+def update_table_agent_flow(missing_specs, metrics_run_id=None, metrics_circuit_name=None, metrics_mode=None):
     print("updating table...")
 
     """
@@ -40,7 +40,14 @@ You must output your response using the designated JSON schema. Do not assign in
 """
     print("###contents create_tabler ", contents)
     try:
-        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_Update_Tables)
+        struc = agent_utils.call_agent(
+            contents=contents,
+            response_schema=response_schema.Struct_Update_Tables,
+            metrics_run_id=metrics_run_id,
+            metrics_agent_name="spec_table_update",
+            metrics_circuit_name=metrics_circuit_name,
+            metrics_mode=metrics_mode,
+        )
         print("###struc_update_table = ", struc)
 
         return struc

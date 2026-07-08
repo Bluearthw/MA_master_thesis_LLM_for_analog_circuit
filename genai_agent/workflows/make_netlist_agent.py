@@ -11,7 +11,7 @@ from utils import gen_utils as gen_utils
 from utils import agent_utils
 from utils import file_utils
 #netlist builder
-def make_netlist_agent_flow(netlist, category_json, category_num, cir_num=4, trimmed_spec_name_table=None, is_diff=False, general_rules=None, category_gen_rules=None, contracts=None, has_input = None):
+def make_netlist_agent_flow(netlist, category_json, category_num, cir_num=4, trimmed_spec_name_table=None, is_diff=False, general_rules=None, category_gen_rules=None, contracts=None, has_input = None, metrics_run_id=None, metrics_mode=None):
     line_wrdata_path_num = "wrdata " + local_config.path_output + str(cir_num)
     
     f_end= "1T"
@@ -45,7 +45,14 @@ def make_netlist_agent_flow(netlist, category_json, category_num, cir_num=4, tri
         
     
     try:
-        struc = agent_utils.call_agent(contents=contents, response_schema=response_schema.Struct_flow)
+        struc = agent_utils.call_agent(
+            contents=contents,
+            response_schema=response_schema.Struct_flow,
+            metrics_run_id=metrics_run_id,
+            metrics_agent_name="netlist_gen",
+            metrics_circuit_name=str(cir_num),
+            metrics_mode=metrics_mode,
+        )
         print("==struc_netlist_builder", struc)
         return struc
     except Exception as e:
