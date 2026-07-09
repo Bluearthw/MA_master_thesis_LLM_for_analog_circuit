@@ -5,6 +5,8 @@ from .adapter import (
     inspect_adapter,
     load_adapter,
     save_adapter,
+    save_validation_result,
+    validate_adapter,
 )
 from .category_memory import save_best_candidate_record
 from .warm_start import (
@@ -19,7 +21,9 @@ __all__ = [
     "inspect_adapter",
     "load_adapter",
     "save_adapter",
+    "save_validation_result",
     "save_best_candidate_record",
     "seed_replay_from_category_memory",
     "seed_replay_from_low_fidelity_elites",
+    "validate_adapter",
 ]

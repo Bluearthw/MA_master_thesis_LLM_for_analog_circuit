@@ -236,6 +236,182 @@ def build_adapter(circuit_id, category=None, yaml_dir=None):
     return adapter
 
 
+def validate_adapter(adapter, yaml_dir=None):
+    """Validate an adapter before it can influence TD3 behavior."""
+    result = {
+        "valid": True,
+        "errors": [],
+        "warnings": [],
+        "fallback_policy": "use_adapter",
+    }
+
+    try:
+        assert_adapter_shape(adapter)
+    except (TypeError, ValueError) as exc:
+        result["errors"].append(str(exc))
+        result["valid"] = False
+        result["fallback_policy"] = "fallback_to_v1_or_plain_td3"
+        return result
+
+    circuit_id = adapter["circuit_id"]
+    try:
+        yaml_data, yaml_path = load_yaml_config(circuit_id, yaml_dir=yaml_dir)
+    except (OSError, yaml.YAMLError) as exc:
+        result["errors"].append(f"Cannot load YAML for circuit {circuit_id}: {exc}")
+        result["valid"] = False
+        result["fallback_policy"] = "fallback_to_plain_td3"
+        return result
+
+    params = yaml_data.get("params", {})
+    targets = yaml_data.get("targets", {})
+    hard_constraints = set(yaml_data.get("hard_constraints", []))
+    path_ids = yaml_data.get("path_id", {})
+    param_names = set(params.keys())
+    target_names = set(targets.keys())
+
+    _validate_action_groups(adapter, param_names, result)
+    _validate_action_mask(adapter, param_names, hard_constraints, result)
+    _validate_bound_overrides(adapter, params, result)
+    _validate_spec_hints(adapter, target_names, result)
+    _validate_memory_keys(adapter, result)
+    _validate_device_roles(adapter, circuit_id, result)
+    _validate_simulation_outputs(adapter, path_ids, result)
+
+    if result["errors"]:
+        result["valid"] = False
+        result["fallback_policy"] = "fallback_to_v1_or_plain_td3"
+    elif result["warnings"]:
+        result["fallback_policy"] = "use_adapter_with_monitoring"
+
+    result["evidence"] = {
+        "yaml_path": str(yaml_path),
+        "param_names": sorted(param_names),
+        "target_names": list(targets.keys()),
+        "hard_constraints": list(hard_constraints),
+        "path_id_count": len(path_ids),
+    }
+    return result
+
+
+def _validate_action_groups(adapter, param_names, result):
+    seen_group_names = set()
+    grouped_params = set()
+    for index, group in enumerate(adapter["action_groups"]):
+        name = group.get("name")
+        if not name:
+            result["errors"].append(f"action_groups[{index}] is missing name")
+            continue
+        if name in seen_group_names:
+            result["errors"].append(f"duplicate action group name: {name}")
+        seen_group_names.add(name)
+
+        parameters = group.get("parameters", [])
+        if not parameters:
+            result["warnings"].append(f"action group '{name}' has no parameters")
+        for parameter in parameters:
+            if parameter not in param_names:
+                result["errors"].append(f"action group '{name}' references unknown parameter '{parameter}'")
+            grouped_params.add(parameter)
+
+    ungrouped = sorted(param_names - grouped_params)
+    if ungrouped:
+        result["warnings"].append(f"YAML parameters not covered by action groups: {ungrouped}")
+
+
+def _validate_action_mask(adapter, param_names, hard_constraints, result):
+    mask = adapter["initial_action_mask"]
+    mask_params = set()
+    active_params = set()
+    for index, item in enumerate(mask):
+        parameter = item.get("parameter")
+        if parameter not in param_names:
+            result["errors"].append(f"initial_action_mask[{index}] references unknown parameter '{parameter}'")
+            continue
+        mask_params.add(parameter)
+        if item.get("active", False):
+            active_params.add(parameter)
+
+    missing_mask = sorted(param_names - mask_params)
+    if missing_mask:
+        result["warnings"].append(f"YAML parameters missing from initial action mask: {missing_mask}")
+
+    if hard_constraints and not active_params:
+        result["errors"].append("initial action mask disables all parameters while hard constraints exist")
+
+
+def _validate_bound_overrides(adapter, params, result):
+    for parameter, bounds in adapter.get("parameter_bound_overrides", {}).items():
+        if parameter not in params:
+            result["errors"].append(f"bound override references unknown parameter '{parameter}'")
+            continue
+        if not isinstance(bounds, dict):
+            result["errors"].append(f"bound override for '{parameter}' must be a dict")
+            continue
+        yaml_min, yaml_max = float(params[parameter][0]), float(params[parameter][1])
+        override_min = float(bounds.get("min", yaml_min))
+        override_max = float(bounds.get("max", yaml_max))
+        if override_min > override_max:
+            result["errors"].append(f"bound override for '{parameter}' has min > max")
+        if override_min < yaml_min or override_max > yaml_max:
+            result["errors"].append(
+                f"bound override for '{parameter}' [{override_min}, {override_max}] exceeds YAML bounds [{yaml_min}, {yaml_max}]"
+            )
+
+
+def _validate_spec_hints(adapter, target_names, result):
+    for index, hint in enumerate(adapter.get("spec_to_action_hints", [])):
+        spec = hint.get("spec")
+        if spec not in target_names:
+            result["errors"].append(f"spec_to_action_hints[{index}] references unknown target '{spec}'")
+
+
+def _validate_memory_keys(adapter, result):
+    keys = adapter.get("memory_retrieval_keys", [])
+    if not keys:
+        result["warnings"].append("adapter has no memory retrieval keys")
+    if adapter["category"] not in keys:
+        result["warnings"].append("category is not included in memory retrieval keys")
+
+
+def _validate_device_roles(adapter, circuit_id, result):
+    netlist_path = find_netlist_path(circuit_id)
+    if not netlist_path:
+        if adapter.get("device_roles"):
+            result["warnings"].append("device roles exist but netlist was not found for deterministic cross-check")
+        return
+
+    devices = parse_netlist_devices(netlist_path.read_text(encoding="utf-8"))
+    device_names = set(devices.keys())
+    for device_name in adapter.get("device_roles", {}):
+        if device_name not in device_names:
+            result["errors"].append(f"device_roles references unknown netlist device '{device_name}'")
+
+
+def _validate_simulation_outputs(adapter, path_ids, result):
+    evidence = adapter.get("evidence", {})
+    adapter_path_ids = evidence.get("path_ids", {})
+    if not path_ids:
+        result["warnings"].append("YAML has no path_id simulation outputs")
+        return
+    if not adapter_path_ids:
+        result["warnings"].append("adapter evidence has no path_ids")
+        return
+
+    yaml_keys = {str(key) for key in path_ids}
+    adapter_keys = {str(key) for key in adapter_path_ids}
+    missing = sorted(yaml_keys - adapter_keys)
+    if missing:
+        result["warnings"].append(f"adapter evidence is missing YAML path_id keys: {missing}")
+
+
+def save_validation_result(validation_result, path):
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as file:
+        json.dump(validation_result, file, indent=2, sort_keys=True, allow_nan=False)
+    return output_path
+
+
 def infer_matched_groups(action_groups):
     # Phase 1 is conservative: no matched groups are asserted without explicit evidence.
     return [
@@ -356,4 +532,3 @@ def inspect_adapter(adapter):
         "dc_feasibility_terms": [item["name"] for item in adapter["dc_feasibility_terms"]],
         "memory_retrieval_keys": list(adapter["memory_retrieval_keys"]),
     }
-
