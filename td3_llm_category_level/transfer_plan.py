@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from .adapter import build_adapter, validate_adapter
-from .category_memory import iter_records
+from td3_llm.category_memory import iter_records
 
 
 def build_transfer_plan(adapter, max_records=20, memory_dir=None):
@@ -128,4 +128,3 @@ def save_transfer_plan(plan, path):
     with open(output_path, "w", encoding="utf-8") as file:
         json.dump(plan, file, indent=2, sort_keys=True, allow_nan=False)
     return output_path
-

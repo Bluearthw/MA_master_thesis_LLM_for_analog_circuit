@@ -8,7 +8,7 @@ from genai_agent.data.local_config import path_output, spec_tables_path
 from genai_agent.workflows import spec_applicability_agent, workflow
 from utils import agent_utils, file_utils, gen_utils, user_interation_utils, yaml_creation
 import td3_runner
-from td3_llm import (
+from td3_llm_category_level import (
     apply_low_fidelity_policy_to_args,
     build_transfer_plan_for_circuit,
     choose_low_fidelity_policy,
