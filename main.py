@@ -38,18 +38,17 @@ def get_workflow_goal():
     """Return the current workflow mode for main execution."""
     # 0: netlist generation only
     # 1: whole workflow
-    # 2: RL sizer only
+    # 2: RL sizer only; choose method with get_td3_experiment_mode()
     # 3: yaml creation only
     # 4: spec/prompt update only
-    # 6: experimental category-level LLM-assisted RL sizer
-    workflow_goal = 6
-    return workflow_goal
+    return 2
 
 
 def get_td3_experiment_mode():
     """Choose the TD3 sizing preset used when workflow_goal is RL sizing."""
     # return "baseline"
-    return "op_seed"
+    # return "op_seed"
+    return "category_llm_rl"
 
 
 def make_run_id(circuit_id, mode):
@@ -98,7 +97,7 @@ def make_td3_args(circuit_id, mode, run_id=None, category_key=None):
 
 
 def run_category_llm_rl_sizer(circuit_id, list_min_targets):
-    """Run the Phase-1 experimental category-memory TD3 path from main."""
+    """Run the experimental category-memory TD3 path from main."""
     mode = "category_llm_rl"
     category_key = make_category_memory_key(circuit_id)
     run_id = make_run_id(circuit_id, mode)
@@ -123,10 +122,20 @@ def run_category_llm_rl_sizer(circuit_id, list_min_targets):
         Path("solutions") / "category_memory" / "feedback_plans" / category_key / f"{circuit_id}_latest_feedback_plan.json",
     )
     print(
-        f"[workflow_goal=6] category_key={category_key}, run_id={run_id}, "
+        f"[workflow_goal=2:{mode}] category_key={category_key}, run_id={run_id}, "
         f"low_fidelity_policy={low_fidelity_policy['mode']} ({low_fidelity_policy['reason']}), "
         f"transfer_plan={transfer_plan_path}, feedback_plan={feedback_plan_path}"
     )
+    td3_runner.td3_start(args=td3_args, circuit_name=f"{circuit_id}", list_min_targets=list_min_targets)
+
+
+def run_rl_sizer_only(circuit_id, td3_experiment_mode, list_min_targets):
+    """Run RL-only sizing with the selected TD3 experiment mode."""
+    if td3_experiment_mode == "category_llm_rl":
+        run_category_llm_rl_sizer(circuit_id, list_min_targets)
+        return
+
+    td3_args = make_td3_args(circuit_id, td3_experiment_mode)
     td3_runner.td3_start(args=td3_args, circuit_name=f"{circuit_id}", list_min_targets=list_min_targets)
 
 
@@ -320,12 +329,7 @@ def main():
     valid_contracts = None
 
     if workflow_goal == 2:
-        td3_args = make_td3_args(test_nums[0], td3_experiment_mode)
-        td3_runner.td3_start(args=td3_args, circuit_name=f"{test_nums[0]}", list_min_targets=list_min_targets)
-        return
-
-    if workflow_goal == 6:
-        run_category_llm_rl_sizer(test_nums[0], list_min_targets)
+        run_rl_sizer_only(test_nums[0], td3_experiment_mode, list_min_targets)
         return
 
     if workflow_goal == 3:
