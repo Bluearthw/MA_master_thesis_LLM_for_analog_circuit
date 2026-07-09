@@ -9,9 +9,12 @@ from genai_agent.workflows import spec_applicability_agent, workflow
 from utils import agent_utils, file_utils, gen_utils, user_interation_utils, yaml_creation
 import td3_runner
 from td3_llm_category_level import (
+    apply_feedback_transfer_plan_to_args,
     apply_low_fidelity_policy_to_args,
+    build_feedback_transfer_plan,
     build_transfer_plan_for_circuit,
     choose_low_fidelity_policy,
+    save_feedback_transfer_plan,
     save_transfer_plan,
 )
 
@@ -109,10 +112,20 @@ def run_category_llm_rl_sizer(circuit_id, list_min_targets):
         Path("solutions") / "category_memory" / "adapters" / category_key / f"{circuit_id}_latest_transfer_plan.json",
     )
     apply_low_fidelity_policy_to_args(td3_args, low_fidelity_policy)
+    feedback_plan = build_feedback_transfer_plan(
+        circuit_id,
+        category_key,
+        base_transfer_plan=transfer_plan,
+    )
+    apply_feedback_transfer_plan_to_args(td3_args, feedback_plan)
+    feedback_plan_path = save_feedback_transfer_plan(
+        feedback_plan,
+        Path("solutions") / "category_memory" / "feedback_plans" / category_key / f"{circuit_id}_latest_feedback_plan.json",
+    )
     print(
         f"[workflow_goal=6] category_key={category_key}, run_id={run_id}, "
         f"low_fidelity_policy={low_fidelity_policy['mode']} ({low_fidelity_policy['reason']}), "
-        f"transfer_plan={transfer_plan_path}"
+        f"transfer_plan={transfer_plan_path}, feedback_plan={feedback_plan_path}"
     )
     td3_runner.td3_start(args=td3_args, circuit_name=f"{circuit_id}", list_min_targets=list_min_targets)
 
