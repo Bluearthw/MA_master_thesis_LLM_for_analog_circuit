@@ -88,6 +88,7 @@ class CircuitEnv(gym.Env):
         self.full_simulations = 0
         self.low_fidelity_simulations = 0
         self.first_success_full_simulations = None
+        self.candidate_history = []
 
 
     def action_refine(self, action):
@@ -394,6 +395,7 @@ class CircuitEnv(gym.Env):
         """
         self.evaluate(action)
         reward, hard_satisfied = self.reward_computation(self.cur_norm_specs)
+        self._record_candidate(action, reward, hard_satisfied)
         self._save_best_candidate(reward, hard_satisfied)
         
         observation = self._build_observation(self.cur_norm_specs)
@@ -435,6 +437,20 @@ class CircuitEnv(gym.Env):
 
         info = {'goal_reached': hard_satisfied}
         return observation, reward, done, info
+
+    def _record_candidate(self, action, reward, hard_satisfied):
+        """Keep passive full-spec trace data for category-level transfer analysis."""
+        reward_value = float(np.asarray(reward).reshape(-1)[0])
+        record = {
+            "step": int(self.env_steps),
+            "action": np.asarray(action, dtype=np.float32).copy(),
+            "params": dict(getattr(self, "param_values", {}) or {}),
+            "metrics": dict(getattr(self, "real_specs", {}) or {}),
+            "normalized_metrics": dict(getattr(self, "cur_norm_specs", {}) or {}),
+            "reward": reward_value if np.isfinite(reward_value) else None,
+            "strict_pass": bool(hard_satisfied),
+        }
+        self.candidate_history.append(record)
 
     @staticmethod
     def _to_serializable(value):

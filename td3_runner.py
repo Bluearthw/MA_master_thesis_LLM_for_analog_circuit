@@ -18,6 +18,7 @@ from td3_llm import (
     seed_replay_from_category_memory,
     seed_replay_from_low_fidelity_elites,
 )
+from td3_llm_category_level import build_run_trace, save_run_trace
 warmup_step = 1000
 def readParser(argv=None):
     parser = argparse.ArgumentParser(description='TD3-based RL for Circuit Sizing')
@@ -274,6 +275,31 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
         print(f"[TD3 Runner] Saved run summary to: {summary_path}")
     except (OSError, TypeError, ValueError) as exc:
         print(f"[TD3 Runner] Failed to save run summary: {exc}")
+
+    try:
+        category_key = getattr(args, "warm_start_category", None)
+        if category_key is None:
+            category_key = f"category_{gen_utils.find_cat_from_num(circuit_name)}"
+        transfer_plan_path = (
+            Path("solutions")
+            / "category_memory"
+            / "adapters"
+            / str(category_key)
+            / f"{circuit_name}_latest_transfer_plan.json"
+        )
+        trace = build_run_trace(
+            env,
+            args,
+            circuit_name,
+            category_key,
+            total_time,
+            transfer_plan_path=transfer_plan_path if transfer_plan_path.is_file() else None,
+            run_summary_path=summary_path,
+        )
+        trace_path = save_run_trace(trace)
+        print(f"[TD3 Runner] Saved category trace to: {trace_path}")
+    except (OSError, TypeError, ValueError) as exc:
+        print(f"[TD3 Runner] Failed to save category trace: {exc}")
 
     best_netlist_path = getattr(env, "best_netlist_path", None)
     if best_netlist_path and os.path.isfile(best_netlist_path):

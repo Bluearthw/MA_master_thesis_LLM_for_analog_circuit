@@ -17,6 +17,12 @@ from .transfer_plan import (
     build_transfer_plan_for_circuit,
     save_transfer_plan,
 )
+from .trace import (
+    build_run_trace,
+    save_run_trace,
+    trace_path,
+    validate_run_trace,
+)
 
 __all__ = [
     "apply_low_fidelity_policy_to_args",
@@ -24,10 +30,14 @@ __all__ = [
     "build_transfer_plan",
     "build_transfer_plan_for_circuit",
     "choose_low_fidelity_policy",
+    "build_run_trace",
     "inspect_adapter",
     "load_adapter",
     "save_adapter",
+    "save_run_trace",
     "save_transfer_plan",
     "save_validation_result",
+    "trace_path",
+    "validate_run_trace",
     "validate_adapter",
 ]
