@@ -8,6 +8,12 @@ from genai_agent.data.local_config import path_output, spec_tables_path
 from genai_agent.workflows import spec_applicability_agent, workflow
 from utils import agent_utils, file_utils, gen_utils, user_interation_utils, yaml_creation
 import td3_runner
+from td3_llm import (
+    apply_low_fidelity_policy_to_args,
+    build_transfer_plan_for_circuit,
+    choose_low_fidelity_policy,
+    save_transfer_plan,
+)
 
 
 
@@ -94,7 +100,20 @@ def run_category_llm_rl_sizer(circuit_id, list_min_targets):
     category_key = make_category_memory_key(circuit_id)
     run_id = make_run_id(circuit_id, mode)
     td3_args = make_td3_args(circuit_id, mode, run_id=run_id, category_key=category_key)
-    print(f"[workflow_goal=6] category_key={category_key}, run_id={run_id}")
+    transfer_plan = build_transfer_plan_for_circuit(circuit_id, category=category_key)
+    low_fidelity_policy = choose_low_fidelity_policy(transfer_plan)
+    transfer_plan["low_fidelity_policy"] = low_fidelity_policy["mode"]
+    transfer_plan["low_fidelity_policy_reason"] = low_fidelity_policy["reason"]
+    transfer_plan_path = save_transfer_plan(
+        transfer_plan,
+        Path("solutions") / "category_memory" / "adapters" / category_key / f"{circuit_id}_latest_transfer_plan.json",
+    )
+    apply_low_fidelity_policy_to_args(td3_args, low_fidelity_policy)
+    print(
+        f"[workflow_goal=6] category_key={category_key}, run_id={run_id}, "
+        f"low_fidelity_policy={low_fidelity_policy['mode']} ({low_fidelity_policy['reason']}), "
+        f"transfer_plan={transfer_plan_path}"
+    )
     td3_runner.td3_start(args=td3_args, circuit_name=f"{circuit_id}", list_min_targets=list_min_targets)
 
 

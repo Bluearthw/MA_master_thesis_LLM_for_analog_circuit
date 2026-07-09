@@ -9,6 +9,10 @@ from .adapter import (
     validate_adapter,
 )
 from .category_memory import save_best_candidate_record
+from .low_fidelity_policy import (
+    apply_low_fidelity_policy_to_args,
+    choose_low_fidelity_policy,
+)
 from .transfer_plan import (
     build_transfer_plan,
     build_transfer_plan_for_circuit,
@@ -24,6 +28,8 @@ __all__ = [
     "build_adapter",
     "build_transfer_plan",
     "build_transfer_plan_for_circuit",
+    "apply_low_fidelity_policy_to_args",
+    "choose_low_fidelity_policy",
     "collect_low_fidelity_elites",
     "inspect_adapter",
     "load_adapter",
