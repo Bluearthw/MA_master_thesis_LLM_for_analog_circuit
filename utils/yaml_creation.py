@@ -9,6 +9,7 @@ from genai_agent.workflows import target_suggestion_agent
 from utils import gen_utils
 from utils import file_utils
 from utils import user_interation_utils
+from utils.curriculum_targets import load_curriculum_target_values
 def make_technology_line(tech = "45nm"):
     return f"technology: {tech}" 
 def make_cir_name_line(name = 9):
@@ -216,6 +217,14 @@ def get_targets(spec_ids, spec_id_dict=None, spec_default_values=None, target_co
     target_suggestion_agent.print_suggestions(suggestion)
     if is_target_suggest:
         targets = suggestion["targets"]
+
+    circuit_name = (target_context or {}).get("cir_name")
+    curriculum_targets = load_curriculum_target_values(circuit_name) if circuit_name is not None else None
+    if curriculum_targets:
+        for metric_name, curriculum_target in curriculum_targets.items():
+            if metric_name in targets:
+                targets[metric_name] = curriculum_target
+        print(f"[yaml_creation] Loaded curriculum targets for circuit {circuit_name}")
 
     targets = user_interation_utils.user_input_targets(targets)
     

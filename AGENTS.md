@@ -1,8 +1,14 @@
-# Repository Agent Instructions
+# Project objective
+
+This project generates ngspice testbenches for analog circuits, then sizes circuit parameters using TD3 RL or another optimization method.
+
+## Optimization direction
+- Preserve the current workflow unless the user explicitly asks for architectural changes.
+- Prefer sizing methods that reduce the number of ngspice simulations.
+- When changing optimization logic, keep the measurement/testbench generation flow compatible with existing outputs.
 
 ## Working agreement
-
-- Before modifying files, explain the implementation plan in 3-6 concise bullets. Mention the file to be modified.
+- Before modifying files, understand current implementation, explain the implementation plan in 3-6 concise bullets. Mention the file to be modified.
 - Wait for user approval before making major architectural changes or starting test.
 - Preserve unrelated user changes in the working tree.
 - Use local version control (`git add .` and `git commit -m`) to checkpoint your progress. 
@@ -15,8 +21,8 @@
   - `circuitNum`: circuit/output identifier, e.g. `405`.
   - `mode`: short method name, e.g. `td3_baseline`, `op_warmstart`, `llm_td3`.
   - Example: `20260708-143012_405_td3_baseline`.
+- keep a simple development log md.
 ## Project conventions
-
 - Run commands from the repository root unless a task requires another directory.
 - Use `venv\Scripts\python.exe` for Python checks; the system `python` command may be a Windows Store alias.
 - Treat `no_backup/` as temporary runtime storage and `solutions/` as durable output storage.
@@ -24,7 +30,13 @@
 - Keep RL observations aligned with the YAML `targets` order and dimension.
 
 ## Validation
-
 - After Python edits, run `venv\Scripts\python.exe -m py_compile` on the changed modules.
 - Prefer focused tests with reduced or mocked simulation work. Do not start a full RL/ngspice run unless the user requests it.
 - Report validation failures and untested behavior explicitly.
+
+## Before declaring the task complete, ask yourself:
+- Did I preserve existing behaviour?
+- Did I introduce unnecessary complexity?
+- Can I reuse existing code?
+- Are my assumptions documented?
+- Would I be comfortable reviewing this as a pull request?

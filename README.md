@@ -17,9 +17,8 @@ git push origin HEAD --follow-tags
 venv\Scripts\Activate.ps1
 # MA_master_thesis_LLM_for_analog_circuit
 
-
-night goal:
-Let's make the  warm-up simulation same: for op-seed, let's use 1024 and 100 seed?
+# my skill
+Use td3-llm-research-loop on material/codex_night/goal.md
 
 number of netlists : 894
 "amplifier" and "Amplifier"

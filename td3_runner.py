@@ -11,6 +11,7 @@ from pathlib import Path
 
 from utils import gen_utils 
 from utils import file_utils 
+from utils.curriculum_targets import save_curriculum_targets
 from td3_llm import (
     collect_low_fidelity_elites,
     save_best_candidate_record,
@@ -210,6 +211,21 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
         else:
             print("[td3_llm] No finite best candidate available for category memory.")
 
+    curriculum_target_path = None
+    if getattr(env, "best_specs", None):
+        try:
+            curriculum_target_path = save_curriculum_targets(
+                circuit_name,
+                args.run_id,
+                env.dict_targets,
+                env.best_specs,
+                env.list_min_targets,
+                best_constraints_met=getattr(env, "best_hard_satisfied", False),
+            )
+            print(f"[TD3 Runner] Saved curriculum targets to: {curriculum_target_path}")
+        except (OSError, TypeError, ValueError) as exc:
+            print(f"[TD3 Runner] Failed to save curriculum targets: {exc}")
+
     # compute and print total runtime
     total_time = time.time() - start_time
     print(f"[TD3 Runner] Training complete. Total runtime: {total_time:.2f} seconds ({total_time/60:.2f} minutes)")
@@ -249,6 +265,7 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
             "best_step": getattr(env, "best_step", None),
             "best_constraints_met": bool(getattr(env, "best_hard_satisfied", False)),
             "best_netlist_path": getattr(env, "best_netlist_path", None),
+            "curriculum_target_path": str(curriculum_target_path) if curriculum_target_path else None,
         },
     }
     try:
