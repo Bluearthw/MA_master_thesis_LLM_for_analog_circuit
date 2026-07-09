@@ -9,7 +9,7 @@ from genai_agent.workflows import target_suggestion_agent
 from utils import gen_utils
 from utils import file_utils
 from utils import user_interation_utils
-from utils.curriculum_targets import load_curriculum_target_values
+from utils.new_targets_utils import load_curriculum_target_values
 def make_technology_line(tech = "45nm"):
     return f"technology: {tech}" 
 def make_cir_name_line(name = 9):

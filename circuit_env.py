@@ -534,7 +534,7 @@ class CircuitEnv(gym.Env):
                 rH += ry
             # print(f"{key}: {val}")
             # print("CE:", rH)
-        # this part is foft
+        # this part is soft
         rT = 0
         for key in self.optimization_targets:
             val = norm_specs.get(key, 0.0)

@@ -1,0 +1,87 @@
+<mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+    <mxCell id="input" value="New Circuit&#xa;YAML + Netlist + Specs" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="60" y="120" width="170" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="adapter" value="Circuit Adapter&#xa;roles, action groups, evidence" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="290" y="120" width="190" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="validator" value="Deterministic Validator&#xa;names, bounds, targets, masks" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="540" y="120" width="210" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="memory" value="Category Memory&#xa;traces + feedback + best candidates" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="60" y="360" width="210" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="feedback" value="Feedback Analyzer&#xa;stagnation, failed specs, boundaries" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="330" y="360" width="220" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="planner" value="Category Transfer Planner&#xa;memory, low-fidelity, exploration, hints" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="820" y="180" width="240" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="llm" value="Optional LLM Planner&#xa;explain / propose repairs&#xa;validated before use" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="820" y="40" width="240" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="applier" value="TD3 Policy Applier&#xa;warmup, replay seed, OP/DC mode, noise" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="1130" y="180" width="220" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="td3" value="TD3 RL Sizer&#xa;numerical optimizer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="1130" y="360" width="220" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="sim" value="ngspice Simulations&#xa;full specs + optional OP/DC" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="830" y="540" width="230" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="trace" value="Trace Collector&#xa;reward history, top candidates, failed specs" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="520" y="540" width="240" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="repair" value="Repair / Fallback&#xa;skip OP/DC, reduce memory, increase exploration, baseline TD3" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="1130" y="540" width="220" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="strict" value="Strict Spec Evaluation&#xa;original targets only" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" vertex="1" parent="1">
+      <mxGeometry x="830" y="710" width="230" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="e1" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="input" target="adapter">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e2" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="adapter" target="validator">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e3" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="validator" target="planner">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e4" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="memory" target="feedback">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e5" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="feedback" target="planner">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e6" style="endArrow=block;html=1;rounded=0;strokeWidth=2;dashed=1;" edge="1" parent="1" source="llm" target="planner">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e7" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="planner" target="applier">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e8" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="applier" target="td3">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e9" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="td3" target="sim">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e10" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="sim" target="trace">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e11" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="trace" target="memory">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e12" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="sim" target="strict">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e13" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="trace" target="repair">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e14" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="repair" target="applier">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+  </root>
+</mxGraphModel>

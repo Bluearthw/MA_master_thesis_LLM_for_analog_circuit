@@ -1,4 +1,4 @@
-# Goal: Design-Driven `workflow_goal = 6` LLM-RL Sizer
+# Goal: Feedback-Driven Category-Level TD3 Transfer (`workflow_goal = 6`)
 
 Use the `td3-llm-research-loop` skill for this goal.
 
@@ -6,17 +6,24 @@ Primary design source:
 
 - `.agents/design.md`
 
+Reference code inspected:
+
+- `material/papers_found/codes_found/AutoSizer-main/llm_guided_ota_optimization_test.py`
+- `material/papers_found/codes_found/AutoSizer-main/advanced_search_methods_test.py`
+- `material/papers_found/codes_found/AutoSizer-main/utils/feedback_extraction.py`
+- `material/papers_found/codes_found/Analogagent-main/agents.py`
+
 ## Overall Objective
 
 Implement and evaluate the next version of `workflow_goal = 6`:
 
-> LLM-validated category transfer for TD3.
+> Feedback-driven category-level TD3 transfer with optional LLM planning.
 
-Normal TD3 remains the baseline. The LLM should shape the RL problem through validated adapters, transfer plans, memory compatibility, action grouping, and adaptive low-fidelity policy. The LLM should not directly choose every next sizing vector.
+Normal TD3 remains the baseline. `workflow_goal = 6` should use evidence from previous circuits in the same category to configure TD3 for the next circuit before training starts. The LLM should act as a category-level planner or repair planner, not as the inner-loop sizing optimizer.
 
 The research hypothesis is:
 
-> LLM-extracted and deterministically validated category knowledge can reduce average TD3 sizing cost across circuits in one category without reducing final strict-spec quality.
+> Structured feedback from previous same-category TD3 runs can reduce average full-simulation cost by configuring warm-up, replay seeding, action constraints, low-fidelity use, and reward/spec weighting for later circuits, while preserving final strict-spec quality.
 
 ## Current V1 Baseline
 
@@ -25,214 +32,249 @@ Current `workflow_goal = 6` already has:
 - OP/DC low-fidelity elite seeding;
 - category-memory warm-start;
 - reduced random warm-up;
-- run summary logging.
+- run summary logging;
+- category-level adapter, validation, transfer-plan, and low-fidelity-policy helpers under `td3_llm_category_level/`.
 
 Known V1 weakness:
 
-- memory compatibility is too strict because it requires exact YAML parameter/target compatibility;
+- memory compatibility is still mostly exact YAML compatibility;
 - fixed OP/DC seeding can add cost and make the workflow slower than baseline;
-- there is not yet a real LLM adapter for role/action mapping across topology variants.
+- category memory does not yet store enough TD3 trace feedback to guide the next circuit;
+- reward/spec weighting and action-space decisions are not yet driven by previous run evidence;
+- the current adapter is deterministic scaffolding, not a real LLM-planned category interface.
 
-The next work should fix these weaknesses rather than only running more V1 trials.
+The next work should prioritize feedback collection and evidence-driven transfer before adding more LLM complexity.
 
-## Phase 0: Reconfirm Baseline and Design State
+## Research Boundary
+
+The contribution should not be only:
+
+> LLM narrows the search/action space.
+
+That is close to AutoSizer.
+
+The stronger contribution is:
+
+> Previous same-category TD3 runs are converted into structured feedback, and an LLM-compatible transfer controller uses that feedback to configure later TD3 runs.
+
+This differs from:
+
+- AutoSizer: mostly per-circuit LLM search-space and optimizer orchestration;
+- AnaFlow: mostly within-one-circuit reasoning and DC refinement;
+- OP/DC-to-full BO work: low-to-high-fidelity transfer for BO, not category-level TD3 feedback transfer;
+- GCN-RL/CAN/ADO-KT: topology/RL knowledge transfer without an LLM-compatible feedback planner;
+- AnalogAgent: self-improvement inside an agent loop, not category-level RL trace transfer.
+
+## Phase 0: Reconfirm Current State
 
 ### Deliverables
 
 - Read `.agents/design.md`.
-- Inspect the current `workflow_goal = 6`, `td3_runner.py`, `td3_llm/`, and `circuit_env.py`.
-- Identify what already exists and what is missing.
-- Do not modify code in this phase unless a trivial broken import blocks inspection.
+- Inspect `main.py`, `td3_runner.py`, `circuit_env.py`, `td3_llm/`, and `td3_llm_category_level/`.
+- Identify the baseline TD3 path and the current `workflow_goal = 6` path.
+- Confirm what feedback is currently saved after TD3 runs.
 
 ### Stop Condition
 
-Stop Phase 0 when the current implementation state is summarized in the working notes or final report.
+Stop Phase 0 when the current implementation state and missing feedback fields are summarized.
 
-## Phase 1: LLM Circuit Adapter Schema
+## Phase 1: TD3 Trace Collector
 
-Implement a structured adapter interface. The adapter is the bridge between circuit-specific YAML/netlist/contracts and category-level RL memory.
+Add structured per-run feedback that can be reused by later circuits.
 
-### Required Adapter Fields
+### Required Trace Fields
 
-The adapter should be JSON-serializable and include:
+Save, at minimum:
 
-- category;
-- topology subtype;
-- device roles;
-- matched groups;
-- action groups;
-- initial action mask;
-- parameter-bound overrides;
-- DC/OP feasibility terms;
-- spec-to-action hints;
-- memory retrieval keys;
-- confidence and evidence.
+- circuit id, category, run id, method name;
+- parameter names, target names, observation dimension, action dimension;
+- total wall time;
+- full simulation count;
+- low-fidelity simulation count;
+- best reward progression;
+- best candidate parameters;
+- best measured metrics;
+- strict pass/fail;
+- failed specs and violation margins;
+- top-k candidates;
+- action distribution summary;
+- boundary clustering for each parameter;
+- repeated invalid/simulation-failure patterns;
+- whether memory/replay/low-fidelity was used.
 
 ### Deliverables
 
-- Add a schema/model or plain validation-friendly dictionary structure.
-- Add a deterministic sample adapter for at least circuit `9`.
-- Save adapter artifacts under a durable experiment or memory directory.
-- Keep baseline TD3 unchanged.
+- Add a durable JSON trace format under category memory or solutions.
+- Keep it append-only.
+- Do not change baseline TD3 behavior except for passive logging if needed.
 
 ### Stop Condition
 
-Stop Phase 1 when an adapter can be created, serialized, loaded, and inspected for circuit `9` without running a full RL experiment.
+Stop Phase 1 when a TD3 run or mocked run can produce a valid trace JSON without requiring a full long experiment.
 
-## Phase 2: Deterministic Adapter Validator
+## Phase 2: Feedback Analyzer
 
-Build a non-LLM validator before adapters can affect TD3.
+Convert traces into reusable transfer signals.
 
-### Required Checks
+### Required Analyses
 
-- referenced device/parameter names exist;
-- matched groups are structurally plausible;
-- action groups map to legal YAML parameters;
-- target/spec names exist and preserve YAML target order;
-- parameter bounds remain inside YAML/technology limits;
-- required simulation outputs are available;
-- action masks are reversible and cannot permanently remove every variable affecting a hard constraint.
+- convergence or stagnation detection;
+- failed-spec ranking by normalized violation;
+- parameter boundary clustering;
+- top-k parameter pattern extraction;
+- low-fidelity usefulness estimate;
+- memory benefit or negative-transfer estimate;
+- action groups that appear over-constrained;
+- candidate regions to avoid.
 
 ### Deliverables
 
-- Add validator code and validation result logging.
-- Reject invalid adapters with actionable error messages.
-- Fall back to V1 warm-start or plain TD3 when validation fails.
+- Add deterministic analyzer code in `td3_llm_category_level/`.
+- Produce a compact feedback summary JSON suitable for LLM input.
+- Include actionable recommendations such as:
+  - expand upper/lower bound;
+  - narrow inactive range;
+  - increase exploration for a parameter group;
+  - reduce or skip OP/DC seeding;
+  - reject harmful memory;
+  - increase weight for a repeatedly failed spec.
 
 ### Stop Condition
 
-Stop Phase 2 when valid and intentionally invalid adapter examples produce correct validation results.
+Stop Phase 2 when existing or synthetic traces produce clear analyzer output.
 
-## Phase 3: Transfer Planner
+## Phase 3: Category Transfer Planner
 
-Implement transfer planning using the validated adapter and category memory.
+Use feedback summaries from previous circuits to configure the next circuit.
 
-### Transfer Options
+### Planner Inputs
 
-Support transfer decisions in this order, from safest to riskiest:
+- target circuit YAML and netlist;
+- current deterministic adapter;
+- feedback summaries from same category;
+- category memory records;
+- baseline/default TD3 settings.
 
-1. successful candidate points;
-2. OP/DC-feasible candidate points;
-3. failure patterns and invalid regions;
-4. action bounds and grouped actions;
-5. replay transitions transformed into canonical role/action coordinates;
-6. actor/critic weights only when dimensions and semantics match.
+### Planner Outputs
 
-### Required Plan Fields
-
-The transfer plan should include:
-
-- memory records used;
-- memory records rejected and why;
+- selected memory records and rejection reasons;
 - warm-start candidates;
 - replay seed policy;
-- weight transfer policy;
 - low-fidelity policy: `skip`, `probe`, `gate`, or `pretrain`;
+- action bounds/masks;
+- exploration priority per parameter or action group;
+- optional reward/spec weighting;
 - fallback policy.
 
-### Stop Condition
+### Conservative Rule
 
-Stop Phase 3 when the planner can explain why it uses or rejects existing category memory for at least circuits `9` and one other circuit in the same category.
-
-## Phase 4: Adaptive Low-Fidelity Policy
-
-Replace fixed low-fidelity cost with an adaptive policy.
-
-### Policy Modes
-
-- `skip`: no low-fidelity calls;
-- `probe`: run a few OP/DC checks to estimate usefulness;
-- `gate`: OP/DC must pass before expensive full simulation;
-- `pretrain`: use OP/DC feasibility for early seeding/pretraining.
-
-### Decision Metrics
-
-Track:
-
-- OP/DC pass rate;
-- full-spec reward of OP/DC elites;
-- correlation between OP/DC reward and full-spec reward;
-- full simulation failures avoided;
-- wall-clock cost saved or added.
+The planner may narrow or bias TD3, but all restrictions must be reversible. If compatibility is weak, prefer logging the reason and falling back to baseline TD3.
 
 ### Stop Condition
 
-Stop Phase 4 when `workflow_goal = 6` can choose `skip`, `probe`, `gate`, or `pretrain` from measurable evidence rather than hardcoding OP/DC seeding every time.
+Stop Phase 3 when the planner can explain transfer decisions for circuit `9` and at least one other circuit in the same category.
 
-## Phase 5: Canonical Category Interface
+## Phase 4: TD3 Policy Applier
 
-Make category-level transfer possible even when YAML parameter names and action dimensions differ.
+Apply the transfer plan to the actual TD3 runner.
 
-### Initial Scope
+### Allowed Controls
 
-Start with one category, preferably category `1` if that is the current amplifier/simple analog category.
+Start with controls that are cheap and reversible:
 
-### Canonical Action Groups
+- warm-up length;
+- replay seeding;
+- low-fidelity mode;
+- initial action noise scale;
+- action bound overrides inside YAML limits;
+- per-spec reward weights;
+- early fallback if transferred probes underperform fresh probes.
 
-Use adapter-derived roles such as:
-
-- input pair width;
-- input pair length;
-- load/mirror width;
-- load/mirror length;
-- tail bias/current;
-- cascode bias;
-- compensation capacitor;
-- output device size;
-- bias voltage/current source;
-- load/passive element.
-
-### Deliverables
-
-- Map raw YAML params to canonical action groups.
-- Allow missing roles through masks.
-- Map canonical TD3 actions back to circuit-specific params.
-- Save mapping evidence in category memory.
+Avoid actor/critic weight transfer until action/state/reward semantics are validated.
 
 ### Stop Condition
 
-Stop Phase 5 when two circuits in the same category can be represented in the same canonical interface, even if their raw YAML params differ.
+Stop Phase 4 when `workflow_goal = 6` can apply a transfer plan without changing normal TD3.
 
-## Phase 6: RL Monitor and Repair Agent
+## Phase 5: Event-Triggered Repair Planner
 
-Add event-triggered monitoring and repair.
+Add repair only when evidence says transfer is hurting or training is stuck.
 
 ### Trigger Events
 
 - repeated simulation failures;
 - no reward improvement after a small budget;
 - OP/DC gate rejects too many candidates;
-- transferred memory performs worse than fresh random probes;
-- action mask appears to block improvement.
+- transferred candidates are worse than random probes;
+- action bounds/masks block improvement;
+- one spec repeatedly dominates failure.
 
 ### Allowed Repairs
 
 - unfreeze action groups;
 - expand bounds;
-- reject incompatible memories;
-- switch low-fidelity mode from `gate`/`pretrain` to `probe`/`skip`;
-- add missing diagnostic features;
+- drop incompatible memories;
+- switch low-fidelity from `gate` or `pretrain` to `probe` or `skip`;
+- increase exploration for selected groups;
+- adjust reward weights for failed specs;
 - fall back to baseline TD3.
 
 ### Stop Condition
 
-Stop Phase 6 when at least one synthetic or real failure condition triggers a documented repair or fallback.
+Stop Phase 5 when a synthetic or real failure condition triggers a documented repair or fallback.
 
-## Phase 7: Speed and Quality Evaluation
+## Phase 6: Optional LLM Planner
+
+Use the LLM only after deterministic feedback exists.
+
+### LLM Role
+
+The LLM may:
+
+- summarize cross-circuit feedback;
+- propose action-group priorities;
+- explain why memories should transfer or be rejected;
+- propose repair actions after stagnation;
+- help map raw parameters to category roles.
+
+The LLM must not:
+
+- directly choose every TD3 action;
+- silently relax final targets;
+- output unvalidated parameter names, bounds, or specs into TD3.
+
+### Validation
+
+All LLM output must be checked by deterministic validators before it affects TD3.
+
+### Stop Condition
+
+Stop Phase 6 when an LLM-style planner output can be validated and either applied or rejected deterministically.
+
+## Phase 7: Speed Trial
 
 Run a controlled comparison against baseline TD3.
 
 ### Required Methods
 
-Compare:
+Compare at least:
 
 1. baseline TD3;
-2. TD3 with equal reduced warm-up;
-3. OP/DC seeding only;
-4. category memory only;
-5. LLM action grouping only;
-6. LLM adapter + memory + transfer gate;
-7. same as 6 but low-fidelity disabled.
+2. current `workflow_goal = 6`;
+3. `workflow_goal = 6` with low-fidelity disabled;
+4. `workflow_goal = 6` with category feedback transfer enabled.
+
+Optional ablations:
+
+- OP/DC seeding only;
+- category memory only;
+- feedback reward weighting only;
+- feedback action-bound policy only.
+
+### Required Circuits
+
+- circuit `9`;
+- at least one more circuit in category `1`.
 
 ### Metrics
 
@@ -246,13 +288,13 @@ Report:
 - best reward;
 - final strict-spec pass/fail;
 - first feasible step, if available;
-- LLM call count and latency;
+- LLM call count and latency, if LLM is used;
 - memory records used/rejected;
 - fallback/repair events.
 
 ### Stop Condition
 
-Stop Phase 7 when there is enough evidence to say whether the design is faster, slower, or inconclusive under the tested budget.
+Stop Phase 7 when there is enough evidence to say whether the method is faster, slower, or inconclusive under the tested budget.
 
 Do not claim speedup unless it is measured against baseline TD3 under comparable budgets.
 
@@ -267,7 +309,7 @@ Clarify how this differs from:
 - AnaFlow;
 - AutoSizer;
 - OP/DC-to-full BO work;
-- GCN-RL/CAN;
+- GCN-RL/CAN/ADO-KT;
 - PPAAS/RobustAnalog;
 - AnalogAgent/LLM-USO memory.
 
@@ -281,10 +323,13 @@ Stop Phase 8 when the novelty boundary, failure modes, and next experiment are d
 - Commit only coherent changes; do not push.
 - Preserve unrelated user changes in the working tree.
 - If an architecture decision is ambiguous, choose the conservative option and document it.
+- Put category-level logic in `td3_llm_category_level/`.
+- Preserve normal TD3 as the baseline.
 - Do not change production YAML targets unless the change is explicitly test-only and documented.
 - Final strict-spec evaluation must use the original targets.
 - Low-fidelity OP/DC must not be treated as final success.
 - Do not let invalid LLM output affect TD3 before deterministic validation.
+- Do not run a full RL/ngspice trial unless the user explicitly requests it or the current phase requires it.
 
 ## Final Report Requirements
 
@@ -299,4 +344,3 @@ Every run must report:
 - commit hash if committed;
 - remaining risks;
 - next recommended phase.
-

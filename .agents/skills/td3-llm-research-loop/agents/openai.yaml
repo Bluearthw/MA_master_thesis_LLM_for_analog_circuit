@@ -1,0 +1,4 @@
+interface:
+  display_name: "TD3 LLM Research Loop"
+  short_description: "Iterate TD3-LLM sizing research goals"
+  default_prompt: "Use this skill to read my current analog RL sizing goal, propose the smallest mechanism, implement and test it, and iterate with paper/material lookup if it fails."

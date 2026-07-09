@@ -11,7 +11,7 @@ from pathlib import Path
 
 from utils import gen_utils 
 from utils import file_utils 
-from utils.curriculum_targets import save_curriculum_targets
+from utils.new_targets_utils import save_curriculum_targets
 from td3_llm import (
     collect_low_fidelity_elites,
     save_best_candidate_record,
