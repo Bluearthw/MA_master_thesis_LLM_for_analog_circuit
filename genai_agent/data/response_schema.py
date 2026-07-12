@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, create_model
 from typing import List, Optional, Literal, Dict
 class Struct_specs_sim(BaseModel):
     spec: str = Field(description="The name of the specification e.g., 'gain', 'bandwidth'. Different specs may require same simulation. e.g., gain and bandwidth both require ac simulation. Some specs may require multiple simulation files. e.g. current matching requires both source_current and sink_current")
@@ -116,7 +116,7 @@ class Struct_make_pycal_func_list(BaseModel):
 class DCSetterCandidate(BaseModel):
     candidate_id: str = Field(description="Candidate label; Python will replace it with dc_gain_<index>.")
     parameters: Dict[str, float] = Field(
-        description="Complete physical parameter dictionary using only the provided parameter names."
+        description="Complete physical parameter dictionary using only the provided parameter names. e.g.,{vbias:0.6}"
     )
     increase_dc_gain: bool = Field(
         description="Whether the proposed change is expected to increase low-frequency AC gain."
@@ -127,4 +127,27 @@ class Struct_dc_setter(BaseModel):
     analysis_summary: str = Field(description="Concise explanation of the DC-bias sizing strategy.")
     candidates: List[DCSetterCandidate] = Field(
         description="Complete candidate parameter sets, ordered from most promising to least promising."
+    )
+
+
+def build_dc_setter_response_schema(parameter_names):
+    """Build a closed schema so Gemini must emit every circuit-specific parameter key."""
+    parameter_fields = {
+        str(name): (
+            float,
+            Field(description=f"Physical value for the required circuit parameter '{name}'."),
+        )
+        for name in parameter_names
+    }
+    parameter_model = create_model("DCSetterParameters", **parameter_fields)
+    candidate_model = create_model(
+        "CircuitDCSetterCandidate",
+        candidate_id=(str, Field(description="Candidate label; Python replaces it with dc_gain_<index>.")),
+        parameters=(parameter_model, Field(description="Complete circuit-specific parameter values.")),
+        increase_dc_gain=(bool, Field(description="Expected direction of low-frequency AC gain.")),
+    )
+    return create_model(
+        "CircuitStructDCSetter",
+        analysis_summary=(str, Field(description="Concise explanation of the DC-bias sizing strategy.")),
+        candidates=(List[candidate_model], Field(description="Ordered complete parameter candidates.")),
     )

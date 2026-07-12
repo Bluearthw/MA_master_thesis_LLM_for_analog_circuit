@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import numpy as np
 
-from genai_agent.data.response_schema import Struct_dc_setter
+from genai_agent.data.response_schema import Struct_dc_setter, build_dc_setter_response_schema
 from main import make_td3_args
 from td3_llm_category_level.dc_setter_agent import (
     build_dc_setter_prompt,
@@ -31,6 +31,23 @@ class DCSetterAgentTests(unittest.TestCase):
         self.assertIn('"experience"', prompt)
         self.assertIn('"parameters"', prompt)
         self.assertNotIn('"full_targets_context"', prompt)
+
+    def test_dynamic_schema_declares_and_preserves_every_parameter(self):
+        schema = build_dc_setter_response_schema(self.ranges.keys())
+        parameter_properties = schema.model_json_schema()["$defs"]["DCSetterParameters"]["properties"]
+        self.assertEqual(set(parameter_properties), set(self.ranges))
+
+        parsed = schema(
+            analysis_summary="Bias first.",
+            candidates=[
+                {
+                    "candidate_id": "dc_gain_1",
+                    "parameters": {"VB1_VAL": 0.5, "mn1": 2, "wn1": 0.5e-6},
+                    "increase_dc_gain": True,
+                }
+            ],
+        )
+        self.assertEqual(set(parsed.model_dump()["candidates"][0]["parameters"]), set(self.ranges))
 
     def test_validation_assigns_ids_quantizes_and_removes_duplicates(self):
         response = Struct_dc_setter(

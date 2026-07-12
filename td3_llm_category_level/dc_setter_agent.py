@@ -91,16 +91,13 @@ def call_dc_setter_agent(
     candidate_count,
     run_id=None,
     circuit_name=None,
-    mode="category_llm_rl",
-    client=None,
+    mode="category_llm_rl"
 ):
     contents = build_dc_setter_prompt(category, netlist, experience, param_ranges, candidate_count)
-    if client is None:
-        client = agent_utils.get_client()
+    print("dc_setter agent prompt:\n" + contents)
     return agent_utils.call_agent(
         contents=contents,
-        response_schema=response_schema.Struct_dc_setter,
-        client=client,
+        response_schema=response_schema.build_dc_setter_response_schema(param_ranges.keys()),
         metrics_run_id=run_id,
         metrics_agent_name="dc_setter",
         metrics_circuit_name=circuit_name,
@@ -184,8 +181,7 @@ def collect_dc_setter_elites(
     strategy="op_ac_domain",
     min_alive_ratio=0.5,
     quantize=False,
-    log_path=None,
-    client=None,
+    log_path=None
 ):
     netlist_path = Path(getattr(env.simulation_engine, "netlist_path", ""))
     if not netlist_path.is_file():
@@ -201,9 +197,9 @@ def collect_dc_setter_elites(
             param_ranges=env.param_ranges,
             candidate_count=candidate_count,
             run_id=env.run_id,
-            circuit_name=env.circuit_name,
-            client=client,
+            circuit_name=env.circuit_name
         )
+        print(response)
     except Exception as exc:
         print(f"[dc_setter] Agent call failed; using Sobol fallback: {exc}")
         return []
