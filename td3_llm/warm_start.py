@@ -90,17 +90,17 @@ def _to_jsonable_candidate(candidate):
         "reward": float(candidate.get("reward", 0.0)),
         "strategy": candidate.get("strategy"),
         "action": np.asarray(candidate.get("action", []), dtype=np.float32).tolist(),
-        "params": _to_jsonable_value(candidate.get("params", {})),
-        "specs": _to_jsonable_value(candidate.get("specs", {})),
+        "params": to_jsonable_value(candidate.get("params", {})),
+        "specs": to_jsonable_value(candidate.get("specs", {})),
         "netlist_path": candidate.get("netlist_path"),
     }
 
 
-def _to_jsonable_value(value):
+def to_jsonable_value(value):
     if isinstance(value, dict):
-        return {str(key): _to_jsonable_value(item) for key, item in value.items()}
+        return {str(key): to_jsonable_value(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):
-        return [_to_jsonable_value(item) for item in value]
+        return [to_jsonable_value(item) for item in value]
     if isinstance(value, np.ndarray):
         return value.tolist()
     if isinstance(value, np.generic):

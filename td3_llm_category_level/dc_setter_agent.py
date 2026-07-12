@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 
 from genai_agent.data import response_schema
-from td3_llm.warm_start import params_to_action
+from td3_llm.warm_start import params_to_action, to_jsonable_value
 from utils import agent_utils
 
 
@@ -268,9 +268,7 @@ def _model_to_dict(value):
 
 
 def _json_candidate(candidate):
-    result = dict(candidate)
-    result["action"] = np.asarray(result.get("action", []), dtype=np.float32).tolist()
-    return result
+    return to_jsonable_value(candidate)
 
 
 def _save_log(path, payload):

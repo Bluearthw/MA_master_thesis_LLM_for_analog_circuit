@@ -9,6 +9,7 @@ import numpy as np
 from genai_agent.data.response_schema import Struct_dc_setter, build_dc_setter_response_schema
 from main import make_td3_args
 from td3_llm_category_level.dc_setter_agent import (
+    _json_candidate,
     build_dc_setter_prompt,
     collect_dc_setter_elites,
     prepare_dc_setter_candidates,
@@ -48,6 +49,18 @@ class DCSetterAgentTests(unittest.TestCase):
             ],
         )
         self.assertEqual(set(parsed.model_dump()["candidates"][0]["parameters"]), set(self.ranges))
+
+    def test_candidate_log_conversion_handles_numpy_scalars_recursively(self):
+        converted = _json_candidate(
+            {
+                "action": np.asarray([0.1], dtype=np.float32),
+                "params": {"Cload": np.float32(1e-12)},
+                "specs": {"dc_gain": np.float64(12.0), "counts": [np.int64(2)]},
+            }
+        )
+        self.assertIsInstance(converted["params"]["Cload"], float)
+        self.assertIsInstance(converted["specs"]["dc_gain"], float)
+        self.assertIsInstance(converted["specs"]["counts"][0], int)
 
     def test_validation_assigns_ids_quantizes_and_removes_duplicates(self):
         response = Struct_dc_setter(

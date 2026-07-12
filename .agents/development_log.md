@@ -8,3 +8,4 @@
 - Added focused mocked tests; no real LLM, ngspice, or full RL run was started.
 - Unified policy and seed full-candidate recording and added simulation, solution-time, LLM-time, and wall-time metrics.
 - Replaced the DC Setter's open parameter dictionary at call time with a circuit-specific closed response schema.
+- Reused recursive NumPy conversion for JSON-safe DC Setter candidate logs.
