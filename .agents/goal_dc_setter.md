@@ -2,7 +2,7 @@
 
 ## Objective
 
-Create a simple LLM DC Setter that proposes initial parameter candidates for DC-gain warm-up before TD3 sizing.
+Create a simple LLM DC Setter that proposes initial parameter candidates for DC-gain warm-up before TD3 sizing. The setter prioritizes DC-bias parameters, but DC gain is measured using AC analysis.
 
 The agent must use `get_client()` and `call_agent()` from `utils/agent_utils.py`. It must not be implemented as a pure Python sizing heuristic.
 
@@ -63,7 +63,7 @@ Python selects relevant lesson IDs by scanning category memory before building `
 }
 ```
 
-`increase_dc_gain` is the LLM's expected direction, not a measured result. Python must determine the actual DC gain through simulation.
+`increase_dc_gain` is the LLM's expected direction, not a measured result. Python must determine the actual low-frequency gain through AC simulation.
 
 Candidate IDs use the deterministic format `dc_gain_<index>`. Python should assign or overwrite these IDs to prevent malformed or duplicate identifiers.
 
@@ -76,7 +76,9 @@ Candidate IDs use the deterministic format `dc_gain_<index>`. Python should assi
 - Quantize parameter values when digitized mode is enabled.
 - Convert physical parameter dictionaries into normalized TD3 actions.
 - Reject duplicate candidates after validation and quantization.
-- Run OP/DC simulation and calculate measured DC gain and deterministic reward.
+- Run OP analysis first to reject candidates with invalid bias, operating regions, or headroom.
+- Run AC analysis for OP-feasible candidates to measure low-frequency DC gain.
+- Calculate the deterministic warm-start reward from OP feasibility and measured AC gain.
 - Record the candidate source, selected lesson IDs, LLM-call metrics, and simulation result.
 - Fall back to Sobol warm-up if the LLM call or validation fails.
 
@@ -96,3 +98,17 @@ Stop this goal when:
 - No direct LLM-generated rewards or pass/fail decisions.
 - No replacement of baseline TD3 or Sobol.
 - No transfer of actor or critic weights.
+
+## Constraints
+
+- Do not make destructive git changes.
+- Commit only coherent changes; do not push.
+- Preserve unrelated user changes in the working tree.
+- If an architecture decision is ambiguous, choose the conservative option and document it.
+- Put category-level logic in `td3_llm_category_level/`.
+- Preserve normal TD3 as the baseline.
+- Do not change production YAML targets unless the change is explicitly test-only and documented.
+- Final strict-spec evaluation must use the original targets.
+- Low-fidelity OP/AC warm-start results must not be treated as final strict-spec success.
+- Do not let invalid LLM output affect TD3 before deterministic validation.
+- Do not run a full RL/ngspice trial unless the user explicitly requests it or the current phase requires it.
