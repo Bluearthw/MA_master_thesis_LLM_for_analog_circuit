@@ -6,3 +6,4 @@
 - Kept baseline TD3 unchanged; `category_llm_rl` always attempts the Setter.
 - Added deterministic validation, minimum-value baseline, OP gating, AC-gain evaluation, and Sobol fallback.
 - Added focused mocked tests; no real LLM, ngspice, or full RL run was started.
+- Unified policy and seed full-candidate recording and added simulation, solution-time, LLM-time, and wall-time metrics.

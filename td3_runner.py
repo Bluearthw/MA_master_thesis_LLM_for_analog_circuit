@@ -241,6 +241,7 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
     # Initial environment
     # env = CircuitEnv(run_id=args.run_id, circuit_name='TwoStage')
     env = CircuitEnv(run_id=args.run_id, circuit_name = circuit_name, list_min_targets=list_min_targets)
+    env.run_start_time = start_time
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
     # Intial agent
@@ -313,11 +314,21 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
             "low_fidelity_strategy": str(getattr(args, "low_fidelity_strategy", "ac_gain")),
             "warm_start_reduce_random": bool(getattr(args, "warm_start_reduce_random", False)),
             "env_steps": int(getattr(env, "env_steps", 0)),
+            "simulations_total": int(
+                getattr(env, "full_simulations", 0) + getattr(env, "low_fidelity_simulations", 0)
+            ),
+            "simple_simulations": int(getattr(env, "low_fidelity_simulations", 0)),
             "full_simulations": int(getattr(env, "full_simulations", 0)),
+            "seed_full_simulations": int(getattr(env, "seed_full_simulations", 0)),
             "low_fidelity_simulations": int(getattr(env, "low_fidelity_simulations", 0)),
             "first_success_full_simulations": getattr(env, "first_success_full_simulations", None),
+            "time_to_first_solution_seconds": getattr(env, "time_to_first_solution_seconds", None),
+            "time_to_best_solution_seconds": getattr(env, "time_to_best_solution_seconds", None),
+            "llm_time_seconds": float(existing_summary.get("llm", {}).get("time_seconds", 0.0)),
+            "wall_time_seconds": float(total_time),
             "best_reward": float(getattr(env, "best_reward", float("-inf"))),
             "best_step": getattr(env, "best_step", None),
+            "best_source": getattr(env, "best_source", None),
             "best_constraints_met": bool(getattr(env, "best_hard_satisfied", False)),
             "best_netlist_path": getattr(env, "best_netlist_path", None),
             "curriculum_target_path": str(curriculum_target_path) if curriculum_target_path else None,

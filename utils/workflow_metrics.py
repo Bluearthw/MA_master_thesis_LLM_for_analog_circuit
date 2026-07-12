@@ -42,3 +42,19 @@ def record_llm_call(run_id, agent_name, circuit_name=None, mode=None, solutions_
 
     summary.setdefault("rl", {})
     _save_summary(path, summary)
+
+
+def record_llm_duration(run_id, agent_name, duration_seconds, solutions_dir="solutions"):
+    """Accumulate model-request duration for one LLM call attempt."""
+    if not run_id or not agent_name:
+        return
+
+    path = _summary_path(run_id, solutions_dir=solutions_dir)
+    summary = _load_summary(path)
+    llm = summary.setdefault("llm", {})
+    duration = max(0.0, float(duration_seconds))
+    llm["time_seconds"] = float(llm.get("time_seconds", 0.0)) + duration
+    time_by_agent = llm.setdefault("time_by_agent_seconds", {})
+    agent_key = str(agent_name)
+    time_by_agent[agent_key] = float(time_by_agent.get(agent_key, 0.0)) + duration
+    _save_summary(path, summary)

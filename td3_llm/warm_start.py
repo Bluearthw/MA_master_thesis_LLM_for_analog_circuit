@@ -25,11 +25,11 @@ def params_to_action(params, param_ranges):
 
 
 def _evaluate_seed_action(env, action):
-    env.evaluate(action)
-    reward, hard_satisfied = env.reward_computation(env.cur_norm_specs)
-    env._save_best_candidate(reward, hard_satisfied)
-    observation = env._build_observation(env.cur_norm_specs)
-    return observation, reward
+    observation, reward, hard_satisfied = env.evaluate_full_candidate(
+        action,
+        source="warm_start_seed",
+    )
+    return observation, reward, hard_satisfied
 
 
 def seed_replay_from_category_memory(env, replay_buffer, category, max_records=20, memory_dir=None):
@@ -45,7 +45,7 @@ def seed_replay_from_category_memory(env, replay_buffer, category, max_records=2
     for record in selected:
         try:
             action = params_to_action(record.get("params", {}), env.param_ranges)
-            next_observation, reward = _evaluate_seed_action(env, action)
+            next_observation, reward, _ = _evaluate_seed_action(env, action)
         except Exception as exc:
             print(f"[td3_llm] Failed to seed memory record: {exc}")
             continue
@@ -162,7 +162,7 @@ def seed_replay_from_low_fidelity_elites(env, replay_buffer, elites, log_path=No
     for elite in elites:
         action = np.asarray(elite["action"], dtype=np.float32)
         try:
-            next_observation, reward = _evaluate_seed_action(env, action)
+            next_observation, reward, hard_satisfied = _evaluate_seed_action(env, action)
         except Exception as exc:
             print(f"[td3_llm] Failed full evaluation for OP/DC elite: {exc}")
             continue
@@ -175,6 +175,7 @@ def seed_replay_from_low_fidelity_elites(env, replay_buffer, elites, log_path=No
             {
                 "low_fidelity_reward": float(elite.get("reward", 0.0)),
                 "full_reward": float(np.asarray(reward).reshape(-1)[0]),
+                "constraints_met": bool(hard_satisfied),
                 "action": action.tolist(),
                 "next_observation": np.asarray(next_observation, dtype=np.float32).tolist(),
                 "done": done,

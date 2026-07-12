@@ -12,7 +12,7 @@ sys.path.append('.')
 from utils import gen_utils
 from genai_agent.data import local_config
 from utils import file_utils
-from utils.workflow_metrics import record_llm_call
+from utils.workflow_metrics import record_llm_call, record_llm_duration
 def get_client():
     return genai.Client(http_options=HttpOptions(api_version="v1"))
 
@@ -71,11 +71,19 @@ def call_agent(contents: str,
                 circuit_name=metrics_circuit_name,
                 mode=metrics_mode,
             )
-            response = client.models.generate_content(
-                model=model,
-                contents=contents,
-                config=cfg,
-            )
+            llm_started = time.perf_counter()
+            try:
+                response = client.models.generate_content(
+                    model=model,
+                    contents=contents,
+                    config=cfg,
+                )
+            finally:
+                record_llm_duration(
+                    metrics_run_id,
+                    metrics_agent_name,
+                    time.perf_counter() - llm_started,
+                )
             return response.parsed
 
         except Exception as e:

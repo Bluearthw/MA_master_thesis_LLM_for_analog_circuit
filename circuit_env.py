@@ -6,6 +6,7 @@ import json
 import yaml
 import math
 import shutil
+import time
 import utils.file_utils as file_utils
 from ngspice_interface import DUT as DUT_NGSpice
 from utils.plotting import plotLearning, plot_running_maximum, solutions2pareto
@@ -87,7 +88,12 @@ class CircuitEnv(gym.Env):
         self.best_netlist_path = None
         self.full_simulations = 0
         self.low_fidelity_simulations = 0
+        self.seed_full_simulations = 0
         self.first_success_full_simulations = None
+        self.run_start_time = time.time()
+        self.time_to_first_solution_seconds = None
+        self.time_to_best_solution_seconds = None
+        self.best_source = None
         self.candidate_history = []
 
 
@@ -393,37 +399,14 @@ class CircuitEnv(gym.Env):
             - done (bool): A flag indicating whether the episode has ended.
             - info (dict): Additional information, including whether the goal state was reached.
         """
-        self.evaluate(action)
-        reward, hard_satisfied = self.reward_computation(self.cur_norm_specs)
-        self._record_candidate(action, reward, hard_satisfied)
-        self._save_best_candidate(reward, hard_satisfied)
-        
-        observation = self._build_observation(self.cur_norm_specs)
+        observation, reward, hard_satisfied = self.evaluate_full_candidate(action, source="policy")
 
         self.reward_history.append(reward)
         self.score += reward
 
 
         if hard_satisfied:
-            if self.first_success_full_simulations is None:
-                self.first_success_full_simulations = self.full_simulations
             plot_running_maximum(self.reward_history, self.run_id)
-            csvName = file_utils.save_solutions_csv(self.run_id, self.env_steps, self.param_values, self.real_specs, reward)
-            solutions2pareto(csvName, self.run_id, True)
-
-            # =======================
-            # Copy Pareto netlist here
-            # =======================
-            try:
-                netlist_path = getattr(self.simulation_engine, "netlist_path", None)
-                if netlist_path and os.path.isfile(netlist_path):
-                    target_path = os.path.join(self.all_rl_cir_dir, f"pareto_step_{self.env_steps}.cir")
-                    shutil.copy(netlist_path, target_path)
-                    print(f"[CircuitEnv] Saved Pareto netlist to {target_path}")
-                else:
-                    print("[CircuitEnv] Warning: No valid netlist found to copy.")
-            except Exception as e:
-                print(f"[CircuitEnv] Failed to copy Pareto netlist: {e}")
 
         self.env_steps += 1
         self.episode_steps += 1
@@ -438,11 +421,58 @@ class CircuitEnv(gym.Env):
         info = {'goal_reached': hard_satisfied}
         return observation, reward, done, info
 
-    def _record_candidate(self, action, reward, hard_satisfied):
+    def evaluate_full_candidate(self, action, source="policy"):
+        """Evaluate and persist one full-spec candidate without advancing an RL episode."""
+        self.evaluate(action)
+        reward, hard_satisfied = self.reward_computation(self.cur_norm_specs)
+        if source != "policy":
+            self.seed_full_simulations += 1
+        self._record_candidate(action, reward, hard_satisfied, source=source)
+        self._save_best_candidate(reward, hard_satisfied, source=source)
+        observation = self._build_observation(self.cur_norm_specs)
+
+        if hard_satisfied:
+            if self.first_success_full_simulations is None:
+                self.first_success_full_simulations = self.full_simulations
+                self.time_to_first_solution_seconds = self._elapsed_run_seconds()
+            self._record_strict_solution(reward, source=source)
+
+        return observation, reward, hard_satisfied
+
+    def _record_strict_solution(self, reward, source="policy"):
+        simulation_index = int(self.full_simulations)
+        csv_name = file_utils.save_solutions_csv(
+            self.run_id,
+            simulation_index,
+            self.param_values,
+            self.real_specs,
+            reward,
+        )
+        solutions2pareto(csv_name, self.run_id, True)
+        try:
+            netlist_path = getattr(self.simulation_engine, "netlist_path", None)
+            if netlist_path and os.path.isfile(netlist_path):
+                target_path = os.path.join(
+                    self.all_rl_cir_dir,
+                    f"pareto_sim_{simulation_index}_{source}.cir",
+                )
+                shutil.copy(netlist_path, target_path)
+                print(f"[CircuitEnv] Saved Pareto netlist to {target_path}")
+            else:
+                print("[CircuitEnv] Warning: No valid netlist found to copy.")
+        except Exception as exc:
+            print(f"[CircuitEnv] Failed to copy Pareto netlist: {exc}")
+
+    def _elapsed_run_seconds(self):
+        return max(0.0, float(time.time() - self.run_start_time))
+
+    def _record_candidate(self, action, reward, hard_satisfied, source="policy"):
         """Keep passive full-spec trace data for category-level transfer analysis."""
         reward_value = float(np.asarray(reward).reshape(-1)[0])
         record = {
             "step": int(self.env_steps),
+            "full_simulation": int(self.full_simulations),
+            "source": str(source),
             "action": np.asarray(action, dtype=np.float32).copy(),
             "params": dict(getattr(self, "param_values", {}) or {}),
             "metrics": dict(getattr(self, "real_specs", {}) or {}),
@@ -465,7 +495,7 @@ class CircuitEnv(gym.Env):
             return value.item()
         return value
 
-    def _save_best_candidate(self, reward, hard_satisfied):
+    def _save_best_candidate(self, reward, hard_satisfied, source="policy"):
         """Persist a new highest-reward candidate before temporary-file cleanup."""
         reward_value = float(np.asarray(reward).reshape(-1)[0])
         if not np.isfinite(reward_value) or reward_value <= self.best_reward:
@@ -491,10 +521,15 @@ class CircuitEnv(gym.Env):
         self.best_step = self.env_steps
         self.best_hard_satisfied = bool(hard_satisfied)
         self.best_netlist_path = os.path.abspath(target_path)
+        self.best_source = str(source)
+        self.time_to_best_solution_seconds = self._elapsed_run_seconds()
 
         metadata = {
             "circuit_name": self.circuit_name,
             "simulation_step": self.best_step,
+            "full_simulation": int(self.full_simulations),
+            "source": self.best_source,
+            "time_to_best_solution_seconds": self.time_to_best_solution_seconds,
             "reward": self.best_reward,
             "constraints_met": self.best_hard_satisfied,
             "circuit_params": self.best_params,
