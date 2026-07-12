@@ -43,6 +43,14 @@ from .repair import (
     build_repair_plan,
     save_repair_plan,
 )
+from .dc_setter_agent import (
+    build_dc_setter_prompt,
+    call_dc_setter_agent,
+    collect_dc_setter_elites,
+    load_category_experience,
+    prepare_dc_setter_candidates,
+    resolve_category_name,
+)
 
 __all__ = [
     "apply_low_fidelity_policy_to_args",
@@ -56,10 +64,16 @@ __all__ = [
     "build_transfer_plan",
     "build_transfer_plan_for_circuit",
     "choose_low_fidelity_policy",
+    "build_dc_setter_prompt",
     "build_run_trace",
+    "call_dc_setter_agent",
+    "collect_dc_setter_elites",
     "apply_repair_plan_to_args",
     "inspect_adapter",
     "load_adapter",
+    "load_category_experience",
+    "prepare_dc_setter_candidates",
+    "resolve_category_name",
     "save_adapter",
     "save_feedback_summary",
     "save_feedback_transfer_plan",

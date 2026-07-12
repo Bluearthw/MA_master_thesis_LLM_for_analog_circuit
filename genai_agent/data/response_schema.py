@@ -111,3 +111,20 @@ class Struct_make_pycal_func_list(BaseModel):
     plugins: List[SinglePluginFunction] = Field(
         description="List of self-contained mathematical python calculation functions for each requested missing specification contract."
     )
+
+
+class DCSetterCandidate(BaseModel):
+    candidate_id: str = Field(description="Candidate label; Python will replace it with dc_gain_<index>.")
+    parameters: Dict[str, float] = Field(
+        description="Complete physical parameter dictionary using only the provided parameter names."
+    )
+    increase_dc_gain: bool = Field(
+        description="Whether the proposed change is expected to increase low-frequency AC gain."
+    )
+
+
+class Struct_dc_setter(BaseModel):
+    analysis_summary: str = Field(description="Concise explanation of the DC-bias sizing strategy.")
+    candidates: List[DCSetterCandidate] = Field(
+        description="Complete candidate parameter sets, ordered from most promising to least promising."
+    )

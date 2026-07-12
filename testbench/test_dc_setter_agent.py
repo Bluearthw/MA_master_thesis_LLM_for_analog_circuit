@@ -1,0 +1,144 @@
+import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from types import SimpleNamespace
+from unittest.mock import patch
+
+import numpy as np
+
+from genai_agent.data.response_schema import Struct_dc_setter
+from main import make_td3_args
+from td3_llm_category_level.dc_setter_agent import (
+    build_dc_setter_prompt,
+    collect_dc_setter_elites,
+    prepare_dc_setter_candidates,
+    resolve_category_name,
+)
+
+
+class DCSetterAgentTests(unittest.TestCase):
+    def setUp(self):
+        self.ranges = {
+            "VB1_VAL": {"min": 0.0, "max": 1.2, "step": 0.05},
+            "mn1": {"min": 1, "max": 25, "step": 1},
+            "wn1": {"min": 0.25e-6, "max": 3.0e-6, "step": 0.25e-6},
+        }
+
+    def test_prompt_contains_only_minimal_contract_fields(self):
+        prompt = build_dc_setter_prompt("category_1", "M1 d g s b nmos", [], self.ranges, 2)
+        self.assertIn('"category"', prompt)
+        self.assertIn('"netlist"', prompt)
+        self.assertIn('"experience"', prompt)
+        self.assertIn('"parameters"', prompt)
+        self.assertNotIn('"full_targets_context"', prompt)
+
+    def test_validation_assigns_ids_quantizes_and_removes_duplicates(self):
+        response = Struct_dc_setter(
+            analysis_summary="Bias first.",
+            candidates=[
+                {
+                    "candidate_id": "bad_id",
+                    "parameters": {"VB1_VAL": 0.11, "mn1": 3.8, "wn1": 0.61e-6},
+                    "increase_dc_gain": True,
+                },
+                {
+                    "candidate_id": "duplicate",
+                    "parameters": {"VB1_VAL": 0.11, "mn1": 3.8, "wn1": 0.61e-6},
+                    "increase_dc_gain": False,
+                },
+            ],
+        )
+        candidates, errors = prepare_dc_setter_candidates(response, self.ranges, quantize=True)
+        self.assertEqual(errors, [])
+        self.assertEqual([item["candidate_id"] for item in candidates], ["dc_gain_1", "dc_gain_2"])
+        self.assertEqual(candidates[1]["parameters"]["VB1_VAL"], 0.1)
+        self.assertEqual(candidates[1]["parameters"]["mn1"], 4.0)
+        self.assertTrue(np.all(candidates[1]["action"] <= 1.0))
+        self.assertTrue(np.all(candidates[1]["action"] >= -1.0))
+
+    def test_incomplete_and_out_of_bounds_candidates_are_rejected(self):
+        response = {
+            "candidates": [
+                {"parameters": {"VB1_VAL": 0.5}, "increase_dc_gain": True},
+                {
+                    "parameters": {"VB1_VAL": 2.0, "mn1": 2, "wn1": 0.5e-6},
+                    "increase_dc_gain": True,
+                },
+            ]
+        }
+        candidates, errors = prepare_dc_setter_candidates(response, self.ranges)
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]["source"], "minimum_baseline")
+        self.assertEqual(len(errors), 2)
+
+    def test_category_mode_always_configures_setter_and_sobol_fallback(self):
+        args = make_td3_args("9", "category_llm_rl", run_id="test_run", category_key="category_1")
+        self.assertEqual(args.dc_setter_candidates, 8)
+        self.assertEqual(args.dc_setter_elites, 5)
+        self.assertEqual(args.dc_setter_fallback_sobol_samples, 20)
+
+    def test_category_key_resolves_to_human_readable_name(self):
+        self.assertIn("Amplifiers", resolve_category_name("category_1"))
+
+    def test_mocked_collection_runs_op_gate_then_ac(self):
+        with TemporaryDirectory() as temp_dir:
+            netlist_path = Path(temp_dir) / "final_netlist.cir"
+            netlist_path.write_text("M1 d g s b nmos\n", encoding="utf-8")
+
+            class FakeEnv:
+                run_id = "test_run"
+                circuit_name = "9"
+                param_ranges = self.ranges
+                simulation_engine = SimpleNamespace(netlist_path=str(netlist_path))
+
+                def __init__(self):
+                    self.strategies = []
+
+                def evaluate_low_fidelity(self, action, strategy):
+                    self.strategies.append(strategy)
+                    if strategy == "op_domain":
+                        specs = {"op_device_count": 2, "op_alive_ratio": 1.0, "op_saturation_ratio": 1.0}
+                    else:
+                        specs = {"dc_gain": 12.0}
+                    return {
+                        "action": action,
+                        "params": {
+                            name: bounds["min"] for name, bounds in self.param_ranges.items()
+                        },
+                        "specs": specs,
+                        "netlist_path": str(netlist_path),
+                    }
+
+                def dc_feasibility_reward(self, specs, strategy):
+                    return float(specs["op_alive_ratio"] + specs["dc_gain"])
+
+            response = Struct_dc_setter(
+                analysis_summary="Bias first.",
+                candidates=[
+                    {
+                        "candidate_id": "ignored",
+                        "parameters": {"VB1_VAL": 0.5, "mn1": 2, "wn1": 0.5e-6},
+                        "increase_dc_gain": True,
+                    }
+                ],
+            )
+            env = FakeEnv()
+            with patch(
+                "td3_llm_category_level.dc_setter_agent.call_dc_setter_agent",
+                return_value=response,
+            ):
+                elites = collect_dc_setter_elites(
+                    env,
+                    category="category_1",
+                    candidate_count=1,
+                    elite_count=1,
+                    min_alive_ratio=0.5,
+                )
+
+            self.assertEqual(len(elites), 1)
+            self.assertEqual(env.strategies, ["op_domain", "ac_gain", "op_domain", "ac_gain"])
+            self.assertEqual(elites[0]["candidate_id"], "dc_gain_1")
+
+
+if __name__ == "__main__":
+    unittest.main()

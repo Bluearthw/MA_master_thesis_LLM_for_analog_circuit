@@ -18,7 +18,7 @@ from td3_llm import (
     seed_replay_from_category_memory,
     seed_replay_from_low_fidelity_elites,
 )
-from td3_llm_category_level import build_run_trace, save_run_trace
+from td3_llm_category_level import build_run_trace, collect_dc_setter_elites, save_run_trace
 warmup_step = 1000
 def readParser(argv=None):
     parser = argparse.ArgumentParser(description='TD3-based RL for Circuit Sizing')
@@ -95,6 +95,21 @@ def readParser(argv=None):
 
     parser.add_argument('--full_warmup_steps', type=int, default=None,
                         help='override the number of random full-spec warmup steps after optional seeding')
+
+    parser.add_argument('--dc_setter_candidates', type=int, default=0,
+                        help='number of LLM DC Setter candidates; zero disables the agent')
+
+    parser.add_argument('--dc_setter_elites', type=int, default=0,
+                        help='number of validated DC Setter candidates to evaluate with full specs')
+
+    parser.add_argument('--dc_setter_fallback_sobol_samples', type=int, default=0,
+                        help='Sobol sample count used only when the DC Setter yields no valid elites')
+
+    parser.add_argument('--dc_setter_min_alive_ratio', type=float, default=0.5,
+                        help='minimum OP alive-device ratio before AC gain evaluation')
+
+    parser.add_argument('--dc_setter_quantize', action="store_true",
+                        help='quantize LLM physical parameters to YAML steps before simulation')
     
     return parser.parse_args(argv)
 
@@ -125,7 +140,37 @@ def warmup_exploration(args, env, env_pool, agent):
     target_random_warmup = args.w if full_warmup_steps is None else max(0, int(full_warmup_steps))
     seed_log_dir = Path(env.solutions_dir) / "warm_start"
 
-    if getattr(args, "dc_seed_samples", 0) > 0 and getattr(args, "dc_seed_elites", 0) > 0:
+    elites = []
+    if getattr(args, "dc_setter_candidates", 0) > 0:
+        elites = collect_dc_setter_elites(
+            env,
+            category=getattr(args, "warm_start_category", "uncategorized"),
+            candidate_count=args.dc_setter_candidates,
+            elite_count=getattr(args, "dc_setter_elites", 0),
+            strategy=getattr(args, "low_fidelity_strategy", "op_ac_domain"),
+            min_alive_ratio=getattr(args, "dc_setter_min_alive_ratio", 0.5),
+            quantize=getattr(args, "dc_setter_quantize", False),
+            log_path=seed_log_dir / "dc_setter_candidates.json",
+        )
+
+    fallback_samples = int(getattr(args, "dc_setter_fallback_sobol_samples", 0) or 0)
+    if getattr(args, "dc_setter_candidates", 0) > 0 and not elites and fallback_samples > 0:
+        elites = collect_low_fidelity_elites(
+            env,
+            sample_count=fallback_samples,
+            elite_count=getattr(args, "dc_setter_elites", 0),
+            method="sobol",
+            seed=getattr(args, "seed", None),
+            strategy=getattr(args, "low_fidelity_strategy", "ac_gain"),
+            log_path=seed_log_dir / "dc_setter_sobol_fallback.json",
+        )
+
+    if (
+        getattr(args, "dc_setter_candidates", 0) <= 0
+        and not elites
+        and getattr(args, "dc_seed_samples", 0) > 0
+        and getattr(args, "dc_seed_elites", 0) > 0
+    ):
         elites = collect_low_fidelity_elites(
             env,
             sample_count=args.dc_seed_samples,
@@ -135,6 +180,8 @@ def warmup_exploration(args, env, env_pool, agent):
             strategy=getattr(args, "low_fidelity_strategy", "ac_gain"),
             log_path=seed_log_dir / "op_dc_candidates.json",
         )
+
+    if elites:
         seeded = seed_replay_from_low_fidelity_elites(
             env,
             env_pool,
@@ -253,6 +300,13 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
             "planned_env_steps": int(args.T),
             "warmup_steps": int(args.w),
             "full_warmup_steps": getattr(args, "full_warmup_steps", None),
+            "dc_setter_candidates": int(getattr(args, "dc_setter_candidates", 0)),
+            "dc_setter_elites": int(getattr(args, "dc_setter_elites", 0)),
+            "dc_setter_fallback_sobol_samples": int(
+                getattr(args, "dc_setter_fallback_sobol_samples", 0)
+            ),
+            "dc_setter_min_alive_ratio": float(getattr(args, "dc_setter_min_alive_ratio", 0.5)),
+            "dc_setter_quantize": bool(getattr(args, "dc_setter_quantize", False)),
             "dc_seed_samples": int(getattr(args, "dc_seed_samples", 0)),
             "dc_seed_elites": int(getattr(args, "dc_seed_elites", 0)),
             "dc_seed_method": str(getattr(args, "dc_seed_method", "random")),

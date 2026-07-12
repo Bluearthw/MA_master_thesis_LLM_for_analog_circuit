@@ -43,13 +43,11 @@ def get_workflow_goal():
     # 4: spec/prompt update only
     return 2
 
-
 def get_td3_experiment_mode():
     """Choose the TD3 sizing preset used when workflow_goal is RL sizing."""
     # return "baseline"
     # return "op_seed"
     return "category_llm_rl"
-
 
 def make_run_id(circuit_id, mode):
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -83,6 +81,10 @@ def make_td3_args(circuit_id, mode, run_id=None, category_key=None):
     if mode == "category_llm_rl":
         args.T = 30
         args.batch_size = 8
+        args.dc_setter_candidates = 8
+        args.dc_setter_elites = 5
+        args.dc_setter_fallback_sobol_samples = 20
+        args.dc_setter_min_alive_ratio = 0.5
         args.dc_seed_samples = 20
         args.dc_seed_elites = 5
         args.dc_seed_method = "sobol"
