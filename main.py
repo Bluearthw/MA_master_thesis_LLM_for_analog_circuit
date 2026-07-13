@@ -81,7 +81,8 @@ def make_td3_args(circuit_id, mode, run_id=None, category_key=None):
     if mode == "category_llm_rl":
         args.T = 30
         args.batch_size = 8
-        args.dc_setter_candidates = 8
+        args.dc_setter_candidates = 2
+        args.dc_setter_rounds = 2
         args.dc_setter_elites = 5
         args.dc_setter_fallback_sobol_samples = 20
         args.dc_setter_min_alive_ratio = 0.5

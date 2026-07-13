@@ -99,6 +99,9 @@ def readParser(argv=None):
     parser.add_argument('--dc_setter_candidates', type=int, default=0,
                         help='number of LLM DC Setter candidates; zero disables the agent')
 
+    parser.add_argument('--dc_setter_rounds', type=int, default=1,
+                        help='number of simulation-feedback refinement calls to the DC Setter')
+
     parser.add_argument('--dc_setter_elites', type=int, default=0,
                         help='number of validated DC Setter candidates to evaluate with full specs')
 
@@ -147,6 +150,7 @@ def warmup_exploration(args, env, env_pool, agent):
             category=getattr(args, "warm_start_category", "uncategorized"),
             candidate_count=args.dc_setter_candidates,
             elite_count=getattr(args, "dc_setter_elites", 0),
+            round_count=getattr(args, "dc_setter_rounds", 1),
             strategy=getattr(args, "low_fidelity_strategy", "op_ac_domain"),
             min_alive_ratio=getattr(args, "dc_setter_min_alive_ratio", 0.5),
             quantize=getattr(args, "dc_setter_quantize", False),
@@ -302,6 +306,7 @@ def td3_start(args=None, circuit_name=None, list_min_targets=None):
             "warmup_steps": int(args.w),
             "full_warmup_steps": getattr(args, "full_warmup_steps", None),
             "dc_setter_candidates": int(getattr(args, "dc_setter_candidates", 0)),
+            "dc_setter_rounds": int(getattr(args, "dc_setter_rounds", 1)),
             "dc_setter_elites": int(getattr(args, "dc_setter_elites", 0)),
             "dc_setter_fallback_sobol_samples": int(
                 getattr(args, "dc_setter_fallback_sobol_samples", 0)

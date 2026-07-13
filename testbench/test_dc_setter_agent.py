@@ -26,11 +26,20 @@ class DCSetterAgentTests(unittest.TestCase):
         }
 
     def test_prompt_contains_only_minimal_contract_fields(self):
-        prompt = build_dc_setter_prompt("category_1", "M1 d g s b nmos", [], self.ranges, 2)
+        prompt = build_dc_setter_prompt(
+            "category_1",
+            "M1 d g s b nmos",
+            [],
+            self.ranges,
+            2,
+            simulation_feedback=[{"candidate_id": "default", "measured": {"dc_gain": 1.0}}],
+        )
         self.assertIn('"category"', prompt)
         self.assertIn('"netlist"', prompt)
         self.assertIn('"experience"', prompt)
         self.assertIn('"parameters"', prompt)
+        self.assertIn('"simulation_feedback"', prompt)
+        self.assertIn("Do not create a monotonic sweep", prompt)
         self.assertNotIn('"full_targets_context"', prompt)
 
     def test_dynamic_schema_declares_and_preserves_every_parameter(self):
@@ -103,14 +112,15 @@ class DCSetterAgentTests(unittest.TestCase):
 
     def test_category_mode_always_configures_setter_and_sobol_fallback(self):
         args = make_td3_args("9", "category_llm_rl", run_id="test_run", category_key="category_1")
-        self.assertEqual(args.dc_setter_candidates, 8)
+        self.assertEqual(args.dc_setter_candidates, 2)
+        self.assertEqual(args.dc_setter_rounds, 2)
         self.assertEqual(args.dc_setter_elites, 5)
         self.assertEqual(args.dc_setter_fallback_sobol_samples, 20)
 
     def test_category_key_resolves_to_human_readable_name(self):
         self.assertIn("Amplifiers", resolve_category_name("category_1"))
 
-    def test_mocked_collection_runs_op_gate_then_ac(self):
+    def test_mocked_collection_runs_default_and_two_feedback_rounds(self):
         with TemporaryDirectory() as temp_dir:
             netlist_path = Path(temp_dir) / "final_netlist.cir"
             netlist_path.write_text("M1 d g s b nmos\n", encoding="utf-8")
@@ -119,22 +129,28 @@ class DCSetterAgentTests(unittest.TestCase):
                 run_id = "test_run"
                 circuit_name = "9"
                 param_ranges = self.ranges
-                simulation_engine = SimpleNamespace(netlist_path=str(netlist_path))
+                simulation_engine = SimpleNamespace(
+                    netlist_path=str(netlist_path),
+                    parameters={"VB1_VAL": 0.4, "mn1": 1, "wn1": 0.25e-6},
+                )
 
                 def __init__(self):
                     self.strategies = []
 
                 def evaluate_low_fidelity(self, action, strategy):
                     self.strategies.append(strategy)
+                    params = {
+                        name: float(bounds["min"] + ((float(action[index]) + 1.0) / 2.0) * (bounds["max"] - bounds["min"]))
+                        for index, (name, bounds) in enumerate(self.param_ranges.items())
+                    }
+                    params["mn1"] = int(params["mn1"])
                     if strategy == "op_domain":
                         specs = {"op_device_count": 2, "op_alive_ratio": 1.0, "op_saturation_ratio": 1.0}
                     else:
-                        specs = {"dc_gain": 12.0}
+                        specs = {"dc_gain": 10.0 + params["VB1_VAL"]}
                     return {
                         "action": action,
-                        "params": {
-                            name: bounds["min"] for name, bounds in self.param_ranges.items()
-                        },
+                        "params": params,
                         "specs": specs,
                         "netlist_path": str(netlist_path),
                     }
@@ -142,32 +158,58 @@ class DCSetterAgentTests(unittest.TestCase):
                 def dc_feasibility_reward(self, specs, strategy):
                     return float(specs["op_alive_ratio"] + specs["dc_gain"])
 
-            response = Struct_dc_setter(
+            round_1 = Struct_dc_setter(
                 analysis_summary="Bias first.",
                 candidates=[
                     {
-                        "candidate_id": "ignored",
+                        "candidate_id": "r1_a",
                         "parameters": {"VB1_VAL": 0.5, "mn1": 2, "wn1": 0.5e-6},
                         "increase_dc_gain": True,
-                    }
+                    },
+                    {
+                        "candidate_id": "r1_b",
+                        "parameters": {"VB1_VAL": 0.6, "mn1": 2, "wn1": 0.75e-6},
+                        "increase_dc_gain": True,
+                    },
+                ],
+            )
+            round_2 = Struct_dc_setter(
+                analysis_summary="Refine measured direction.",
+                candidates=[
+                    {
+                        "candidate_id": "r2_a",
+                        "parameters": {"VB1_VAL": 0.55, "mn1": 3, "wn1": 0.75e-6},
+                        "increase_dc_gain": True,
+                    },
+                    {
+                        "candidate_id": "r2_b",
+                        "parameters": {"VB1_VAL": 0.45, "mn1": 2, "wn1": 0.5e-6},
+                        "increase_dc_gain": False,
+                    },
                 ],
             )
             env = FakeEnv()
             with patch(
                 "td3_llm_category_level.dc_setter_agent.call_dc_setter_agent",
-                return_value=response,
-            ):
+                side_effect=[round_1, round_2],
+            ) as call_mock:
                 elites = collect_dc_setter_elites(
                     env,
                     category="category_1",
-                    candidate_count=1,
-                    elite_count=1,
+                    candidate_count=2,
+                    elite_count=2,
+                    round_count=2,
                     min_alive_ratio=0.5,
                 )
 
-            self.assertEqual(len(elites), 1)
-            self.assertEqual(env.strategies, ["op_domain", "ac_gain", "op_domain", "ac_gain"])
-            self.assertEqual(elites[0]["candidate_id"], "dc_gain_1")
+            self.assertEqual(len(elites), 2)
+            self.assertEqual(env.strategies, ["op_domain", "ac_gain"] * 5)
+            self.assertEqual(call_mock.call_count, 2)
+            first_feedback = call_mock.call_args_list[0].kwargs["simulation_feedback"]
+            second_feedback = call_mock.call_args_list[1].kwargs["simulation_feedback"]
+            self.assertEqual([item["candidate_id"] for item in first_feedback], ["default"])
+            self.assertEqual(len(second_feedback), 3)
+            self.assertEqual({item["candidate_id"] for item in second_feedback}, {"default", "dc_gain_1", "dc_gain_2"})
 
 
 if __name__ == "__main__":
