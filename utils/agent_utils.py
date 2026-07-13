@@ -78,7 +78,9 @@ def call_agent(contents: str,
                     contents=contents,
                     config=cfg,
                 )
+            
             finally:
+                
                 record_llm_duration(
                     metrics_run_id,
                     metrics_agent_name,
