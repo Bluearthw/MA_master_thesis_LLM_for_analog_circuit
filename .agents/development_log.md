@@ -10,3 +10,4 @@
 - Replaced the DC Setter's open parameter dictionary at call time with a circuit-specific closed response schema.
 - Reused recursive NumPy conversion for JSON-safe DC Setter candidate logs.
 - Added two-round DC Setter refinement: simulate defaults, propose two candidates, feed results back, and propose two refinements.
+- Made the complete DC Setter log payload JSON-safe, including rejected candidates and round feedback.

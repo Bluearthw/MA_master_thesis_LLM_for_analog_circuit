@@ -1,3 +1,4 @@
+import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -10,6 +11,7 @@ from genai_agent.data.response_schema import Struct_dc_setter, build_dc_setter_r
 from main import make_td3_args
 from td3_llm_category_level.dc_setter_agent import (
     _json_candidate,
+    _save_log,
     build_dc_setter_prompt,
     collect_dc_setter_elites,
     prepare_dc_setter_candidates,
@@ -70,6 +72,24 @@ class DCSetterAgentTests(unittest.TestCase):
         self.assertIsInstance(converted["params"]["Cload"], float)
         self.assertIsInstance(converted["specs"]["dc_gain"], float)
         self.assertIsInstance(converted["specs"]["counts"][0], int)
+
+    def test_save_log_converts_numpy_values_in_rejected_candidates(self):
+        with TemporaryDirectory() as temp_dir:
+            log_path = Path(temp_dir) / "dc_setter_candidates.json"
+            _save_log(
+                log_path,
+                {
+                    "rejected": [
+                        {
+                            "params": {"Cload": np.float32(1e-12)},
+                            "specs": {"op_alive_ratio": np.float32(0.0)},
+                        }
+                    ]
+                },
+            )
+            saved = json.loads(log_path.read_text(encoding="utf-8"))
+            self.assertIsInstance(saved["rejected"][0]["params"]["Cload"], float)
+            self.assertIsInstance(saved["rejected"][0]["specs"]["op_alive_ratio"], float)
 
     def test_validation_assigns_ids_quantizes_and_removes_duplicates(self):
         response = Struct_dc_setter(

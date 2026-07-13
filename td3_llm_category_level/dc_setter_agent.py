@@ -455,4 +455,4 @@ def _save_log(path, payload):
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     with open(target, "w", encoding="utf-8") as output_file:
-        json.dump(payload, output_file, indent=2, allow_nan=False)
+        json.dump(to_jsonable_value(payload), output_file, indent=2, allow_nan=False)
