@@ -77,12 +77,22 @@ class FullCandidateMetricsTests(unittest.TestCase):
 
     def test_llm_call_count_and_duration_accumulate(self):
         with TemporaryDirectory() as temp_dir:
-            record_llm_call("run_1", "dc_setter", solutions_dir=temp_dir)
-            record_llm_duration("run_1", "dc_setter", 1.25, solutions_dir=temp_dir)
-            record_llm_call("run_1", "dc_setter", solutions_dir=temp_dir)
-            record_llm_duration("run_1", "dc_setter", 0.75, solutions_dir=temp_dir)
+            record_llm_call("run_1", "dc_setter", circuit_name="9", solutions_dir=temp_dir)
+            record_llm_duration(
+                "run_1",
+                "dc_setter",
+                1.25,
+                solutions_dir=temp_dir,
+            )
+            record_llm_call("run_1", "dc_setter", circuit_name="9", solutions_dir=temp_dir)
+            record_llm_duration(
+                "run_1",
+                "dc_setter",
+                0.75,
+                solutions_dir=temp_dir,
+            )
 
-            summary_path = Path(temp_dir) / "run_1" / "run_summary.json"
+            summary_path = Path(temp_dir) / "9" / "run_1" / "run_summary.json"
             summary = json.loads(summary_path.read_text(encoding="utf-8"))
             self.assertEqual(summary["llm"]["calls_total"], 2)
             self.assertEqual(summary["llm"]["calls_by_agent"]["dc_setter"], 2)

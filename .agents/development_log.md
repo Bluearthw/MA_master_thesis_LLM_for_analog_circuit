@@ -11,3 +11,8 @@
 - Reused recursive NumPy conversion for JSON-safe DC Setter candidate logs.
 - Added two-round DC Setter refinement: simulate defaults, propose two candidates, feed results back, and propose two refinements.
 - Made the complete DC Setter log payload JSON-safe, including rejected candidates and round feedback.
+
+## 2026-07-13
+
+- Grouped new solution and figure artifacts under `<root>/<circuit>/<run_id>/`.
+- Kept category memory at `solutions/category_memory/` and retained legacy flat-run lookup.

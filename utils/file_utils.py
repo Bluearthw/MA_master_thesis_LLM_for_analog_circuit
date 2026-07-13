@@ -9,9 +9,18 @@ sys.path.append(".")
 from genai_agent.data import local_config
 
 # region for saving ############################
-def save_solutions_csv(run_id, simulation_step, circuit_params, specs, reward):
+def save_solutions_csv(
+    run_id,
+    simulation_step,
+    circuit_params,
+    specs,
+    reward,
+    solutions_dir=None,
+):
     # Define the CSV file name based on the run_id to keep it unique
-    csv_file_name = f'./solutions/{run_id}/{run_id}.csv'
+    run_dir = Path(solutions_dir) if solutions_dir is not None else Path("solutions") / str(run_id)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    csv_file_name = str(run_dir / f"{run_id}.csv")
     # Define the header for the CSV file
     header = ['Simulation step', 'Specs', 'Circuit Params', 'Reward']
     # Prepare the data to be written
@@ -209,4 +218,3 @@ def delete_all_files_except_dir(folder_path):
     print(f"Deleted {deleted_count} file(s).")
     if failed_count > 0:
         print(f"Failed to delete {failed_count} file(s).")        
-

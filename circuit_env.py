@@ -10,6 +10,7 @@ import time
 import utils.file_utils as file_utils
 from ngspice_interface import DUT as DUT_NGSpice
 from utils.plotting import plotLearning, plot_running_maximum, solutions2pareto
+from utils.run_paths import run_artifact_dir
 # from genai_agent.data.local_config import list_targets_to_min
 
 class CircuitEnv(gym.Env):
@@ -28,8 +29,12 @@ class CircuitEnv(gym.Env):
         yaml_directory = os.path.join(project_path, f"{simulator}_interface", 'files', 'yaml_files')
         circuit_yaml_path = os.path.join(yaml_directory, f'{circuit_name}.yaml')
         self.output_files_dir = os.path.join(project_path, "no_backup", "output_files")
-        self.output_figs_dir = os.path.join(project_path, "output_figs", str(self.run_id))
-        self.solutions_dir = os.path.join(project_path, "solutions", str(self.run_id))
+        self.output_figs_dir = str(
+            run_artifact_dir(os.path.join(project_path, "output_figs"), circuit_name, self.run_id)
+        )
+        self.solutions_dir = str(
+            run_artifact_dir(os.path.join(project_path, "solutions"), circuit_name, self.run_id)
+        )
         self.all_rl_cir_dir = os.path.join(self.solutions_dir, "allRLcir")
         self.best_netlist_target_path = os.path.join(    self.solutions_dir, "best_so_far.cir")
         self.best_metadata_path = os.path.join(    self.solutions_dir, "best_so_far.json")
@@ -406,7 +411,11 @@ class CircuitEnv(gym.Env):
 
 
         if hard_satisfied:
-            plot_running_maximum(self.reward_history, self.run_id)
+            plot_running_maximum(
+                self.reward_history,
+                self.run_id,
+                output_dir=self.output_figs_dir,
+            )
 
         self.env_steps += 1
         self.episode_steps += 1
@@ -415,7 +424,11 @@ class CircuitEnv(gym.Env):
 
         if self.env_steps % 10 == 0:
             self.score_history.append(self.score)
-            plotLearning(self.score_history, self.run_id)
+            plotLearning(
+                self.score_history,
+                self.run_id,
+                output_dir=self.output_figs_dir,
+            )
             self.score = 0.0
 
         info = {'goal_reached': hard_satisfied}
@@ -447,8 +460,14 @@ class CircuitEnv(gym.Env):
             self.param_values,
             self.real_specs,
             reward,
+            solutions_dir=self.solutions_dir,
         )
-        solutions2pareto(csv_name, self.run_id, True)
+        solutions2pareto(
+            csv_name,
+            self.run_id,
+            True,
+            output_dir=self.output_figs_dir,
+        )
         try:
             netlist_path = getattr(self.simulation_engine, "netlist_path", None)
             if netlist_path and os.path.isfile(netlist_path):

@@ -2,6 +2,8 @@ import argparse
 import json
 from pathlib import Path
 
+from utils.run_paths import resolve_solution_run_dir
+
 
 def _read_json(path):
     if not path.is_file():
@@ -10,8 +12,8 @@ def _read_json(path):
         return json.load(file)
 
 
-def _load_run(solutions_dir, run_id):
-    run_dir = solutions_dir / run_id
+def _load_run(solutions_dir, run_id, circuit_name=None):
+    run_dir = resolve_solution_run_dir(solutions_dir, run_id, circuit_name=circuit_name)
     summary = _read_json(run_dir / "run_summary.json") or {}
     rl_summary = summary.get("rl", summary)
     best = _read_json(run_dir / "best_so_far.json") or {}
@@ -81,11 +83,15 @@ def main():
     parser = argparse.ArgumentParser(description="Summarize TD3 comparison runs.")
     parser.add_argument("run_ids", nargs="+", help="solution run IDs to compare")
     parser.add_argument("--solutions_dir", default="solutions", help="solutions directory")
+    parser.add_argument("--circuit", default=None, help="optional circuit directory name")
     parser.add_argument("--output", default=None, help="optional markdown output path")
     args = parser.parse_args()
 
     solutions_dir = Path(args.solutions_dir)
-    rows = [_load_run(solutions_dir, run_id) for run_id in args.run_ids]
+    rows = [
+        _load_run(solutions_dir, run_id, circuit_name=args.circuit)
+        for run_id in args.run_ids
+    ]
     markdown = build_markdown(rows)
     print(markdown)
 

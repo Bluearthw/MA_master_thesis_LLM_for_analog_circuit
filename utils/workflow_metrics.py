@@ -1,9 +1,15 @@
 import json
 from pathlib import Path
 
+from utils.run_paths import resolve_solution_run_dir, run_artifact_dir
 
-def _summary_path(run_id, solutions_dir="solutions"):
-    return Path(solutions_dir) / str(run_id) / "run_summary.json"
+
+def _summary_path(run_id, circuit_name=None, solutions_dir="solutions"):
+    if circuit_name is None:
+        run_dir = resolve_solution_run_dir(solutions_dir, run_id)
+    else:
+        run_dir = run_artifact_dir(solutions_dir, circuit_name, run_id)
+    return run_dir / "run_summary.json"
 
 
 def _load_summary(path):
@@ -27,7 +33,7 @@ def record_llm_call(run_id, agent_name, circuit_name=None, mode=None, solutions_
     if not run_id or not agent_name:
         return
 
-    path = _summary_path(run_id, solutions_dir=solutions_dir)
+    path = _summary_path(run_id, circuit_name=circuit_name, solutions_dir=solutions_dir)
     summary = _load_summary(path)
     summary.setdefault("run_id", str(run_id))
     if circuit_name is not None:
@@ -44,12 +50,18 @@ def record_llm_call(run_id, agent_name, circuit_name=None, mode=None, solutions_
     _save_summary(path, summary)
 
 
-def record_llm_duration(run_id, agent_name, duration_seconds, solutions_dir="solutions"):
+def record_llm_duration(
+    run_id,
+    agent_name,
+    duration_seconds,
+    circuit_name=None,
+    solutions_dir="solutions",
+):
     """Accumulate model-request duration for one LLM call attempt."""
     if not run_id or not agent_name:
         return
 
-    path = _summary_path(run_id, solutions_dir=solutions_dir)
+    path = _summary_path(run_id, circuit_name=circuit_name, solutions_dir=solutions_dir)
     summary = _load_summary(path)
     llm = summary.setdefault("llm", {})
     duration = max(0.0, float(duration_seconds))

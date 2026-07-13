@@ -3,9 +3,12 @@ import numpy as np
 from typing import List, Dict
 import pandas as pd
 import matplotlib
+from pathlib import Path
 
-def plotLearning(scores, run_id):
-    filename = f'./output_figs/{run_id}/average_score.png'
+def plotLearning(scores, run_id, output_dir=None):
+    run_dir = Path(output_dir) if output_dir is not None else Path("output_figs") / str(run_id)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    filename = run_dir / "average_score.png"
     N = len(scores)
     # Calculate the running average of scores
     running_avg = np.zeros(N)
@@ -24,8 +27,10 @@ def plotLearning(scores, run_id):
     plt.savefig(filename)
     plt.close()
 
-def plot_running_maximum(data, run_id):
-    file_name = f'./output_figs/{run_id}/max_reward.png'
+def plot_running_maximum(data, run_id, output_dir=None):
+    run_dir = Path(output_dir) if output_dir is not None else Path("output_figs") / str(run_id)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    file_name = run_dir / "max_reward.png"
     running_max = float('-inf')  # Initialize running maximum to negative infinity
     running_max_values = []
 
@@ -88,8 +93,10 @@ def plot_pareto_front(solutions: List[Dict[str, float]], fname, show_all=False) 
     plt.close()
 
 
-def solutions2pareto(csv_fname, run_id, show_all=False):
-    plot_fname = f'./output_figs/{run_id}/pareto.png'
+def solutions2pareto(csv_fname, run_id, show_all=False, output_dir=None):
+    run_dir = Path(output_dir) if output_dir is not None else Path("output_figs") / str(run_id)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    plot_fname = run_dir / "pareto.png"
     df = pd.read_csv(csv_fname)
     solutions = df['Specs'].apply(eval).tolist()
     plot_pareto_front(solutions, plot_fname, show_all)
